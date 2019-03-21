@@ -19,7 +19,7 @@ PMPATH1  = /usr/lib/pm-utils/sleep.d
 PMPATH2  = /usr/lib64/pm-utils/sleep.d
 PMPATHD  = /usr/lib/systemd/system-sleep
 
-CFLAGS  += -O2 -I. -Wall  # -DNOPERFEVENT   # -DHTTPSTATS
+CFLAGS  += -O2 -I. -Wall -g  # -DNOPERFEVENT   # -DHTTPSTATS
 OBJMOD0  = version.o
 OBJMOD1  = various.o  deviate.o   procdbase.o
 OBJMOD2  = acctproc.o photoproc.o photosyst.o  rawlog.o ifprop.o parseable.o
@@ -144,18 +144,22 @@ genericinstall:	atop atopacctd atopconvert
 		then	mkdir -p $(DESTDIR)$(ROTPATH);	fi
 		#
 		cp atop   		$(DESTDIR)$(BINPATH)/atop
+		strip   		$(DESTDIR)$(BINPATH)/atop
 		chown root		$(DESTDIR)$(BINPATH)/atop
 		chmod 04711 		$(DESTDIR)$(BINPATH)/atop
 		ln -sf atop             $(DESTDIR)$(BINPATH)/atopsar
 		cp atopacctd  		$(DESTDIR)$(SBINPATH)/atopacctd
+		strip  			$(DESTDIR)$(SBINPATH)/atopacctd
 		chown root		$(DESTDIR)$(SBINPATH)/atopacctd
 		chmod 0700 		$(DESTDIR)$(SBINPATH)/atopacctd
 		cp atopgpud  		$(DESTDIR)$(SBINPATH)/atopgpud
 		chown root		$(DESTDIR)$(SBINPATH)/atopgpud
 		chmod 0700 		$(DESTDIR)$(SBINPATH)/atopgpud
 		cp atop   		$(DESTDIR)$(BINPATH)/atop-$(VERS)
+		strip   		$(DESTDIR)$(BINPATH)/atop-$(VERS)
 		ln -sf atop-$(VERS)     $(DESTDIR)$(BINPATH)/atopsar-$(VERS)
 		cp atopconvert 		$(DESTDIR)$(BINPATH)/atopconvert
+		strip 			$(DESTDIR)$(BINPATH)/atopconvert
 		chown root		$(DESTDIR)$(BINPATH)/atopconvert
 		chmod 0711 		$(DESTDIR)$(BINPATH)/atopconvert
 		cp atop.daily    	$(DESTDIR)$(SCRPATH)
