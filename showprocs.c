@@ -1,5 +1,5 @@
 /*
-** ATOP - System & Process Monitor 
+** ATOP - System & Process Monitor
 **
 ** The program 'atop' offers the possibility to view the activity of
 ** the system on system-level as well as process-level.
@@ -117,17 +117,17 @@ static char     *columnhead[] = {
 
 
 /***************************************************************/
-static int *colspacings;     // ugly static var, 
-                             // but saves a lot of recomputations
-                             // points to table with intercolumn 
-                             // spacings
+static int *colspacings;     // ugly static var,
+// but saves a lot of recomputations
+// points to table with intercolumn
+// spacings
 static proc_printpair newelems[MAXITEMS];
-                             // ugly static var,
-                             // but saves a lot of recomputations
-                             // contains the actual list of items to
-                             // be printed
-                             //
-                             //
+// ugly static var,
+// but saves a lot of recomputations
+// contains the actual list of items to
+// be printed
+//
+//
 /***************************************************************/
 /*
  * gettotwidth: calculate the sum of widths and number of columns
@@ -140,22 +140,21 @@ static proc_printpair newelems[MAXITEMS];
  * varwidth: (ref) returns the number of variable width items in the array
  */
 void
-gettotwidth(proc_printpair* elemptr, int *nitems, int *sumwidth, int* varwidth) 
+gettotwidth(proc_printpair* elemptr, int *nitems, int *sumwidth, int* varwidth)
 {
-        int i;
-        int col;
-        int varw=0;
+	int i;
+	int col;
+	int varw=0;
 
-        for (i=0, col=0; elemptr[i].f!=0; ++i) 
-        {
-                col += (elemptr[i].f->varwidth ? 0 : elemptr[i].f->width);
-                varw += elemptr[i].f->varwidth;
-                newelems[i]=elemptr[i];    // copy element
-        }
-        newelems[i].f=0;
-        *nitems=i;
-        *sumwidth=col;
-        *varwidth=varw;
+	for (i=0, col=0; elemptr[i].f!=0; ++i) {
+		col += (elemptr[i].f->varwidth ? 0 : elemptr[i].f->width);
+		varw += elemptr[i].f->varwidth;
+		newelems[i]=elemptr[i];    // copy element
+	}
+	newelems[i].f=0;
+	*nitems=i;
+	*sumwidth=col;
+	*varwidth=varw;
 }
 
 
@@ -172,92 +171,84 @@ gettotwidth(proc_printpair* elemptr, int *nitems, int *sumwidth, int* varwidth)
  * Note: this function is only to be called when screen is true.
  */
 int *
-getspacings(proc_printpair* elemptr) 
+getspacings(proc_printpair* elemptr)
 {
-        static int spacings[MAXITEMS];
+	static int spacings[MAXITEMS];
 
-        int col=0;
-        int nitems;
-        int varwidth=0;
-        int j;
-        int maxw=screen ? COLS : linelen;    // for non screen: 80 columns max
+	int col=0;
+	int nitems;
+	int varwidth=0;
+	int j;
+	int maxw=screen ? COLS : linelen;    // for non screen: 80 columns max
 
-        // get width etc; copy elemptr array to static newelms
-        gettotwidth(elemptr, &nitems, &col, &varwidth);
+	// get width etc; copy elemptr array to static newelms
+	gettotwidth(elemptr, &nitems, &col, &varwidth);
 
-        /* cases:
-         *   1) nitems==1: just one column, no spacing needed.  Done
-         *
-         *   2) total width is more than COLS: remove low prio columns
-         *      2a)  a varwidth column: no spacing needed
-         *      2b)  total width is less than COLS: compute inter spacing
-         */
+	/* cases:
+	 *   1) nitems==1: just one column, no spacing needed.  Done
+	 *
+	 *   2) total width is more than COLS: remove low prio columns
+	 *      2a)  a varwidth column: no spacing needed
+	 *      2b)  total width is less than COLS: compute inter spacing
+	 */
 
-        if (nitems==1)          // no inter column spacing if 1 column
-        {
-                spacings[0]=0;
-                return spacings;
-        }
+	if (nitems==1) {        // no inter column spacing if 1 column
+		spacings[0]=0;
+		return spacings;
+	}
 
-        // Check if available width is less than required.
-        // If so, delete columns to make things fit
-        // space required:
-        // width + (nitems-1) * 1 space + 12 for a varwidth column.
-        while (col + nitems-1+ 12*varwidth > maxw)  
-        {    
-                int lowestprio=999999;
-                int lowestprio_index=-1;
-                int i;
-                for (i=0; i<nitems; ++i) 
-                {
-                        if (newelems[i].prio < lowestprio) 
-                        {
-                                lowestprio=newelems[i].prio;
-                                lowestprio_index=i;
-                        }
-                }
-                
-                // lowest priority item found, remove from newelems;
-                col -= newelems[lowestprio_index].f->width;
-                varwidth -= newelems[lowestprio_index].f->varwidth;
-                memmove(newelems+lowestprio_index, 
-                        newelems+lowestprio_index+1, 
-                        (nitems-lowestprio_index)* sizeof(proc_printpair));   
-                       // also copies final 0 entry
-                nitems--;
-        }
+	// Check if available width is less than required.
+	// If so, delete columns to make things fit
+	// space required:
+	// width + (nitems-1) * 1 space + 12 for a varwidth column.
+	while (col + nitems-1+ 12*varwidth > maxw) {
+		int lowestprio=999999;
+		int lowestprio_index=-1;
+		int i;
+		for (i=0; i<nitems; ++i) {
+			if (newelems[i].prio < lowestprio) {
+				lowestprio=newelems[i].prio;
+				lowestprio_index=i;
+			}
+		}
+
+		// lowest priority item found, remove from newelems;
+		col -= newelems[lowestprio_index].f->width;
+		varwidth -= newelems[lowestprio_index].f->varwidth;
+		memmove(newelems+lowestprio_index,
+		        newelems+lowestprio_index+1,
+		        (nitems-lowestprio_index)* sizeof(proc_printpair));
+		// also copies final 0 entry
+		nitems--;
+	}
 
 
-        /* if there is a var width column, handle that separately */
-        if (varwidth) 
-        {
-                for (j=0; j<nitems; ++j) 
-                {
-                        spacings[j]=1;
-                        if (elemptr[j].f->varwidth)
-                        {
-                                elemptr[j].f->width=maxw-col-(nitems-1);
-                                // only nitems-1 in-between spaces
-                                // needed
-                        }
+	/* if there is a var width column, handle that separately */
+	if (varwidth) {
+		for (j=0; j<nitems; ++j) {
+			spacings[j]=1;
+			if (elemptr[j].f->varwidth) {
+				elemptr[j].f->width=maxw-col-(nitems-1);
+				// only nitems-1 in-between spaces
+				// needed
+			}
 
-                }
-                return spacings;
-        }
+		}
+		return spacings;
+	}
 
 
-        /* fixed columns, spread whitespace over columns */
-        double over=(0.0+maxw-col)/(nitems-1);
-        double todo=over;
+	/* fixed columns, spread whitespace over columns */
+	double over=(0.0+maxw-col)/(nitems-1);
+	double todo=over;
 
-        for (j=0; j<nitems-1; ++j)   // last column gets no space appended
-        {
-                spacings[j]=(int)todo+0.5;
-                todo-=spacings[j];
-                todo+=over;
-        }
-        spacings[j]=0;
-        return spacings;
+	for (j=0; j<nitems-1; ++j) { // last column gets no space appended
+		spacings[j]=(int)todo+0.5;
+		todo-=spacings[j];
+		todo+=over;
+	}
+	spacings[j]=0;
+	return spacings;
 }
 
 
@@ -267,81 +258,69 @@ getspacings(proc_printpair* elemptr)
  * if in interactive mode, columns are aligned to fill out rows
  */
 void
-showhdrline(proc_printpair* elemptr, int curlist, int totlist, 
-                  char showorder, char autosort) 
+showhdrline(proc_printpair* elemptr, int curlist, int totlist,
+            char showorder, char autosort)
 {
-        proc_printpair curelem;
+	proc_printpair curelem;
 
-        char *chead="";
-        char *autoindic="";
-        int order=showorder;
-        int col=0;
-        int allign;
-        char pagindic[10];
-        int pagindiclen;
-        int n=0;
-        int bufsz;
-        int maxw=screen ? COLS : linelen;    // for non screen: 80 columns max
+	char *chead="";
+	char *autoindic="";
+	int order=showorder;
+	int col=0;
+	int allign;
+	char pagindic[10];
+	int pagindiclen;
+	int n=0;
+	int bufsz;
+	int maxw=screen ? COLS : linelen;    // for non screen: 80 columns max
 
-        colspacings=getspacings(elemptr);
-        bufsz=maxw+1;
+	colspacings=getspacings(elemptr);
+	bufsz=maxw+1;
 
-        elemptr=newelems;     // point to adjusted array
-        char buf[bufsz+2];    // long live dynamically sized auto arrays...
-        
-        if (!screen) 
-        {
-                printg("\n");
-        }
+	elemptr=newelems;     // point to adjusted array
+	char buf[bufsz+2];    // long live dynamically sized auto arrays...
 
-        while ((curelem=*elemptr).f!=0) 
-        {
-                if (curelem.f->head==0)     // empty header==special: SORTITEM
-                {
-                        chead=columnhead[order];
-                        autoindic= autosort ? "A" : " ";
-                } 
-                else 
-                {
-                        chead=curelem.f->head;
-                        autoindic="";
-                }
+	if (!screen) {
+		printg("\n");
+	}
 
-                if (screen)
-                {
-                        col += sprintf(buf+col, "%s%s%*s", autoindic, chead,
-                              colspacings[n], "");
-                }
-                else
-                {
-                        col += sprintf(buf+col, "%s%s ", autoindic, chead);
-                }
-                              
-                elemptr++;
-                n++;
-        }
+	while ((curelem=*elemptr).f!=0) {
+		if (curelem.f->head==0) {   // empty header==special: SORTITEM
+			chead=columnhead[order];
+			autoindic= autosort ? "A" : " ";
+		} else {
+			chead=curelem.f->head;
+			autoindic="";
+		}
 
-        if (screen)   // add page number, eat from last header if needed...
-        {
-                pagindiclen=sprintf(pagindic,"%d/%d", curlist, totlist);
-                allign=COLS-col-pagindiclen;    // extra spaces needed
-            
-                if (allign >= 0)     // allign by adding spaces
-                {
-                        sprintf(buf+col, "%*s", allign+pagindiclen, pagindic);
-                }
-                else
-                {    // allign by removing from the right
-                        sprintf(buf+col+allign, "%s", pagindic);
-                }
-        }
+		if (screen) {
+			col += sprintf(buf+col, "%s%s%*s", autoindic, chead,
+			               colspacings[n], "");
+		} else {
+			col += sprintf(buf+col, "%s%s ", autoindic, chead);
+		}
 
-        printg("%s", buf);
+		elemptr++;
+		n++;
+	}
 
-        if (!screen) 
-        {
-                printg("\n");
-        }
+	if (screen) { // add page number, eat from last header if needed...
+		pagindiclen=sprintf(pagindic,"%d/%d", curlist, totlist);
+		allign=COLS-col-pagindiclen;    // extra spaces needed
+
+		if (allign >= 0) {   // allign by adding spaces
+			sprintf(buf+col, "%*s", allign+pagindiclen, pagindic);
+		} else {
+			// allign by removing from the right
+			sprintf(buf+col+allign, "%s", pagindic);
+		}
+	}
+
+	printg("%s", buf);
+
+	if (!screen) {
+		printg("\n");
+	}
 }
 
 
@@ -358,77 +337,59 @@ showhdrline(proc_printpair* elemptr, int curlist, int totlist,
  *     avgval: is averaging out per second needed?
  */
 void
-showprocline(proc_printpair* elemptr, struct tstat *curstat, 
-                            double perc, int nsecs, int avgval) 
+showprocline(proc_printpair* elemptr, struct tstat *curstat,
+             double perc, int nsecs, int avgval)
 {
-        proc_printpair curelem;
-        
-        elemptr=newelems;      // point to static array
-        int n=0;
+	proc_printpair curelem;
 
-	if (screen && threadview)
-	{
-		if (usecolors && !curstat->gen.isproc)
-		{
+	elemptr=newelems;      // point to static array
+	int n=0;
+
+	if (screen && threadview) {
+		if (usecolors && !curstat->gen.isproc) {
 			attron(COLOR_PAIR(COLORTHR));
-		}
-		else
-		{
+		} else {
 			if (!usecolors && curstat->gen.isproc)
 				attron(A_BOLD);
 		}
 	}
 
-        while ((curelem=*elemptr).f!=0) 
-        {
-                // what to print?  SORTITEM, or active process or
-                // exited process?
+	while ((curelem=*elemptr).f!=0) {
+		// what to print?  SORTITEM, or active process or
+		// exited process?
 
-                if (curelem.f->head==0)                // empty string=sortitem
-                {
-                        printg("%3.0lf%%", perc);    // cannot pass perc
-                }
-                else if (curstat->gen.state != 'E')  // active process
-                {
-                        printg("%s", curelem.f->doactiveconvert(curstat, 
-                                                        avgval, nsecs));
-                }
-                else                                 // exited process
-                {
-                        printg("%s", curelem.f->doexitconvert(curstat, 
-                                                        avgval, nsecs));
-                }
-
-                if (screen)
-                {
-                        printg("%*s",colspacings[n], "");
-                }
-                else
-                {
-                        printg(" ");
-                }
-
-                elemptr++;
-                n++;
-        }
-
-	if (screen && threadview)
-	{
-		if (usecolors && !curstat->gen.isproc)
-		{
-			attroff(COLOR_PAIR(COLORTHR));
+		if (curelem.f->head==0) {              // empty string=sortitem
+			printg("%3.0lf%%", perc);    // cannot pass perc
+		} else if (curstat->gen.state != 'E') { // active process
+			printg("%s", curelem.f->doactiveconvert(curstat,
+			                                        avgval, nsecs));
+		} else {                             // exited process
+			printg("%s", curelem.f->doexitconvert(curstat,
+			                                      avgval, nsecs));
 		}
-		else
-		{
+
+		if (screen) {
+			printg("%*s",colspacings[n], "");
+		} else {
+			printg(" ");
+		}
+
+		elemptr++;
+		n++;
+	}
+
+	if (screen && threadview) {
+		if (usecolors && !curstat->gen.isproc) {
+			attroff(COLOR_PAIR(COLORTHR));
+		} else {
 			if (!usecolors && curstat->gen.isproc)
 				attroff(A_BOLD);
 		}
 	}
 
-        if (!screen) 
-        {
-                printg("\n");
-        }
+	if (!screen) {
+		printg("\n");
+	}
 }
 
 
@@ -438,444 +399,438 @@ showprocline(proc_printpair* elemptr, struct tstat *curstat,
 char *
 procprt_NOTAVAIL_4(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "   ?";
+	return "   ?";
 }
 
 char *
 procprt_NOTAVAIL_5(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    ?";
+	return "    ?";
 }
 
 char *
 procprt_NOTAVAIL_6(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "     ?";
+	return "     ?";
 }
 
 char *
 procprt_NOTAVAIL_7(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "      ?";
+	return "      ?";
 }
 /***************************************************************/
 char *
 procprt_TID_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
 	if (curstat->gen.isproc)
-        	sprintf(buf, "%*s", procprt_TID.width, "-");
+		sprintf(buf, "%*s", procprt_TID.width, "-");
 	else
-        	sprintf(buf, "%*d", procprt_TID.width, curstat->gen.pid);
-        return buf;
+		sprintf(buf, "%*d", procprt_TID.width, curstat->gen.pid);
+	return buf;
 }
 
-proc_printdef procprt_TID = 
-   { "TID", "TID", procprt_TID_ae, procprt_TID_ae, 5}; //DYNAMIC WIDTH!
+proc_printdef procprt_TID =
+{ "TID", "TID", procprt_TID_ae, procprt_TID_ae, 5}; //DYNAMIC WIDTH!
 /***************************************************************/
 char *
 procprt_PID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
-        sprintf(buf, "%*d", procprt_PID.width, curstat->gen.tgid);
-        return buf;
+	sprintf(buf, "%*d", procprt_PID.width, curstat->gen.tgid);
+	return buf;
 }
 
 char *
 procprt_PID_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
-        if (curstat->gen.pid == 0)
-        	sprintf(buf, "%*s", procprt_PID.width, "?");
+	if (curstat->gen.pid == 0)
+		sprintf(buf, "%*s", procprt_PID.width, "?");
 	else
-        	sprintf(buf, "%*d", procprt_PID.width, curstat->gen.tgid);
-        return buf;
+		sprintf(buf, "%*d", procprt_PID.width, curstat->gen.tgid);
+	return buf;
 }
 
-proc_printdef procprt_PID = 
-   { "PID", "PID", procprt_PID_a, procprt_PID_e, 5}; //DYNAMIC WIDTH!
+proc_printdef procprt_PID =
+{ "PID", "PID", procprt_PID_a, procprt_PID_e, 5}; //DYNAMIC WIDTH!
 /***************************************************************/
 char *
 procprt_PPID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
-        sprintf(buf, "%*d", procprt_PPID.width, curstat->gen.ppid);
-        return buf;
+	sprintf(buf, "%*d", procprt_PPID.width, curstat->gen.ppid);
+	return buf;
 }
 
 char *
 procprt_PPID_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
 	sprintf(buf, "%*s", procprt_PPID.width, "-");
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_PPID = 
-   { "PPID", "PPID", procprt_PPID_a, procprt_PPID_e, 5 }; //DYNAMIC WIDTH!
+proc_printdef procprt_PPID =
+{ "PPID", "PPID", procprt_PPID_a, procprt_PPID_e, 5 }; //DYNAMIC WIDTH!
 /***************************************************************/
 char *
 procprt_VPID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
-        sprintf(buf, "%*d", procprt_VPID.width, curstat->gen.vpid);
-        return buf;
+	sprintf(buf, "%*d", procprt_VPID.width, curstat->gen.vpid);
+	return buf;
 }
 
 char *
 procprt_VPID_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
 	sprintf(buf, "%*s", procprt_VPID.width, "-");
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_VPID = 
-   { "VPID", "VPID", procprt_VPID_a, procprt_VPID_e, 5 }; //DYNAMIC WIDTH!
+proc_printdef procprt_VPID =
+{ "VPID", "VPID", procprt_VPID_a, procprt_VPID_e, 5 }; //DYNAMIC WIDTH!
 /***************************************************************/
 char *
 procprt_CTID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[32];
+	static char buf[32];
 
-        sprintf(buf, "%5d", curstat->gen.ctid);
-        return buf;
+	sprintf(buf, "%5d", curstat->gen.ctid);
+	return buf;
 }
 
 char *
 procprt_CTID_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    -";
+	return "    -";
 }
 
-proc_printdef procprt_CTID = 
-   { " CTID", "CTID", procprt_CTID_a, procprt_CTID_e, 5 };
+proc_printdef procprt_CTID =
+{ " CTID", "CTID", procprt_CTID_a, procprt_CTID_e, 5 };
 /***************************************************************/
 char *
 procprt_CID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
 	if (curstat->gen.container[0])
-        	sprintf(buf, "%-12s", curstat->gen.container);
+		sprintf(buf, "%-12s", curstat->gen.container);
 	else
-        	sprintf(buf, "%-12s", "host--------");
+		sprintf(buf, "%-12s", "host--------");
 
-        return buf;
+	return buf;
 }
 
 char *
 procprt_CID_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[64];
+	static char buf[64];
 
 	if (curstat->gen.container[0])
-        	sprintf(buf, "%-12s", curstat->gen.container);
+		sprintf(buf, "%-12s", curstat->gen.container);
 	else
-        	sprintf(buf, "%-12s", "?");
+		sprintf(buf, "%-12s", "?");
 
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_CID = 
-   { "CID         ", "CID", procprt_CID_a, procprt_CID_e, 12};
+proc_printdef procprt_CID =
+{ "CID         ", "CID", procprt_CID_a, procprt_CID_e, 12};
 /***************************************************************/
 char *
 procprt_SYSCPU_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2cpustr(curstat->cpu.stime*1000/hertz, buf);
-        return buf;
+	val2cpustr(curstat->cpu.stime*1000/hertz, buf);
+	return buf;
 }
 
-proc_printdef procprt_SYSCPU = 
-   { "SYSCPU", "SYSCPU", procprt_SYSCPU_ae, procprt_SYSCPU_ae, 6 };
+proc_printdef procprt_SYSCPU =
+{ "SYSCPU", "SYSCPU", procprt_SYSCPU_ae, procprt_SYSCPU_ae, 6 };
 /***************************************************************/
 char *
 procprt_USRCPU_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2cpustr(curstat->cpu.utime*1000/hertz, buf);
-        return buf;
+	val2cpustr(curstat->cpu.utime*1000/hertz, buf);
+	return buf;
 }
 
-proc_printdef procprt_USRCPU = 
-   { "USRCPU", "USRCPU", procprt_USRCPU_ae, procprt_USRCPU_ae, 6 };
+proc_printdef procprt_USRCPU =
+{ "USRCPU", "USRCPU", procprt_USRCPU_ae, procprt_USRCPU_ae, 6 };
 /***************************************************************/
 char *
 procprt_VGROW_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vgrow*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vgrow*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_VGROW_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_VGROW = 
-   { " VGROW", "VGROW", procprt_VGROW_a, procprt_VGROW_e, 6 };
+proc_printdef procprt_VGROW =
+{ " VGROW", "VGROW", procprt_VGROW_a, procprt_VGROW_e, 6 };
 /***************************************************************/
 char *
 procprt_RGROW_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.rgrow*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.rgrow*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_RGROW_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_RGROW = 
-   { " RGROW", "RGROW", procprt_RGROW_a, procprt_RGROW_e, 6 };
+proc_printdef procprt_RGROW =
+{ " RGROW", "RGROW", procprt_RGROW_a, procprt_RGROW_e, 6 };
 /***************************************************************/
 char *
 procprt_MINFLT_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2valstr(curstat->mem.minflt, buf, 6, avgval, nsecs);
-        return buf;
+	val2valstr(curstat->mem.minflt, buf, 6, avgval, nsecs);
+	return buf;
 }
 
-proc_printdef procprt_MINFLT = 
-   { "MINFLT", "MINFLT", procprt_MINFLT_ae, procprt_MINFLT_ae, 6 };
+proc_printdef procprt_MINFLT =
+{ "MINFLT", "MINFLT", procprt_MINFLT_ae, procprt_MINFLT_ae, 6 };
 /***************************************************************/
 char *
 procprt_MAJFLT_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2valstr(curstat->mem.majflt, buf, 6, avgval, nsecs);
-        return buf;
+	val2valstr(curstat->mem.majflt, buf, 6, avgval, nsecs);
+	return buf;
 }
 
-proc_printdef procprt_MAJFLT = 
-   { "MAJFLT", "MAJFLT", procprt_MAJFLT_ae, procprt_MAJFLT_ae, 6 };
+proc_printdef procprt_MAJFLT =
+{ "MAJFLT", "MAJFLT", procprt_MAJFLT_ae, procprt_MAJFLT_ae, 6 };
 /***************************************************************/
 char *
 procprt_VSTEXT_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vexec*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vexec*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_VSTEXT_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_VSTEXT = 
-   { "VSTEXT", "VSTEXT", procprt_VSTEXT_a, procprt_VSTEXT_e, 6 };
+proc_printdef procprt_VSTEXT =
+{ "VSTEXT", "VSTEXT", procprt_VSTEXT_a, procprt_VSTEXT_e, 6 };
 /***************************************************************/
 char *
 procprt_VSIZE_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vmem*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vmem*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_VSIZE_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_VSIZE = 
-   { " VSIZE", "VSIZE", procprt_VSIZE_a, procprt_VSIZE_e, 6 };
+proc_printdef procprt_VSIZE =
+{ " VSIZE", "VSIZE", procprt_VSIZE_a, procprt_VSIZE_e, 6 };
 /***************************************************************/
 char *
 procprt_RSIZE_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.rmem*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.rmem*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_RSIZE_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_RSIZE = 
-   { " RSIZE", "RSIZE", procprt_RSIZE_a, procprt_RSIZE_e, 6 };
+proc_printdef procprt_RSIZE =
+{ " RSIZE", "RSIZE", procprt_RSIZE_a, procprt_RSIZE_e, 6 };
 /***************************************************************/
 char *
 procprt_PSIZE_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-	if (curstat->mem.pmem == (unsigned long long)-1LL)	
-        	return "    ?K";
+	if (curstat->mem.pmem == (unsigned long long)-1LL)
+		return "    ?K";
 
-       	val2memstr(curstat->mem.pmem*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.pmem*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_PSIZE_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_PSIZE = 
-   { " PSIZE", "PSIZE", procprt_PSIZE_a, procprt_PSIZE_e, 6 };
+proc_printdef procprt_PSIZE =
+{ " PSIZE", "PSIZE", procprt_PSIZE_a, procprt_PSIZE_e, 6 };
 /***************************************************************/
 char *
 procprt_VSLIBS_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vlibs*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vlibs*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_VSLIBS_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_VSLIBS = 
-   { "VSLIBS", "VSLIBS", procprt_VSLIBS_a, procprt_VSLIBS_e, 6 };
+proc_printdef procprt_VSLIBS =
+{ "VSLIBS", "VSLIBS", procprt_VSLIBS_a, procprt_VSLIBS_e, 6 };
 /***************************************************************/
 char *
 procprt_VDATA_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vdata*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vdata*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_VDATA_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_VDATA = 
-   { " VDATA", "VDATA", procprt_VDATA_a, procprt_VDATA_e, 6 };
+proc_printdef procprt_VDATA =
+{ " VDATA", "VDATA", procprt_VDATA_a, procprt_VDATA_e, 6 };
 /***************************************************************/
 char *
 procprt_VSTACK_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vstack*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vstack*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_VSTACK_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_VSTACK = 
-   { "VSTACK", "VSTACK", procprt_VSTACK_a, procprt_VSTACK_e, 6 };
+proc_printdef procprt_VSTACK =
+{ "VSTACK", "VSTACK", procprt_VSTACK_a, procprt_VSTACK_e, 6 };
 /***************************************************************/
 char *
 procprt_SWAPSZ_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->mem.vswap*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->mem.vswap*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
 char *
 procprt_SWAPSZ_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0K";
+	return "    0K";
 }
 
-proc_printdef procprt_SWAPSZ = 
-   { "SWAPSZ", "SWAPSZ", procprt_SWAPSZ_a, procprt_SWAPSZ_e, 6 };
+proc_printdef procprt_SWAPSZ =
+{ "SWAPSZ", "SWAPSZ", procprt_SWAPSZ_a, procprt_SWAPSZ_e, 6 };
 /***************************************************************/
 char *
 procprt_CMD_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%-14.14s", curstat->gen.name);
-        return buf;
+	sprintf(buf, "%-14.14s", curstat->gen.name);
+	return buf;
 }
 
 char *
 procprt_CMD_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15]="<";
-        char        helpbuf[15];
+	static char buf[15]="<";
+	char        helpbuf[15];
 
-        sprintf(helpbuf, "<%.12s>",  curstat->gen.name);
-        sprintf(buf,     "%-14.14s", helpbuf);
-        return buf;
+	sprintf(helpbuf, "<%.12s>",  curstat->gen.name);
+	sprintf(buf,     "%-14.14s", helpbuf);
+	return buf;
 }
 
-proc_printdef procprt_CMD = 
-   { "CMD           ", "CMD", procprt_CMD_a, procprt_CMD_e, 14 };
+proc_printdef procprt_CMD =
+{ "CMD           ", "CMD", procprt_CMD_a, procprt_CMD_e, 14 };
 /***************************************************************/
 char *
 procprt_RUID_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
-        struct passwd   *pwd;
+	static char buf[9];
+	struct passwd   *pwd;
 
-        if ( (pwd = getpwuid(curstat->gen.ruid)) )
-        {
-                        sprintf(buf, "%-8.8s", pwd->pw_name);
-        } 
-        else 
-        {
-                        snprintf(buf, sizeof buf, "%-8d", curstat->gen.ruid);
-        }
-        return buf;
+	if ( (pwd = getpwuid(curstat->gen.ruid)) ) {
+		sprintf(buf, "%-8.8s", pwd->pw_name);
+	} else {
+		snprintf(buf, sizeof buf, "%-8d", curstat->gen.ruid);
+	}
+	return buf;
 }
 
-proc_printdef procprt_RUID = 
-   { "RUID    ", "RUID", procprt_RUID_ae, procprt_RUID_ae, 8 };
+proc_printdef procprt_RUID =
+{ "RUID    ", "RUID", procprt_RUID_ae, procprt_RUID_ae, 8 };
 /***************************************************************/
 char *
 procprt_EUID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
-        struct passwd   *pwd;
+	static char buf[9];
+	struct passwd   *pwd;
 
-        if ( (pwd = getpwuid(curstat->gen.euid)) )
-        {
-                        sprintf(buf, "%-8.8s", pwd->pw_name);
-        } 
-        else 
-        {
-                        snprintf(buf, sizeof buf, "%-8d", curstat->gen.euid);
-        }
-        return buf;
+	if ( (pwd = getpwuid(curstat->gen.euid)) ) {
+		sprintf(buf, "%-8.8s", pwd->pw_name);
+	} else {
+		snprintf(buf, sizeof buf, "%-8d", curstat->gen.euid);
+	}
+	return buf;
 }
 
 char *
@@ -884,24 +839,21 @@ procprt_EUID_e(struct tstat *curstat, int avgval, int nsecs)
 	return "-       ";
 }
 
-proc_printdef procprt_EUID = 
-   { "EUID    ", "EUID", procprt_EUID_a, procprt_EUID_e, 8 };
+proc_printdef procprt_EUID =
+{ "EUID    ", "EUID", procprt_EUID_a, procprt_EUID_e, 8 };
 /***************************************************************/
 char *
 procprt_SUID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
-        struct passwd   *pwd;
+	static char buf[9];
+	struct passwd   *pwd;
 
-        if ( (pwd = getpwuid(curstat->gen.suid)) )
-        {
-                        sprintf(buf, "%-8.8s", pwd->pw_name);
-        } 
-        else 
-        {
-                        snprintf(buf, sizeof buf, "%-8d", curstat->gen.suid);
-        }
-        return buf;
+	if ( (pwd = getpwuid(curstat->gen.suid)) ) {
+		sprintf(buf, "%-8.8s", pwd->pw_name);
+	} else {
+		snprintf(buf, sizeof buf, "%-8d", curstat->gen.suid);
+	}
+	return buf;
 }
 
 char *
@@ -910,24 +862,21 @@ procprt_SUID_e(struct tstat *curstat, int avgval, int nsecs)
 	return "-       ";
 }
 
-proc_printdef procprt_SUID = 
-   { "SUID    ", "SUID", procprt_SUID_a, procprt_SUID_e, 8 };
+proc_printdef procprt_SUID =
+{ "SUID    ", "SUID", procprt_SUID_a, procprt_SUID_e, 8 };
 /***************************************************************/
 char *
 procprt_FSUID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
-        struct passwd   *pwd;
+	static char buf[9];
+	struct passwd   *pwd;
 
-        if ( (pwd = getpwuid(curstat->gen.fsuid)) )
-        {
-                        sprintf(buf, "%-8.8s", pwd->pw_name);
-        } 
-        else 
-        {
-                        snprintf(buf, sizeof buf, "%-8d", curstat->gen.fsuid);
-        }
-        return buf;
+	if ( (pwd = getpwuid(curstat->gen.fsuid)) ) {
+		sprintf(buf, "%-8.8s", pwd->pw_name);
+	} else {
+		snprintf(buf, sizeof buf, "%-8d", curstat->gen.fsuid);
+	}
+	return buf;
 }
 
 char *
@@ -936,54 +885,48 @@ procprt_FSUID_e(struct tstat *curstat, int avgval, int nsecs)
 	return "-       ";
 }
 
-proc_printdef procprt_FSUID = 
-   { "FSUID   ", "FSUID", procprt_FSUID_a, procprt_FSUID_e, 8 };
+proc_printdef procprt_FSUID =
+{ "FSUID   ", "FSUID", procprt_FSUID_a, procprt_FSUID_e, 8 };
 /***************************************************************/
 char *
 procprt_RGID_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        struct group    *grp;
-        char *groupname;
-        char grname[16];
+	static char buf[10];
+	struct group    *grp;
+	char *groupname;
+	char grname[16];
 
-        if ( (grp = getgrgid(curstat->gen.rgid)) )
-        {
-                        groupname = grp->gr_name;
-        }
-        else
-        {
-                        snprintf(grname, sizeof grname, "%d",curstat->gen.rgid);
-                        groupname = grname;
-        }
+	if ( (grp = getgrgid(curstat->gen.rgid)) ) {
+		groupname = grp->gr_name;
+	} else {
+		snprintf(grname, sizeof grname, "%d",curstat->gen.rgid);
+		groupname = grname;
+	}
 
-        sprintf(buf, "%-8.8s", groupname);
-        return buf;
+	sprintf(buf, "%-8.8s", groupname);
+	return buf;
 }
 
-proc_printdef procprt_RGID = 
-   { "RGID    ", "RGID", procprt_RGID_ae, procprt_RGID_ae, 8 };
+proc_printdef procprt_RGID =
+{ "RGID    ", "RGID", procprt_RGID_ae, procprt_RGID_ae, 8 };
 /***************************************************************/
 char *
 procprt_EGID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        struct group    *grp;
-        char *groupname;
-        char grname[16];
+	static char buf[10];
+	struct group    *grp;
+	char *groupname;
+	char grname[16];
 
-        if ( (grp = getgrgid(curstat->gen.egid)) )
-        {
-                        groupname = grp->gr_name;
-        }
-        else
-        {
-                        snprintf(grname, sizeof grname, "%d",curstat->gen.egid);
-                        groupname = grname;
-        }
+	if ( (grp = getgrgid(curstat->gen.egid)) ) {
+		groupname = grp->gr_name;
+	} else {
+		snprintf(grname, sizeof grname, "%d",curstat->gen.egid);
+		groupname = grname;
+	}
 
-        sprintf(buf, "%-8.8s", groupname);
-        return buf;
+	sprintf(buf, "%-8.8s", groupname);
+	return buf;
 }
 
 char *
@@ -992,29 +935,26 @@ procprt_EGID_e(struct tstat *curstat, int avgval, int nsecs)
 	return "-       ";
 }
 
-proc_printdef procprt_EGID = 
-   { "EGID    ", "EGID", procprt_EGID_a, procprt_EGID_e, 8 };
+proc_printdef procprt_EGID =
+{ "EGID    ", "EGID", procprt_EGID_a, procprt_EGID_e, 8 };
 /***************************************************************/
 char *
 procprt_SGID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        struct group    *grp;
-        char *groupname;
-        char grname[16];
+	static char buf[10];
+	struct group    *grp;
+	char *groupname;
+	char grname[16];
 
-        if ( (grp = getgrgid(curstat->gen.sgid)) )
-        {
-                        groupname = grp->gr_name;
-        }
-        else
-        {
-                        snprintf(grname, sizeof grname, "%d",curstat->gen.sgid);
-                        groupname = grname;
-        }
+	if ( (grp = getgrgid(curstat->gen.sgid)) ) {
+		groupname = grp->gr_name;
+	} else {
+		snprintf(grname, sizeof grname, "%d",curstat->gen.sgid);
+		groupname = grname;
+	}
 
-        sprintf(buf, "%-8.8s", groupname);
-        return buf;
+	sprintf(buf, "%-8.8s", groupname);
+	return buf;
 }
 
 char *
@@ -1023,29 +963,26 @@ procprt_SGID_e(struct tstat *curstat, int avgval, int nsecs)
 	return "-       ";
 }
 
-proc_printdef procprt_SGID = 
-   { "SGID    ", "SGID", procprt_SGID_a, procprt_SGID_e, 8 };
+proc_printdef procprt_SGID =
+{ "SGID    ", "SGID", procprt_SGID_a, procprt_SGID_e, 8 };
 /***************************************************************/
 char *
 procprt_FSGID_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        struct group    *grp;
-        char *groupname;
-        char grname[16];
+	static char buf[10];
+	struct group    *grp;
+	char *groupname;
+	char grname[16];
 
-        if ( (grp = getgrgid(curstat->gen.fsgid)) )
-        {
-                        groupname = grp->gr_name;
-        }
-        else
-        {
-                        snprintf(grname, sizeof grname,"%d",curstat->gen.fsgid);
-                        groupname = grname;
-        }
+	if ( (grp = getgrgid(curstat->gen.fsgid)) ) {
+		groupname = grp->gr_name;
+	} else {
+		snprintf(grname, sizeof grname,"%d",curstat->gen.fsgid);
+		groupname = grname;
+	}
 
-        sprintf(buf, "%-8.8s", groupname);
-        return buf;
+	sprintf(buf, "%-8.8s", groupname);
+	return buf;
 }
 
 char *
@@ -1054,150 +991,150 @@ procprt_FSGID_e(struct tstat *curstat, int avgval, int nsecs)
 	return "-       ";
 }
 
-proc_printdef procprt_FSGID = 
-   { "FSGID   ", "FSGID", procprt_FSGID_a, procprt_FSGID_e, 8 };
+proc_printdef procprt_FSGID =
+{ "FSGID   ", "FSGID", procprt_FSGID_a, procprt_FSGID_e, 8 };
 /***************************************************************/
 char *
 procprt_STDATE_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[11];
+	static char buf[11];
 
-        convdate(curstat->gen.btime, buf);
-        return buf;
+	convdate(curstat->gen.btime, buf);
+	return buf;
 }
 
-proc_printdef procprt_STDATE = 
-   { "  STDATE  ", "STDATE", procprt_STDATE_ae, procprt_STDATE_ae, 10 };
+proc_printdef procprt_STDATE =
+{ "  STDATE  ", "STDATE", procprt_STDATE_ae, procprt_STDATE_ae, 10 };
 /***************************************************************/
 char *
 procprt_STTIME_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
+	static char buf[9];
 
-        convtime(curstat->gen.btime, buf);
-        return buf;
+	convtime(curstat->gen.btime, buf);
+	return buf;
 }
 
-proc_printdef procprt_STTIME = 
-   { " STTIME ", "STTIME", procprt_STTIME_ae, procprt_STTIME_ae, 8 };
+proc_printdef procprt_STTIME =
+{ " STTIME ", "STTIME", procprt_STTIME_ae, procprt_STTIME_ae, 8 };
 /***************************************************************/
 char *
 procprt_ENDATE_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[11];
+	static char buf[11];
 
 	strcpy(buf, "  active  ");
 
-        return buf;
+	return buf;
 }
 
 char *
 procprt_ENDATE_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[11];
+	static char buf[11];
 
-        convdate(curstat->gen.btime + curstat->gen.elaps/hertz, buf);
+	convdate(curstat->gen.btime + curstat->gen.elaps/hertz, buf);
 
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_ENDATE = 
-   { "  ENDATE  ", "ENDATE", procprt_ENDATE_a, procprt_ENDATE_e, 10 };
+proc_printdef procprt_ENDATE =
+{ "  ENDATE  ", "ENDATE", procprt_ENDATE_a, procprt_ENDATE_e, 10 };
 /***************************************************************/
 char *
 procprt_ENTIME_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
+	static char buf[9];
 
 	strcpy(buf, " active ");
 
-        return buf;
+	return buf;
 }
 
 char *
 procprt_ENTIME_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[9];
+	static char buf[9];
 
-        convtime(curstat->gen.btime + curstat->gen.elaps/hertz, buf);
+	convtime(curstat->gen.btime + curstat->gen.elaps/hertz, buf);
 
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_ENTIME = 
-   { " ENTIME ", "ENTIME", procprt_ENTIME_a, procprt_ENTIME_e, 8 };
+proc_printdef procprt_ENTIME =
+{ " ENTIME ", "ENTIME", procprt_ENTIME_a, procprt_ENTIME_e, 8 };
 /***************************************************************/
 char *
 procprt_THR_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%4d", curstat->gen.nthr);
-        return buf;
+	sprintf(buf, "%4d", curstat->gen.nthr);
+	return buf;
 }
 
 char *
 procprt_THR_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "   0";
+	return "   0";
 }
 
-proc_printdef procprt_THR = 
-   { " THR", "THR", procprt_THR_a, procprt_THR_e, 4 };
+proc_printdef procprt_THR =
+{ " THR", "THR", procprt_THR_a, procprt_THR_e, 4 };
 /***************************************************************/
 char *
 procprt_TRUN_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%4d", curstat->gen.nthrrun);
-        return buf;
+	sprintf(buf, "%4d", curstat->gen.nthrrun);
+	return buf;
 }
 
 char *
 procprt_TRUN_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "   0";
+	return "   0";
 }
 
-proc_printdef procprt_TRUN = 
-   { "TRUN", "TRUN", procprt_TRUN_a, procprt_TRUN_e, 4 };
+proc_printdef procprt_TRUN =
+{ "TRUN", "TRUN", procprt_TRUN_a, procprt_TRUN_e, 4 };
 /***************************************************************/
 char *
 procprt_TSLPI_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%5d", curstat->gen.nthrslpi);
-        return buf;
+	sprintf(buf, "%5d", curstat->gen.nthrslpi);
+	return buf;
 }
 
 char *
 procprt_TSLPI_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0";
+	return "    0";
 }
 
-proc_printdef procprt_TSLPI = 
-   { "TSLPI", "TSLPI", procprt_TSLPI_a, procprt_TSLPI_e, 5 };
+proc_printdef procprt_TSLPI =
+{ "TSLPI", "TSLPI", procprt_TSLPI_a, procprt_TSLPI_e, 5 };
 /***************************************************************/
 char *
 procprt_TSLPU_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%5d", curstat->gen.nthrslpu);
-        return buf;
+	sprintf(buf, "%5d", curstat->gen.nthrslpu);
+	return buf;
 }
 
 char *
 procprt_TSLPU_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    0";
+	return "    0";
 }
 
-proc_printdef procprt_TSLPU = 
-   { "TSLPU", "TSLPU", procprt_TSLPU_a, procprt_TSLPU_e, 5 };
+proc_printdef procprt_TSLPU =
+{ "TSLPU", "TSLPU", procprt_TSLPU_a, procprt_TSLPU_e, 5 };
 /***************************************************************/
 #define SCHED_NORMAL	0
 #define SCHED_FIFO	1
@@ -1210,710 +1147,670 @@ proc_printdef procprt_TSLPU =
 char *
 procprt_POLI_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        switch (curstat->cpu.policy)
-        {
-                case SCHED_NORMAL:
-                        return "norm";
-                        break;
-                case SCHED_FIFO:
-                        return "fifo";
-                        break;
-                case SCHED_RR:
-                        return "rr  ";
-                        break;
-                case SCHED_BATCH:
-                        return "btch";
-                        break;
-                case SCHED_ISO:
-                        return "iso ";
-                        break;
-                case SCHED_IDLE:
-                        return "idle";
-                        break;
-                case SCHED_DEADLINE:
-                        return "dead";
-                        break;
-        }
-        return "?   ";
+	switch (curstat->cpu.policy) {
+	case SCHED_NORMAL:
+		return "norm";
+		break;
+	case SCHED_FIFO:
+		return "fifo";
+		break;
+	case SCHED_RR:
+		return "rr  ";
+		break;
+	case SCHED_BATCH:
+		return "btch";
+		break;
+	case SCHED_ISO:
+		return "iso ";
+		break;
+	case SCHED_IDLE:
+		return "idle";
+		break;
+	case SCHED_DEADLINE:
+		return "dead";
+		break;
+	}
+	return "?   ";
 }
 
 char *
 procprt_POLI_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "-   ";
+	return "-   ";
 }
 
-proc_printdef procprt_POLI = 
-   { "POLI", "POLI", procprt_POLI_a, procprt_POLI_e, 4 };
+proc_printdef procprt_POLI =
+{ "POLI", "POLI", procprt_POLI_a, procprt_POLI_e, 4 };
 /***************************************************************/
 char *
 procprt_NICE_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%4d", curstat->cpu.nice);
-        return buf;
+	sprintf(buf, "%4d", curstat->cpu.nice);
+	return buf;
 }
 
 char *
 procprt_NICE_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "   -";
+	return "   -";
 }
 
-proc_printdef procprt_NICE = 
-   { "NICE", "NICE", procprt_NICE_a, procprt_NICE_e, 4 };
+proc_printdef procprt_NICE =
+{ "NICE", "NICE", procprt_NICE_a, procprt_NICE_e, 4 };
 /***************************************************************/
 char *
 procprt_PRI_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%3d", curstat->cpu.prio);
-        return buf;
+	sprintf(buf, "%3d", curstat->cpu.prio);
+	return buf;
 }
 
 char *
 procprt_PRI_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "  -";
+	return "  -";
 }
 
-proc_printdef procprt_PRI = 
-   { "PRI", "PRI", procprt_PRI_a, procprt_PRI_e, 3 };
+proc_printdef procprt_PRI =
+{ "PRI", "PRI", procprt_PRI_a, procprt_PRI_e, 3 };
 /***************************************************************/
 char *
 procprt_RTPR_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%4d", curstat->cpu.rtprio);
-        return buf;
+	sprintf(buf, "%4d", curstat->cpu.rtprio);
+	return buf;
 }
 
 char *
 procprt_RTPR_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "   -";
+	return "   -";
 }
 
-proc_printdef procprt_RTPR = 
-   { "RTPR", "RTPR", procprt_RTPR_a, procprt_RTPR_e, 4 };
+proc_printdef procprt_RTPR =
+{ "RTPR", "RTPR", procprt_RTPR_a, procprt_RTPR_e, 4 };
 /***************************************************************/
 char *
 procprt_CURCPU_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[15];
+	static char buf[15];
 
-        sprintf(buf, "%5d", curstat->cpu.curcpu);
-        return buf;
+	sprintf(buf, "%5d", curstat->cpu.curcpu);
+	return buf;
 }
 
 char *
 procprt_CURCPU_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "    -";
+	return "    -";
 }
 
-proc_printdef procprt_CURCPU = 
-   { "CPUNR", "CPUNR", procprt_CURCPU_a, procprt_CURCPU_e, 5 };
+proc_printdef procprt_CURCPU =
+{ "CPUNR", "CPUNR", procprt_CURCPU_a, procprt_CURCPU_e, 5 };
 /***************************************************************/
 char *
 procprt_ST_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[3]="--";
-        if (curstat->gen.excode & ~(INT_MAX))
-        {
-                buf[0]='N';
-        } 
-        else
-        { 
-                buf[0]='-';
-        }
-        return buf;
+	static char buf[3]="--";
+	if (curstat->gen.excode & ~(INT_MAX)) {
+		buf[0]='N';
+	} else {
+		buf[0]='-';
+	}
+	return buf;
 }
 
 char *
 procprt_ST_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[3];
-        if (curstat->gen.excode & ~(INT_MAX))
-        {
-                buf[0]='N';
-        } 
-        else 
-        { 
-                buf[0]='-';
-        }
-        if (curstat->gen.excode & 0xff) 
-        {
-                if (curstat->gen.excode & 0x80)
-                        buf[1] = 'C';
-                else
-                        buf[1] = 'S';
-        } 
-        else 
-        {
-                buf[1] = 'E';
-        }
-        return buf;
+	static char buf[3];
+	if (curstat->gen.excode & ~(INT_MAX)) {
+		buf[0]='N';
+	} else {
+		buf[0]='-';
+	}
+	if (curstat->gen.excode & 0xff) {
+		if (curstat->gen.excode & 0x80)
+			buf[1] = 'C';
+		else
+			buf[1] = 'S';
+	} else {
+		buf[1] = 'E';
+	}
+	return buf;
 }
 
-proc_printdef procprt_ST = 
-   { "ST", "ST", procprt_ST_a, procprt_ST_e, 2 };
+proc_printdef procprt_ST =
+{ "ST", "ST", procprt_ST_a, procprt_ST_e, 2 };
 /***************************************************************/
 char *
 procprt_EXC_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "  -";
+	return "  -";
 }
 
 char *
 procprt_EXC_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[4];
+	static char buf[4];
 
 
-        sprintf(buf, "%3d", 
-                 curstat->gen.excode & 0xff ?
-                          curstat->gen.excode & 0x7f : 
-                          (curstat->gen.excode>>8) & 0xff);
-        return buf;
+	sprintf(buf, "%3d",
+	        curstat->gen.excode & 0xff ?
+	        curstat->gen.excode & 0x7f :
+	        (curstat->gen.excode>>8) & 0xff);
+	return buf;
 }
 
 
-proc_printdef procprt_EXC = 
-   { "EXC", "EXC", procprt_EXC_a, procprt_EXC_e, 3 };
+proc_printdef procprt_EXC =
+{ "EXC", "EXC", procprt_EXC_a, procprt_EXC_e, 3 };
 /***************************************************************/
 char *
 procprt_S_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[2]="E";
+	static char buf[2]="E";
 
-        buf[0]=curstat->gen.state;
-        return buf;
+	buf[0]=curstat->gen.state;
+	return buf;
 }
 
 char *
 procprt_S_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "E";
+	return "E";
 
 }
 
-proc_printdef procprt_S = 
-   { "S", "S", procprt_S_a, procprt_S_e, 1 };
+proc_printdef procprt_S =
+{ "S", "S", procprt_S_a, procprt_S_e, 1 };
 
 /***************************************************************/
 char *
 procprt_COMMAND_LINE_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        extern proc_printdef procprt_COMMAND_LINE;
-        extern int	startoffset;	// influenced by -> and <- keys
+	extern proc_printdef procprt_COMMAND_LINE;
+	extern int	startoffset;	// influenced by -> and <- keys
 
-        static char	buf[CMDLEN+1];
+	static char	buf[CMDLEN+1];
 
 	char	*pline     = curstat->gen.cmdline[0] ?
-		                curstat->gen.cmdline : curstat->gen.name;
+	                     curstat->gen.cmdline : curstat->gen.name;
 
-        int 	curwidth   = procprt_COMMAND_LINE.width <= CMDLEN ?
-				procprt_COMMAND_LINE.width : CMDLEN;
+	int 	curwidth   = procprt_COMMAND_LINE.width <= CMDLEN ?
+	                     procprt_COMMAND_LINE.width : CMDLEN;
 
-        int 	cmdlen     = strlen(pline);
-        int 	curoffset  = startoffset <= cmdlen ? startoffset : cmdlen;
+	int 	cmdlen     = strlen(pline);
+	int 	curoffset  = startoffset <= cmdlen ? startoffset : cmdlen;
 
-        if (screen) 
-                sprintf(buf, "%-*.*s", curwidth, curwidth, pline+curoffset);
-        else
-                sprintf(buf, "%.*s", CMDLEN, pline+curoffset);
+	if (screen)
+		sprintf(buf, "%-*.*s", curwidth, curwidth, pline+curoffset);
+	else
+		sprintf(buf, "%.*s", CMDLEN, pline+curoffset);
 
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_COMMAND_LINE = 
-       { "COMMAND-LINE (horizontal scroll with <- and -> keys)",
-	"COMMAND-LINE", 
-        procprt_COMMAND_LINE_ae, procprt_COMMAND_LINE_ae, 0, 1 };
+proc_printdef procprt_COMMAND_LINE = {
+	"COMMAND-LINE (horizontal scroll with <- and -> keys)",
+	"COMMAND-LINE",
+	procprt_COMMAND_LINE_ae, procprt_COMMAND_LINE_ae, 0, 1
+};
 /***************************************************************/
 char *
 procprt_NPROCS_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2valstr(curstat->gen.pid, buf, 6, 0, 0); // pid abused as proc counter
-        return buf;
+	val2valstr(curstat->gen.pid, buf, 6, 0, 0); // pid abused as proc counter
+	return buf;
 }
 
-proc_printdef procprt_NPROCS = 
-   { "NPROCS", "NPROCS", procprt_NPROCS_ae, procprt_NPROCS_ae, 6 };
+proc_printdef procprt_NPROCS =
+{ "NPROCS", "NPROCS", procprt_NPROCS_ae, procprt_NPROCS_ae, 6 };
 /***************************************************************/
 char *
 procprt_RDDSK_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        val2memstr(curstat->dsk.rsz*512, buf, KBFORMAT, avgval, nsecs);
+	static char buf[10];
+	val2memstr(curstat->dsk.rsz*512, buf, KBFORMAT, avgval, nsecs);
 
-        return buf;
+	return buf;
 }
 
 char *
 procprt_RDDSK_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "     -";
+	return "     -";
 }
 
-proc_printdef procprt_RDDSK = 
-   { " RDDSK", "RDDSK", procprt_RDDSK_a, procprt_RDDSK_e, 6 };
+proc_printdef procprt_RDDSK =
+{ " RDDSK", "RDDSK", procprt_RDDSK_a, procprt_RDDSK_e, 6 };
 /***************************************************************/
 char *
-procprt_WRDSK_a(struct tstat *curstat, int avgval, int nsecs) 
+procprt_WRDSK_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
-        val2memstr(curstat->dsk.wsz*512, buf, KBFORMAT, avgval, nsecs);
+	val2memstr(curstat->dsk.wsz*512, buf, KBFORMAT, avgval, nsecs);
 
-        return buf;
+	return buf;
 }
 
 char *
 procprt_WRDSK_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "     -";
+	return "     -";
 }
 
-proc_printdef procprt_WRDSK = 
-   { " WRDSK", "WRDSK", procprt_WRDSK_a, procprt_WRDSK_e, 6 };
+proc_printdef procprt_WRDSK =
+{ " WRDSK", "WRDSK", procprt_WRDSK_a, procprt_WRDSK_e, 6 };
 /***************************************************************/
 char *
-procprt_CWRDSK_a(struct tstat *curstat, int avgval, int nsecs) 
+procprt_CWRDSK_a(struct tstat *curstat, int avgval, int nsecs)
 {
 	count_t nett_wsz;
-        static char buf[10];
+	static char buf[10];
 
 	if (curstat->dsk.wsz > curstat->dsk.cwsz)
 		nett_wsz = curstat->dsk.wsz - curstat->dsk.cwsz;
 	else
 		nett_wsz = 0;
 
-        val2memstr(nett_wsz*512, buf, KBFORMAT, avgval, nsecs);
+	val2memstr(nett_wsz*512, buf, KBFORMAT, avgval, nsecs);
 
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_CWRDSK = 
-   {" WRDSK", "CWRDSK", procprt_CWRDSK_a, procprt_WRDSK_e, 6 };
+proc_printdef procprt_CWRDSK =
+{" WRDSK", "CWRDSK", procprt_CWRDSK_a, procprt_WRDSK_e, 6 };
 /***************************************************************/
 char *
 procprt_WCANCEL_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        val2memstr(curstat->dsk.cwsz*512, buf, KBFORMAT, avgval, nsecs);
+	static char buf[10];
+	val2memstr(curstat->dsk.cwsz*512, buf, KBFORMAT, avgval, nsecs);
 
-        return buf;
+	return buf;
 }
 
 char *
 procprt_WCANCEL_e(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "     -";
+	return "     -";
 }
 
-proc_printdef procprt_WCANCEL = 
-   {"WCANCL", "WCANCL", procprt_WCANCEL_a, procprt_WCANCEL_e, 6};
+proc_printdef procprt_WCANCEL =
+{"WCANCL", "WCANCL", procprt_WCANCEL_a, procprt_WCANCEL_e, 6};
 /***************************************************************/
 char *
 procprt_TCPRCV_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        val2valstr(curstat->net.tcprcv, buf, 6, avgval, nsecs);
+	static char buf[10];
 
-        return buf;
+	val2valstr(curstat->net.tcprcv, buf, 6, avgval, nsecs);
+
+	return buf;
 }
 
 char *
-procprt_TCPRCV_e(struct tstat *curstat, int avgval, int nsecs) 
-{      
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	val2valstr(curstat->net.tcprcv, buf, 6, avgval, nsecs);
+procprt_TCPRCV_e(struct tstat *curstat, int avgval, int nsecs)
+{
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	return buf;
-	}
-	else
-        	return "     -";
+		val2valstr(curstat->net.tcprcv, buf, 6, avgval, nsecs);
+
+		return buf;
+	} else
+		return "     -";
 }
 
 
-proc_printdef procprt_TCPRCV = 
-   { "TCPRCV", "TCPRCV", procprt_TCPRCV_a, procprt_TCPRCV_e, 6 };
+proc_printdef procprt_TCPRCV =
+{ "TCPRCV", "TCPRCV", procprt_TCPRCV_a, procprt_TCPRCV_e, 6 };
 /***************************************************************/
 char *
 procprt_TCPRASZ_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        int avgtcpr = curstat->net.tcprcv ?
-                                  curstat->net.tcprsz / curstat->net.tcprcv : 0;
+	static char buf[10];
 
-        val2valstr(avgtcpr, buf, 7, 0, 0);
-        return buf;
+	int avgtcpr = curstat->net.tcprcv ?
+	              curstat->net.tcprsz / curstat->net.tcprcv : 0;
+
+	val2valstr(avgtcpr, buf, 7, 0, 0);
+	return buf;
 }
 
 char *
 procprt_TCPRASZ_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	int avgtcpr = curstat->net.tcprcv ?
-                                  curstat->net.tcprsz / curstat->net.tcprcv : 0;
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	val2valstr(avgtcpr, buf, 7, 0, 0);
-	        return buf;
-	}
-	else
-        	return "      -";
+		int avgtcpr = curstat->net.tcprcv ?
+		              curstat->net.tcprsz / curstat->net.tcprcv : 0;
+
+		val2valstr(avgtcpr, buf, 7, 0, 0);
+		return buf;
+	} else
+		return "      -";
 }
 
-proc_printdef procprt_TCPRASZ = 
-   { "TCPRASZ", "TCPRASZ", procprt_TCPRASZ_a, procprt_TCPRASZ_e, 7 };
+proc_printdef procprt_TCPRASZ =
+{ "TCPRASZ", "TCPRASZ", procprt_TCPRASZ_a, procprt_TCPRASZ_e, 7 };
 /***************************************************************/
 char *
 procprt_TCPSND_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        val2valstr(curstat->net.tcpsnd, buf, 6, avgval, nsecs);
+	static char buf[10];
 
-        return buf;
+	val2valstr(curstat->net.tcpsnd, buf, 6, avgval, nsecs);
+
+	return buf;
 }
 
 char *
 procprt_TCPSND_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	val2valstr(curstat->net.tcpsnd, buf, 6, avgval, nsecs);
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	return buf;
-	}
-	else
-        	return "     -";
+		val2valstr(curstat->net.tcpsnd, buf, 6, avgval, nsecs);
+
+		return buf;
+	} else
+		return "     -";
 }
 
-proc_printdef procprt_TCPSND = 
-   { "TCPSND", "TCPSND", procprt_TCPSND_a, procprt_TCPSND_e, 6 };
+proc_printdef procprt_TCPSND =
+{ "TCPSND", "TCPSND", procprt_TCPSND_a, procprt_TCPSND_e, 6 };
 /***************************************************************/
 char *
 procprt_TCPSASZ_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        int avgtcps = curstat->net.tcpsnd ?
-                                  curstat->net.tcpssz / curstat->net.tcpsnd : 0;
+	static char buf[10];
 
-        val2valstr(avgtcps, buf, 7, 0, 0);
-        return buf;
+	int avgtcps = curstat->net.tcpsnd ?
+	              curstat->net.tcpssz / curstat->net.tcpsnd : 0;
+
+	val2valstr(avgtcps, buf, 7, 0, 0);
+	return buf;
 }
 
 char *
 procprt_TCPSASZ_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	int avgtcps = curstat->net.tcpsnd ?
-                                  curstat->net.tcpssz / curstat->net.tcpsnd : 0;
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	val2valstr(avgtcps, buf, 7, 0, 0);
-        	return buf;
-	}
-	else
-        	return "      -";
+		int avgtcps = curstat->net.tcpsnd ?
+		              curstat->net.tcpssz / curstat->net.tcpsnd : 0;
+
+		val2valstr(avgtcps, buf, 7, 0, 0);
+		return buf;
+	} else
+		return "      -";
 }
 
-proc_printdef procprt_TCPSASZ = 
-   { "TCPSASZ", "TCPSASZ", procprt_TCPSASZ_a, procprt_TCPSASZ_e, 7 };
+proc_printdef procprt_TCPSASZ =
+{ "TCPSASZ", "TCPSASZ", procprt_TCPSASZ_a, procprt_TCPSASZ_e, 7 };
 /***************************************************************/
 char *
-procprt_UDPRCV_a(struct tstat *curstat, int avgval, int nsecs)        
+procprt_UDPRCV_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        val2valstr(curstat->net.udprcv, buf, 6, avgval, nsecs);
+	static char buf[10];
 
-        return buf;
+	val2valstr(curstat->net.udprcv, buf, 6, avgval, nsecs);
+
+	return buf;
 }
 
 char *
-procprt_UDPRCV_e(struct tstat *curstat, int avgval, int nsecs) 
+procprt_UDPRCV_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	val2valstr(curstat->net.udprcv, buf, 6, avgval, nsecs);
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	return buf;
-	}
-	else
-        	return "     -";
+		val2valstr(curstat->net.udprcv, buf, 6, avgval, nsecs);
+
+		return buf;
+	} else
+		return "     -";
 }
 
 
-proc_printdef procprt_UDPRCV = 
-   { "UDPRCV", "UDPRCV", procprt_UDPRCV_a, procprt_UDPRCV_e, 6 };
+proc_printdef procprt_UDPRCV =
+{ "UDPRCV", "UDPRCV", procprt_UDPRCV_a, procprt_UDPRCV_e, 6 };
 /***************************************************************/
 char *
 procprt_UDPRASZ_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        int avgudpr = curstat->net.udprcv ?
-                          curstat->net.udprsz / curstat->net.udprcv : 0;
+	static char buf[10];
 
-        val2valstr(avgudpr, buf, 7, 0, 0);
-        return buf;
+	int avgudpr = curstat->net.udprcv ?
+	              curstat->net.udprsz / curstat->net.udprcv : 0;
+
+	val2valstr(avgudpr, buf, 7, 0, 0);
+	return buf;
 }
 
 char *
 procprt_UDPRASZ_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	int avgudpr = curstat->net.udprcv ?
-                          curstat->net.udprsz / curstat->net.udprcv : 0;
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	val2valstr(avgudpr, buf, 7, 0, 0);
-        	return buf;
-	}
-	else
-        	return "      -";
+		int avgudpr = curstat->net.udprcv ?
+		              curstat->net.udprsz / curstat->net.udprcv : 0;
+
+		val2valstr(avgudpr, buf, 7, 0, 0);
+		return buf;
+	} else
+		return "      -";
 }
 
 
-proc_printdef procprt_UDPRASZ = 
-   { "UDPRASZ", "UDPRASZ", procprt_UDPRASZ_a, procprt_UDPRASZ_e, 7 };
+proc_printdef procprt_UDPRASZ =
+{ "UDPRASZ", "UDPRASZ", procprt_UDPRASZ_a, procprt_UDPRASZ_e, 7 };
 /***************************************************************/
 char *
 procprt_UDPSND_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        val2valstr(curstat->net.udpsnd, buf, 6, avgval, nsecs);
+	static char buf[10];
 
-        return buf;
+	val2valstr(curstat->net.udpsnd, buf, 6, avgval, nsecs);
+
+	return buf;
 }
 
 char *
 procprt_UDPSND_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	val2valstr(curstat->net.udpsnd, buf, 6, avgval, nsecs);
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	return buf;
-	}
-	else
-        	return "     -";
+		val2valstr(curstat->net.udpsnd, buf, 6, avgval, nsecs);
+
+		return buf;
+	} else
+		return "     -";
 }
 
-proc_printdef procprt_UDPSND = 
-   { "UDPSND", "UDPSND", procprt_UDPSND_a, procprt_UDPSND_e, 6 };
+proc_printdef procprt_UDPSND =
+{ "UDPSND", "UDPSND", procprt_UDPSND_a, procprt_UDPSND_e, 6 };
 /***************************************************************/
 char *
 procprt_UDPSASZ_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        int avgudps = curstat->net.udpsnd ?
-                                  curstat->net.udpssz / curstat->net.udpsnd : 0;
+	static char buf[10];
 
-        val2valstr(avgudps, buf, 7, 0, 0);
-        return buf;
+	int avgudps = curstat->net.udpsnd ?
+	              curstat->net.udpssz / curstat->net.udpsnd : 0;
+
+	val2valstr(avgudps, buf, 7, 0, 0);
+	return buf;
 }
 
 char *
 procprt_UDPSASZ_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
-        
-        	int avgudps = curstat->net.udpsnd ?
-                                  curstat->net.udpssz / curstat->net.udpsnd : 0;
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-        	val2valstr(avgudps, buf, 7, 0, 0);
-        	return buf;
-	}
-	else
-        	return "      -";
+		int avgudps = curstat->net.udpsnd ?
+		              curstat->net.udpssz / curstat->net.udpsnd : 0;
+
+		val2valstr(avgudps, buf, 7, 0, 0);
+		return buf;
+	} else
+		return "      -";
 }
 
 
-proc_printdef procprt_UDPSASZ = 
-   { "UDPSASZ", "UDPSASZ", procprt_UDPSASZ_a, procprt_UDPSASZ_e, 7 };
+proc_printdef procprt_UDPSASZ =
+{ "UDPSASZ", "UDPSASZ", procprt_UDPSASZ_a, procprt_UDPSASZ_e, 7 };
 /***************************************************************/
 char *
 procprt_RNET_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        val2valstr(curstat->net.tcprcv + curstat->net.udprcv ,
-					buf, 5, avgval, nsecs);
+	static char buf[10];
 
-        return buf;
+	val2valstr(curstat->net.tcprcv + curstat->net.udprcv,
+	           buf, 5, avgval, nsecs);
+
+	return buf;
 }
 
 char *
 procprt_RNET_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[10];
- 
-	        val2valstr(curstat->net.tcprcv + curstat->net.udprcv ,
-					buf, 5, avgval, nsecs);
+	if (supportflags & NETATOPD) {
+		static char buf[10];
 
-       		return buf;
-	}
-	else
-        	return "    -";
+		val2valstr(curstat->net.tcprcv + curstat->net.udprcv,
+		           buf, 5, avgval, nsecs);
+
+		return buf;
+	} else
+		return "    -";
 }
 
-proc_printdef procprt_RNET = 
-   { " RNET", "RNET", procprt_RNET_a, procprt_RNET_e, 5 };
+proc_printdef procprt_RNET =
+{ " RNET", "RNET", procprt_RNET_a, procprt_RNET_e, 5 };
 /***************************************************************/
 char *
 procprt_SNET_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
-        
-        val2valstr(curstat->net.tcpsnd + curstat->net.udpsnd,
-                           		buf, 5, avgval, nsecs);
-        return buf;
+	static char buf[10];
+
+	val2valstr(curstat->net.tcpsnd + curstat->net.udpsnd,
+	           buf, 5, avgval, nsecs);
+	return buf;
 }
 
 char *
 procprt_SNET_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-	        static char buf[10];
-        
-       		val2valstr(curstat->net.tcpsnd + curstat->net.udpsnd,
-                           		buf, 5, avgval, nsecs);
-	        return buf;
-	}
-	else
-        	return "    -";
+	if (supportflags & NETATOPD) {
+		static char buf[10];
+
+		val2valstr(curstat->net.tcpsnd + curstat->net.udpsnd,
+		           buf, 5, avgval, nsecs);
+		return buf;
+	} else
+		return "    -";
 }
 
-proc_printdef procprt_SNET = 
-   { " SNET", "SNET", procprt_SNET_a, procprt_SNET_e, 5 };
+proc_printdef procprt_SNET =
+{ " SNET", "SNET", procprt_SNET_a, procprt_SNET_e, 5 };
 /***************************************************************/
 char *
 procprt_BANDWI_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[16];
+	static char buf[16];
 	count_t     rkbps = (curstat->net.tcprsz+curstat->net.udprsz)/125/nsecs;
 
 	format_bandw(buf, rkbps);
-        return buf;
+	return buf;
 }
 
 char *
 procprt_BANDWI_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[16];
+	if (supportflags & NETATOPD) {
+		static char buf[16];
 		count_t     rkbps = (curstat->net.tcprsz + curstat->net.udprsz)
-								/125/nsecs;
+		                    /125/nsecs;
 
 		format_bandw(buf, rkbps);
-        	return buf;
-	}
-	else
-        	return "        -";
+		return buf;
+	} else
+		return "        -";
 }
 
-proc_printdef procprt_BANDWI = 
-   { "   BANDWI", "BANDWI", procprt_BANDWI_a, procprt_BANDWI_e, 9};
+proc_printdef procprt_BANDWI =
+{ "   BANDWI", "BANDWI", procprt_BANDWI_a, procprt_BANDWI_e, 9};
 /***************************************************************/
 char *
 procprt_BANDWO_a(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[16];
+	static char buf[16];
 	count_t     skbps = (curstat->net.tcpssz+curstat->net.udpssz)/125/nsecs;
 
 	format_bandw(buf, skbps);
-        return buf;
+	return buf;
 }
 
 char *
 procprt_BANDWO_e(struct tstat *curstat, int avgval, int nsecs)
 {
-	if (supportflags & NETATOPD)
-	{
-        	static char buf[16];
+	if (supportflags & NETATOPD) {
+		static char buf[16];
 		count_t     skbps = (curstat->net.tcpssz + curstat->net.udpssz)
-								/125/nsecs;
+		                    /125/nsecs;
 
 		format_bandw(buf, skbps);
-       		return buf;
-	}
-	else
-        	return "        -";
+		return buf;
+	} else
+		return "        -";
 }
 
-proc_printdef procprt_BANDWO = 
-   { "   BANDWO", "BANDWO", procprt_BANDWO_a, procprt_BANDWO_e, 9};
+proc_printdef procprt_BANDWO =
+{ "   BANDWO", "BANDWO", procprt_BANDWO_a, procprt_BANDWO_e, 9};
 /***************************************************************/
 static void
 format_bandw(char *buf, count_t kbps)
 {
 	char        c;
 
-	if (kbps < 10000)
-	{
-                c='K';
-        }
-        else if (kbps < (count_t)10000 * 1000)
-        {
-                kbps/=1000;
-                c = 'M';
-        }
-        else if (kbps < (count_t)10000 * 1000 * 1000)
-        {
-                kbps/=1000 * 1000;
-                c = 'G';
-        }
-        else
-        {
-                kbps = kbps / 1000 / 1000 / 1000;
-                c = 'T';
-        }
+	if (kbps < 10000) {
+		c='K';
+	} else if (kbps < (count_t)10000 * 1000) {
+		kbps/=1000;
+		c = 'M';
+	} else if (kbps < (count_t)10000 * 1000 * 1000) {
+		kbps/=1000 * 1000;
+		c = 'G';
+	} else {
+		kbps = kbps / 1000 / 1000 / 1000;
+		c = 'T';
+	}
 
-        sprintf(buf, "%4lld %cbps", kbps, c);
+	sprintf(buf, "%4lld %cbps", kbps, c);
 }
 /***************************************************************/
 char *
 procprt_GPULIST_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char	buf[64];
-        char		tmp[64], *p=tmp;
+	static char	buf[64];
+	char		tmp[64], *p=tmp;
 	int		i;
 
 	if (!curstat->gpu.state)
@@ -1922,50 +1819,47 @@ procprt_GPULIST_ae(struct tstat *curstat, int avgval, int nsecs)
 	if (!curstat->gpu.gpulist)
 		return "       -";
 
-	for (i=0; i < nrgpus; i++)
-	{
-		if (curstat->gpu.gpulist & 1<<i)
-		{
+	for (i=0; i < nrgpus; i++) {
+		if (curstat->gpu.gpulist & 1<<i) {
 			if (tmp == p)	// first?
 				p += snprintf(p, sizeof tmp, "%d", i);
 			else
 				p += snprintf(p, sizeof tmp - (p-tmp), ",%d", i);
 
-			if (p - tmp > 8)
-			{
+			if (p - tmp > 8) {
 				snprintf(tmp, sizeof tmp, "0x%06x",
-						curstat->gpu.gpulist);
+				         curstat->gpu.gpulist);
 				break;
 			}
 		}
 	}
 
 	snprintf(buf, sizeof buf, "%8.8s", tmp);
-        return buf;
+	return buf;
 }
 
-proc_printdef procprt_GPULIST = 
-   { " GPUNUMS", "GPULIST", procprt_GPULIST_ae, procprt_GPULIST_ae, 8};
+proc_printdef procprt_GPULIST =
+{ " GPUNUMS", "GPULIST", procprt_GPULIST_ae, procprt_GPULIST_ae, 8};
 /***************************************************************/
 char *
 procprt_GPUMEMNOW_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
 	if (!curstat->gpu.state)
 		return "     -";
 
-        val2memstr(curstat->gpu.memnow*1024, buf, KBFORMAT, 0, 0);
-        return buf;
+	val2memstr(curstat->gpu.memnow*1024, buf, KBFORMAT, 0, 0);
+	return buf;
 }
 
-proc_printdef procprt_GPUMEMNOW = 
-   { "MEMNOW", "GPUMEM", procprt_GPUMEMNOW_ae, procprt_GPUMEMNOW_ae, 6};
+proc_printdef procprt_GPUMEMNOW =
+{ "MEMNOW", "GPUMEM", procprt_GPUMEMNOW_ae, procprt_GPUMEMNOW_ae, 6};
 /***************************************************************/
 char *
 procprt_GPUMEMAVG_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char buf[10];
+	static char buf[10];
 
 	if (!curstat->gpu.state)
 		return "     -";
@@ -1973,18 +1867,18 @@ procprt_GPUMEMAVG_ae(struct tstat *curstat, int avgval, int nsecs)
 	if (curstat->gpu.sample == 0)
 		return("    0K");
 
-       	val2memstr(curstat->gpu.nrgpus * curstat->gpu.memcum /
+	val2memstr(curstat->gpu.nrgpus * curstat->gpu.memcum /
 	           curstat->gpu.sample*1024, buf, KBFORMAT, 0, 0);
-       	return buf;
+	return buf;
 }
 
-proc_printdef procprt_GPUMEMAVG = 
-   { "MEMAVG", "GPUMEMAVG", procprt_GPUMEMAVG_ae, procprt_GPUMEMAVG_ae, 6};
+proc_printdef procprt_GPUMEMAVG =
+{ "MEMAVG", "GPUMEMAVG", procprt_GPUMEMAVG_ae, procprt_GPUMEMAVG_ae, 6};
 /***************************************************************/
 char *
 procprt_GPUGPUBUSY_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char 	buf[16];
+	static char 	buf[16];
 
 	if (!curstat->gpu.state)
 		return "      -";
@@ -1992,17 +1886,17 @@ procprt_GPUGPUBUSY_ae(struct tstat *curstat, int avgval, int nsecs)
 	if (curstat->gpu.gpubusy == -1)
 		return "    N/A";
 
-       	snprintf(buf, sizeof buf, "%6d%%", curstat->gpu.gpubusy);
-       	return buf;
+	snprintf(buf, sizeof buf, "%6d%%", curstat->gpu.gpubusy);
+	return buf;
 }
 
-proc_printdef procprt_GPUGPUBUSY = 
-   { "GPUBUSY", "GPUGPUBUSY", procprt_GPUGPUBUSY_ae, procprt_GPUGPUBUSY_ae, 7};
+proc_printdef procprt_GPUGPUBUSY =
+{ "GPUBUSY", "GPUGPUBUSY", procprt_GPUGPUBUSY_ae, procprt_GPUGPUBUSY_ae, 7};
 /***************************************************************/
 char *
 procprt_GPUMEMBUSY_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        static char 	buf[16];
+	static char 	buf[16];
 
 	if (!curstat->gpu.state)
 		return "      -";
@@ -2010,18 +1904,18 @@ procprt_GPUMEMBUSY_ae(struct tstat *curstat, int avgval, int nsecs)
 	if (curstat->gpu.membusy == -1)
 		return "    N/A";
 
-        snprintf(buf, sizeof buf, "%6d%%", curstat->gpu.membusy);
-        return buf;
+	snprintf(buf, sizeof buf, "%6d%%", curstat->gpu.membusy);
+	return buf;
 }
 
-proc_printdef procprt_GPUMEMBUSY = 
-   { "MEMBUSY", "GPUMEMBUSY", procprt_GPUMEMBUSY_ae, procprt_GPUMEMBUSY_ae, 7};
+proc_printdef procprt_GPUMEMBUSY =
+{ "MEMBUSY", "GPUMEMBUSY", procprt_GPUMEMBUSY_ae, procprt_GPUMEMBUSY_ae, 7};
 /***************************************************************/
 char *
 procprt_SORTITEM_ae(struct tstat *curstat, int avgval, int nsecs)
 {
-        return "";   // dummy function
+	return "";   // dummy function
 }
 
-proc_printdef procprt_SORTITEM = 
-   { 0, "SORTITEM", procprt_SORTITEM_ae, procprt_SORTITEM_ae, 4 };
+proc_printdef procprt_SORTITEM =
+{ 0, "SORTITEM", procprt_SORTITEM_ae, procprt_SORTITEM_ae, 4 };

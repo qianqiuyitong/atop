@@ -43,7 +43,7 @@ struct devtstat;
 struct sstat;
 struct netpertask;
 
-/* 
+/*
 ** miscellaneous flags
 */
 #define RRBOOT		0x0001
@@ -57,8 +57,8 @@ struct netpertask;
 
 struct visualize {
 	char	(*show_samp)  (time_t, int,
-	                struct devtstat *, struct sstat *,
-			int, unsigned int, char);
+	                       struct devtstat *, struct sstat *,
+	                       int, unsigned int, char);
 	void	(*show_error) (const char *, ...);
 	void	(*show_end)   (void);
 	void	(*show_usage) (void);
@@ -115,7 +115,7 @@ extern int		almostcrit;
 #define	GPUSTAT		0x00000080
 
 /*
-** in rawlog file, the four least significant bits 
+** in rawlog file, the four least significant bits
 ** are moved to the per-sample flags and therefor dummy
 ** in the support flags of the general header
 */
@@ -125,8 +125,8 @@ extern int		almostcrit;
 ** structure containing the start-addresses of functions for visualization
 */
 char		generic_samp (time_t, int,
-		            struct devtstat *, struct sstat *,
-		            int, unsigned int, char);
+                          struct devtstat *, struct sstat *,
+                          int, unsigned int, char);
 void		generic_error(const char *, ...);
 void		generic_end  (void);
 void		generic_usage(void);
@@ -166,8 +166,8 @@ int		contcompar(const void *, const void *);
 count_t		subcount(count_t, count_t);
 void  		rawread(void);
 char		rawwrite (time_t, int,
-		            struct devtstat *, struct sstat *,
-		            int, unsigned int, char);
+                      struct devtstat *, struct sstat *,
+                      int, unsigned int, char);
 
 int 		numeric(char *);
 void		getalarm(int);

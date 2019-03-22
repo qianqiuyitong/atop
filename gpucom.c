@@ -46,7 +46,7 @@
 static void	gputype_parse(char *);
 
 static void	gpustat_parse(int, char *, int,
-		                      struct pergpu *, struct gpupidstat *);
+                          struct pergpu *, struct gpupidstat *);
 static void	gpuparse(int, char *, struct pergpu *);
 static void	pidparse(int, char *, struct gpupidstat *);
 static int	rcvuntil(int, char *, int);
@@ -80,8 +80,7 @@ gpud_init(void)
 	/*
 	** get local socket
 	*/
-	if ( (actsock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-	{
+	if ( (actsock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		perror("socket creation");
 		return 0;
 	}
@@ -102,13 +101,12 @@ gpud_init(void)
 	** in case something fails in the commmunication
 	*/
 	(void) setsockopt(actsock, SOL_SOCKET, SO_RCVTIMEO,
-					&rcvtimeout, sizeof rcvtimeout);
+	                  &rcvtimeout, sizeof rcvtimeout);
 
 	/*
 	** send request: GPU types
 	*/
-	if ( write(actsock, typereq, sizeof typereq) < sizeof typereq)
-	{
+	if ( write(actsock, typereq, sizeof typereq) < sizeof typereq) {
 		perror("send type request to atopgpud");
 		goto close_and_return;
 	}
@@ -116,8 +114,7 @@ gpud_init(void)
 	/*
 	** receive response: GPU types
 	*/
-	if (rcvuntil(actsock, (char *)&prelude, sizeof prelude) == -1)
-	{
+	if (rcvuntil(actsock, (char *)&prelude, sizeof prelude) == -1) {
 		perror("receive prelude from atopgpud");
 		goto close_and_return;
 	}
@@ -127,19 +124,17 @@ gpud_init(void)
 	version = (prelude >> 24) & 0xff;
 	length  =  prelude        & 0xffffff;
 
-	if (version != APIVERSION)
-	{
+	if (version != APIVERSION) {
 		fprintf(stderr,
-			"wrong API version from atopgpud: %d %d\n",
-			version, APIVERSION);
+		        "wrong API version from atopgpud: %d %d\n",
+		        version, APIVERSION);
 
 		goto close_and_return;
 	}
- 
-	if (length > 8192)	// sanity check
-	{
+
+	if (length > 8192) {	// sanity check
 		fprintf(stderr,
-			"unexpected response length atopgpud: %d\n", length);
+		        "unexpected response length atopgpud: %d\n", length);
 
 		goto close_and_return;
 	}
@@ -147,8 +142,7 @@ gpud_init(void)
 	buf = malloc(length+1);
 	ptrverify(buf, "Malloc failed for gpu rcvbuf\n");
 
-	if ( rcvuntil(actsock, buf, length) == -1)
-	{
+	if ( rcvuntil(actsock, buf, length) == -1) {
 		perror("receive type request from atopgpud");
 		goto close_and_return;
 	}
@@ -157,11 +151,11 @@ gpud_init(void)
 
 	gputype_parse(buf);
 
-        numgpus = numgpus <= MAXGPU ? numgpus : MAXGPU;
+	numgpus = numgpus <= MAXGPU ? numgpus : MAXGPU;
 
 	return numgpus;
 
-    close_and_return:
+close_and_return:
 	close(actsock);
 	actsock = -1;
 	return 0;
@@ -186,8 +180,7 @@ gpud_statrequest(void)
 	if (actsock == -1)
 		return 0;
 
-	if ( write(actsock, statreq, sizeof statreq) < sizeof statreq)
-	{
+	if ( write(actsock, statreq, sizeof statreq) < sizeof statreq) {
 		close(actsock);
 		actsock = -1;
 		return 0;
@@ -226,8 +219,7 @@ gpud_statresponse(int maxgpu, struct pergpu *ggs, struct gpupidstat **gps)
 	**	first byte:		API version
 	**	next three bytes:	length of string that follows
 	*/
-	if ( rcvuntil(actsock, (char *)&prelude, sizeof prelude) == -1)
-	{
+	if ( rcvuntil(actsock, (char *)&prelude, sizeof prelude) == -1) {
 		perror("receive 4-byte prelude from atopgpud");
 		goto close_and_return;
 	}
@@ -237,19 +229,17 @@ gpud_statresponse(int maxgpu, struct pergpu *ggs, struct gpupidstat **gps)
 	version = (prelude >> 24) & 0xff;
 	length  =  prelude        & 0xffffff;
 
-	if (version != APIVERSION)
-	{
+	if (version != APIVERSION) {
 		fprintf(stderr,
-			"wrong API version from atopgpud: %d %d\n",
-			version, APIVERSION);
+		        "wrong API version from atopgpud: %d %d\n",
+		        version, APIVERSION);
 
 		goto close_and_return;
 	}
- 
-	if (length > 8192)	// sanity check
-	{
+
+	if (length > 8192) {	// sanity check
 		fprintf(stderr,
-			"unexpected response length atopgpud: %d\n", length);
+		        "unexpected response length atopgpud: %d\n", length);
 
 		goto close_and_return;
 	}
@@ -260,8 +250,7 @@ gpud_statresponse(int maxgpu, struct pergpu *ggs, struct gpupidstat **gps)
 	/*
 	** receive statistics string
 	*/
-	if ( rcvuntil(actsock, buf, length) == -1)
-	{
+	if ( rcvuntil(actsock, buf, length) == -1) {
 		perror("receive stats string from atopgpud");
 		goto close_and_return;
 	}
@@ -272,22 +261,17 @@ gpud_statresponse(int maxgpu, struct pergpu *ggs, struct gpupidstat **gps)
 	** determine number of per-process stats
 	** and malloc space to parse these stats
 	*/
-	for (p=buf; *p; p++)
-	{
+	for (p=buf; *p; p++) {
 		if (*p == PIDDELIM)
 			pids++;
 	}
 
-	if (gps)
-	{
-		if (pids)
-		{
+	if (gps) {
+		if (pids) {
 			*gps = malloc(pids * sizeof(struct gpupidstat));
 			ptrverify(gps, "Malloc failed for gpu pidstats\n");
 			memset(*gps, 0, pids * sizeof(struct gpupidstat));
-		}
-		else
-		{
+		} else {
 			*gps = NULL;
 		}
 	}
@@ -301,7 +285,7 @@ gpud_statresponse(int maxgpu, struct pergpu *ggs, struct gpupidstat **gps)
 
 	return pids;
 
-    close_and_return:
+close_and_return:
 	if (buf)
 		free(buf);
 
@@ -320,8 +304,7 @@ rcvuntil(int sock, char *buf, int size)
 {
 	int	remain = size, n;
 
-	while (remain)
-	{
+	while (remain) {
 		n = read(sock, buf, remain);
 
 		if (n <= 0)
@@ -348,17 +331,14 @@ gputype_parse(char *buf)
 	/*
 	** determine number of GPUs
 	*/
-	if ( sscanf(buf, "%d@", &numgpus) != 1)
-	{
+	if ( sscanf(buf, "%d@", &numgpus) != 1) {
 		close(actsock);
 		actsock = -1;
 		return;
 	}
 
-	for (p=buf; *p; p++)	// search for first delimiter
-	{
-		if (*p == GPUDELIM)
-		{
+	for (p=buf; *p; p++) {	// search for first delimiter
+		if (*p == GPUDELIM) {
 			p++;
 			break;
 		}
@@ -368,8 +348,7 @@ gputype_parse(char *buf)
 	** parse GPU info and build arrays of pointers to the
 	** busid strings, type strings and tasksupport strings.
 	*/
-	if (numgpus)			// GPUs present anyhow?
-	{
+	if (numgpus) {		// GPUs present anyhow?
 		int field;
 
 		gpubusid = bp = malloc((numgpus+1) * sizeof(char *));
@@ -380,25 +359,22 @@ gputype_parse(char *buf)
 		ptrverify(gputypes, "Malloc failed for gpu types\n");
 		ptrverify(gputasks, "Malloc failed for gpu tasksup\n");
 
-		for (field=0, start=p; ; p++)
-		{
-			if (*p == ' ' || *p == '\0' || *p == GPUDELIM)
-			{
-				switch(field)
-				{
-				   case 0:
+		for (field=0, start=p; ; p++) {
+			if (*p == ' ' || *p == '\0' || *p == GPUDELIM) {
+				switch(field) {
+				case 0:
 					if (p-start <= MAXGPUBUS)
 						*bp++ = start;
 					else
 						*bp++ = p - MAXGPUBUS;
 					break;
-				   case 1:
+				case 1:
 					if (p-start <= MAXGPUTYPE)
 						*tp++ = start;
 					else
 						*tp++ = p - MAXGPUTYPE;
 					break;
-				   case 2:
+				case 2:
 					*cp++ = *start;
 					break;
 				}
@@ -431,8 +407,8 @@ gputype_parse(char *buf)
 ** with a '#' delimiter (last part of the GPU level data).
 */
 static void
-gpustat_parse(int version, char *buf, int maxgpu, 
-		struct pergpu *gg, struct gpupidstat *gp)
+gpustat_parse(int version, char *buf, int maxgpu,
+              struct pergpu *gg, struct gpupidstat *gp)
 {
 	char	*p, *start, delimlast;
 	int	gpunum = 0;
@@ -440,8 +416,7 @@ gpustat_parse(int version, char *buf, int maxgpu,
 	/*
 	** parse stats string
 	*/
-	for (p=start=buf, delimlast=DUMMY; gpunum <= maxgpu; p++)
-	{
+	for (p=start=buf, delimlast=DUMMY; gpunum <= maxgpu; p++) {
 		char delimnow;
 
 		if (*p != '\0' && *p != GPUDELIM && *p != PIDDELIM)
@@ -453,12 +428,11 @@ gpustat_parse(int version, char *buf, int maxgpu,
 		delimnow = *p;
 		*p       = 0;
 
- 		switch (delimlast)
-		{
-		   case DUMMY:
+		switch (delimlast) {
+		case DUMMY:
 			break;
 
-		   case GPUDELIM:
+		case GPUDELIM:
 			gpuparse(version, start, gg);
 
 			strcpy(gg->type,  gputypes[gpunum]);
@@ -468,9 +442,8 @@ gpustat_parse(int version, char *buf, int maxgpu,
 			gg++;
 			break;
 
-		   case PIDDELIM:
-			if (gp)
-			{
+		case PIDDELIM:
+			if (gp) {
 				pidparse(version, start, gp);
 
 				gp->gpu.nrgpus++;
@@ -496,14 +469,13 @@ gpustat_parse(int version, char *buf, int maxgpu,
 static void
 gpuparse(int version, char *p, struct pergpu *gg)
 {
-	switch (version)
-	{
-	   case 1:
-		(void) sscanf(p, "%d %d %lld %lld %lld %lld %lld %lld", 
-			&(gg->gpupercnow), &(gg->mempercnow),
-			&(gg->memtotnow),  &(gg->memusenow),
-			&(gg->samples),    &(gg->gpuperccum),
-			&(gg->memperccum), &(gg->memusecum));
+	switch (version) {
+	case 1:
+		(void) sscanf(p, "%d %d %lld %lld %lld %lld %lld %lld",
+		              &(gg->gpupercnow), &(gg->mempercnow),
+		              &(gg->memtotnow),  &(gg->memusenow),
+		              &(gg->samples),    &(gg->gpuperccum),
+		              &(gg->memperccum), &(gg->memusecum));
 
 		gg->nrprocs = 0;
 
@@ -518,15 +490,14 @@ gpuparse(int version, char *p, struct pergpu *gg)
 static void
 pidparse(int version, char *p, struct gpupidstat *gp)
 {
-	switch (version)
-	{
-	   case 1:
+	switch (version) {
+	case 1:
 		(void) sscanf(p, "%c %ld %d %d %lld %lld %lld %lld",
-			&(gp->gpu.state),   &(gp->pid),    
-			&(gp->gpu.gpubusy), &(gp->gpu.membusy),
-			&(gp->gpu.timems),
-			&(gp->gpu.memnow), &(gp->gpu.memcum),
-		        &(gp->gpu.sample));
+		              &(gp->gpu.state),   &(gp->pid),
+		              &(gp->gpu.gpubusy), &(gp->gpu.membusy),
+		              &(gp->gpu.timems),
+		              &(gp->gpu.memnow), &(gp->gpu.memcum),
+		              &(gp->gpu.sample));
 		break;
 	}
 }
@@ -547,7 +518,7 @@ gpumergeproc(struct tstat      *curtpres, int ntaskpres,
 	int 			t, g, gpuleft = nrgpuproc;
 
 	/*
- 	** make pointer list for elements in gpuproc
+	** make pointer list for elements in gpuproc
 	*/
 	gpp = malloc(nrgpuproc * sizeof(struct gpupidstat *));
 	ptrverify(gpp, "Malloc failed for process list\n");
@@ -556,19 +527,17 @@ gpumergeproc(struct tstat      *curtpres, int ntaskpres,
 		gpp[g] = gpuproc + g;
 
 	/*
-   	** sort the list with pointers in order of pid
+	** sort the list with pointers in order of pid
 	*/
 	if (nrgpuproc > 1)
-        	qsort(gpp, nrgpuproc, sizeof(struct gpupidstat *), compgpupid);
+		qsort(gpp, nrgpuproc, sizeof(struct gpupidstat *), compgpupid);
 
 	/*
 	** accumulate entries that contain stats from same PID
 	** on different GPUs
 	*/
-	for (g=1; g < nrgpuproc; g++)
-	{
-		if (gpp[g-1]->pid == gpp[g]->pid)
-		{
+	for (g=1; g < nrgpuproc; g++) {
+		if (gpp[g-1]->pid == gpp[g]->pid) {
 			struct gpupidstat *p = gpp[g-1], *q = gpp[g];
 
 			p->gpu.nrgpus  += q->gpu.nrgpus;
@@ -589,7 +558,7 @@ gpumergeproc(struct tstat      *curtpres, int ntaskpres,
 
 			if (nrgpuproc-g-1 > 0)
 				memmove(&(gpp[g]), &(gpp[g+1]),
-					(nrgpuproc-g-1) * sizeof p);
+				        (nrgpuproc-g-1) * sizeof p);
 
 			nrgpuproc--;
 			g--;
@@ -597,14 +566,11 @@ gpumergeproc(struct tstat      *curtpres, int ntaskpres,
 	}
 
 	/*
- 	** merge gpu stats with sorted task list of active processes
+	** merge gpu stats with sorted task list of active processes
 	*/
-	for (t=g=0; t < ntaskpres && g < nrgpuproc; t++)
-	{
-		if (curtpres[t].gen.isproc)
-		{
-			if (curtpres[t].gen.pid == gpp[g]->pid)
-			{
+	for (t=g=0; t < ntaskpres && g < nrgpuproc; t++) {
+		if (curtpres[t].gen.isproc) {
+			if (curtpres[t].gen.pid == gpp[g]->pid) {
 				curtpres[t].gpu = gpp[g]->gpu;
 				gpp[g++] = NULL;
 
@@ -613,31 +579,25 @@ gpumergeproc(struct tstat      *curtpres, int ntaskpres,
 			}
 
 			// anyhow resync
-			while ( curtpres[t].gen.pid > gpp[g]->pid)
-			{
+			while ( curtpres[t].gen.pid > gpp[g]->pid) {
 				if (++g >= nrgpuproc)
 					break;
 			}
 		}
 	}
 
-	if (gpuleft == 0)
-	{
+	if (gpuleft == 0) {
 		free(gpp);
 		return;
 	}
 
 	/*
- 	** compact list with pointers to remaining pids
+	** compact list with pointers to remaining pids
 	*/
-	for (g=t=0; g < nrgpuproc; g++)
-	{
-		if (gpp[g] == NULL)
-		{
-			for (; t < nrgpuproc; t++)
-			{
-				if (gpp[t])
-				{
+	for (g=t=0; g < nrgpuproc; g++) {
+		if (gpp[g] == NULL) {
+			for (; t < nrgpuproc; t++) {
+				if (gpp[t]) {
 					gpp[g] = gpp[t];
 					gpp[t] = NULL;
 					break;
@@ -647,19 +607,15 @@ gpumergeproc(struct tstat      *curtpres, int ntaskpres,
 	}
 
 	/*
- 	** merge remaining gpu stats with task list of exited processes
+	** merge remaining gpu stats with task list of exited processes
 	*/
-	for (t=0; t < nprocexit && gpuleft; t++)
-	{
-		if (curpexit[t].gen.isproc)
-		{
-			for (g=0; g < gpuleft; g++)
-			{
+	for (t=0; t < nprocexit && gpuleft; t++) {
+		if (curpexit[t].gen.isproc) {
+			for (g=0; g < gpuleft; g++) {
 				if (gpp[g] == NULL)
 					continue;
 
-				if (curpexit[t].gen.pid == gpp[g]->pid)
-				{
+				if (curpexit[t].gen.pid == gpp[g]->pid) {
 					curpexit[t].gpu = gpp[g]->gpu;
 					gpp[g] = NULL;
 					gpuleft--;

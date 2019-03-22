@@ -75,10 +75,8 @@ getifprop(struct ifprop *ifp)
 {
 	register int	i;
 
-	for (i=0; ifprops[i].name[0]; i++)
-	{
-		if (strcmp(ifp->name, ifprops[i].name) == 0)
-		{
+	for (i=0; ifprops[i].name[0]; i++) {
+		if (strcmp(ifp->name, ifprops[i].name) == 0) {
 			*ifp = ifprops[i];
 			return 1;
 		}
@@ -109,13 +107,12 @@ initifprop(void)
 
 	/*
 	** open /proc/net/dev to obtain all interface names and open
-  	** a socket to determine the properties for each interface
+	** a socket to determine the properties for each interface
 	*/
 	if ( (fp = fopen("/proc/net/dev", "r")) == NULL)
 		return;
 
-	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-	{
+	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
 		fclose(fp);
 		return;
 	}
@@ -123,8 +120,7 @@ initifprop(void)
 	/*
 	** read every name and obtain properties
 	*/
-	while ( fgets(linebuf, sizeof(linebuf), fp) != NULL)
-	{
+	while ( fgets(linebuf, sizeof(linebuf), fp) != NULL) {
 		/*
 		** skip lines containing a '|' symbol (headers)
 		*/
@@ -143,26 +139,24 @@ initifprop(void)
 		memset(&ethcmd, 0, sizeof ethcmd);
 
 		strncpy((void *)&ifreq.ifr_ifrn.ifrn_name, ifprops[i].name,
-				sizeof ifreq.ifr_ifrn.ifrn_name-1);
+		        sizeof ifreq.ifr_ifrn.ifrn_name-1);
 
 		ifreq.ifr_ifru.ifru_data = (void *)&ethcmd;
 
 		ethcmd.cmd = ETHTOOL_GSET;
 
-		if ( ioctl(sockfd, SIOCETHTOOL, &ifreq) == 0) 
-		{
+		if ( ioctl(sockfd, SIOCETHTOOL, &ifreq) == 0) {
 			ifprops[i].type  = 'e';	// type ethernet
 			ifprops[i].speed = ethtool_cmd_speed(&ethcmd);
 
 			if (ifprops[i].speed == (u32)SPEED_UNKNOWN)
 				ifprops[i].speed = 0;
 
-			switch (ethcmd.duplex)
-			{
-		   	   case DUPLEX_FULL:
+			switch (ethcmd.duplex) {
+			case DUPLEX_FULL:
 				ifprops[i].fullduplex	= 1;
 				break;
-		   	   default:
+			default:
 				ifprops[i].fullduplex	= 0;
 			}
 
@@ -178,15 +172,14 @@ initifprop(void)
 		memset(&iwreq,  0, sizeof iwreq);
 
 		strncpy(iwreq.ifr_ifrn.ifrn_name, ifprops[i].name,
-				sizeof iwreq.ifr_ifrn.ifrn_name-1);
+		        sizeof iwreq.ifr_ifrn.ifrn_name-1);
 
-		if ( ioctl(sockfd, SIOCGIWRATE, &iwreq) == 0) 
-		{
+		if ( ioctl(sockfd, SIOCGIWRATE, &iwreq) == 0) {
 			ifprops[i].type       = 'w';	// type wireless
 			ifprops[i].fullduplex = 0;
 
 			ifprops[i].speed =
-				(iwreq.u.bitrate.value + 500000) / 1000000;
+			    (iwreq.u.bitrate.value + 500000) / 1000000;
 
 			if (++i >= MAXINTF-1)
 				break;

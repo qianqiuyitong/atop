@@ -102,7 +102,7 @@ static char		cleanup_and_go = 0;
 ** function prototypes
 */
 static int	awaitprocterm(int, int, int, char *, int *,
-				unsigned long *, unsigned long *);
+                          unsigned long *, unsigned long *);
 static int	swonpacct(int, char *);
 static int	createshadow(long);
 static int	pass2shadow(int, char *, int);
@@ -138,24 +138,19 @@ main(int argc, char *argv[])
 	/*
 	** argument passed?
 	*/
-	if (argc == 2)
-	{
+	if (argc == 2) {
 		/*
 		** version number required (flag -v or -V)?
 		*/
-		if (*argv[1] == '-')	// flag?
-		{
-			if ( *(argv[1]+1) == 'v' || *(argv[1]+1) == 'V')
-			{
+		if (*argv[1] == '-') {	// flag?
+			if ( *(argv[1]+1) == 'v' || *(argv[1]+1) == 'V') {
 				printf("%s  <gerlof.langeveld@atoptool.nl>\n",
-								getstrvers());
+				       getstrvers());
 				return 0;
-			}
-			else
-			{
+			} else {
 				fprintf(stderr,
-				     	"Usage: atopacctd [-v|topdirectory]\n"
-					"Default topdirectory: %s\n", PACCTDIR);
+				        "Usage: atopacctd [-v|topdirectory]\n"
+				        "Default topdirectory: %s\n", PACCTDIR);
 				exit(1);
 			}
 		}
@@ -165,23 +160,19 @@ main(int argc, char *argv[])
 		** of an alternative top directory (to be validated later on)
 		*/
 		pacctdir = argv[1];
-	}
-	else
-	{
-		if (argc != 1)
-		{
+	} else {
+		if (argc != 1) {
 			fprintf(stderr,
-			     	"Usage: atopacctd [-v|topdirectory]\n"
-				"Default topdirectory: %s\n", PACCTDIR);
+			        "Usage: atopacctd [-v|topdirectory]\n"
+			        "Default topdirectory: %s\n", PACCTDIR);
 			exit(1);
 		}
 	}
 
 	/*
- 	** verify if we are running with the right privileges
+	** verify if we are running with the right privileges
 	*/
-	if (geteuid() != 0)
-	{
+	if (geteuid() != 0) {
 		fprintf(stderr, "Root privileges are needed!\n");
 		exit(1);
 	}
@@ -190,33 +181,29 @@ main(int argc, char *argv[])
 	** verify that the top directory is not world-writable
 	** and owned by root
 	*/
-	if ( stat(pacctdir, &dirstat) == -1 )
-	{
+	if ( stat(pacctdir, &dirstat) == -1 ) {
 		perror(pacctdir);
 		fprintf(stderr, "Usage: atopacctd [-v|topdirectory]\n"
-				"Default topdirectory: %s\n", PACCTDIR);
+		        "Default topdirectory: %s\n", PACCTDIR);
 		exit(2);
 	}
 
-	if (! S_ISDIR(dirstat.st_mode) )
-	{
+	if (! S_ISDIR(dirstat.st_mode) ) {
 		fprintf(stderr, "atopacctd: %s is not a directory\n", pacctdir);
 		exit(2);
 	}
 
-	if (dirstat.st_uid != 0)
-	{
+	if (dirstat.st_uid != 0) {
 		fprintf(stderr,
-			"atopacctd: directory %s must be owned by root\n",
-			pacctdir);
+		        "atopacctd: directory %s must be owned by root\n",
+		        pacctdir);
 		exit(2);
 	}
 
-	if (dirstat.st_mode & (S_IWGRP|S_IWOTH))
-	{
+	if (dirstat.st_mode & (S_IWGRP|S_IWOTH)) {
 		fprintf(stderr,
-			"atopacctd: directory %s may not be writable "
-			"for group/others\n", pacctdir);
+		        "atopacctd: directory %s may not be writable "
+		        "for group/others\n", pacctdir);
 		exit(2);
 	}
 
@@ -225,44 +212,33 @@ main(int argc, char *argv[])
 	** if the private semaphore already exists, verify if another
 	** atopacctd daemon is already running
 	*/
-	if ( (semprv = semget(PACCTPRVKEY, 0, 0)) >= 0)	// exists?
-	{
-		if ( semctl(semprv, 0, GETVAL, 0) > 0)
-		{
+	if ( (semprv = semget(PACCTPRVKEY, 0, 0)) >= 0) {	// exists?
+		if ( semctl(semprv, 0, GETVAL, 0) > 0) {
 			fprintf(stderr, "atopacctd is already running!\n");
 			exit(3);
 		}
-	}
-	else
-	{
+	} else {
 		if ( (semprv = semget(PACCTPRVKEY, 1,
-					0600|IPC_CREAT|IPC_EXCL)) >= 0)
-		{
+		                      0600|IPC_CREAT|IPC_EXCL)) >= 0) {
 			(void) semctl(semprv, 0, SETVAL, 0);
-		}
-		else
-		{
+		} else {
 			perror("cannot create private semaphore");
 			exit(3);
 		}
 	}
 
-	if ( (sempub = semget(PACCTPUBKEY, 0, 0)) == -1)	// not existing?
-	{
+	if ( (sempub = semget(PACCTPUBKEY, 0, 0)) == -1) {	// not existing?
 		if ( (sempub = semget(PACCTPUBKEY, 1,
-						0666|IPC_CREAT|IPC_EXCL)) >= 0)
-		{
+		                      0666|IPC_CREAT|IPC_EXCL)) >= 0) {
 			(void) semctl(sempub, 0, SETVAL, SEMTOTAL);
-		}
-		else
-		{
+		} else {
 			perror("cannot create public semaphore");
 			exit(3);
 		}
 	}
 
 	/*
- 	** prepare cleanup signal handler
+	** prepare cleanup signal handler
 	*/
 	memset(&sigcleanup, 0, sizeof sigcleanup);
 	sigcleanup.sa_handler	= cleanup;
@@ -277,10 +253,9 @@ main(int argc, char *argv[])
 	parentpid = getpid();		// to be killed when initialized
 	(void) sigaction(SIGTERM, &sigcleanup, (struct sigaction *)0);
 
-	if ( fork() )			// implicitly switch to background
-   	{
+	if ( fork() ) {		// implicitly switch to background
 		/*
- 		** parent after forking first child:
+		** parent after forking first child:
 		** wait for signal 15 from child before terminating
 		** because systemd expects parent to terminate whenever
 		** service is up and running
@@ -296,9 +271,8 @@ main(int argc, char *argv[])
 
 	getrlimit(RLIMIT_NOFILE, &rlim);
 
-	for (i=0; i < rlim.rlim_cur; i++)	// close all files, but
-	{
-		if (i != 2)			// do not close stderr 
+	for (i=0; i < rlim.rlim_cur; i++) {	// close all files, but
+		if (i != 2)			// do not close stderr
 			close(i);
 	}
 
@@ -309,8 +283,7 @@ main(int argc, char *argv[])
 	/*
 	** increase semaphore to define that atopacctd is running
 	*/
-	if ( semop(semprv, &semincr, 1) == -1)
-       	{
+	if ( semop(semprv, &semincr, 1) == -1) {
 		perror("cannot increment private semaphore");
 		kill(parentpid, SIGTERM);
 		exit(4);
@@ -324,8 +297,7 @@ main(int argc, char *argv[])
 
 	(void) unlink(accountpath);
 
-	if ( (afd = creat(accountpath, 0600)) == -1)
-       	{
+	if ( (afd = creat(accountpath, 0600)) == -1) {
 		perror(accountpath);
 		kill(parentpid, SIGTERM);
 		exit(5);
@@ -334,22 +306,20 @@ main(int argc, char *argv[])
 	(void) close(afd);
 
 	/*
- 	** open the accounting file for read
+	** open the accounting file for read
 	*/
-	if ( (afd = open(accountpath, O_RDONLY)) == -1)
-       	{
+	if ( (afd = open(accountpath, O_RDONLY)) == -1) {
 		perror(accountpath);
 		kill(parentpid, SIGTERM);
 		exit(5);
 	}
 
 	/*
- 	** create directory to store the shadow files
+	** create directory to store the shadow files
 	*/
 	snprintf(shadowdir, sizeof shadowdir, "%s/%s", pacctdir, PACCTSHADOWD);
 
-	if ( mkdir(shadowdir, 0755) == -1)
-       	{
+	if ( mkdir(shadowdir, 0755) == -1) {
 		perror(shadowdir);
 		kill(parentpid, SIGTERM);
 		exit(5);
@@ -359,7 +329,7 @@ main(int argc, char *argv[])
 	setcurrent(curshadow);
 
 	/*
-	** open syslog interface 
+	** open syslog interface
 	*/
 	openlog("atopacctd", LOG_PID, LOG_DAEMON);
 	syslog(LOG_INFO, "%s  <gerlof.langeveld@atoptool.nl>", getstrvers());
@@ -371,11 +341,10 @@ main(int argc, char *argv[])
 	(void) nice(-39);
 
 	/*
- 	** connect to NETLINK socket of kernel to be triggered
+	** connect to NETLINK socket of kernel to be triggered
 	** when processes have finished
 	*/
-	if ( (nfd = netlink_open()) == -1)
-	{
+	if ( (nfd = netlink_open()) == -1) {
 		(void) unlink(accountpath);
 		kill(parentpid, SIGTERM);
 		exit(5);
@@ -384,8 +353,7 @@ main(int argc, char *argv[])
 	/*
 	** switch on accounting - inital
 	*/
-	if ( swonpacct(afd, accountpath) == -1)
-	{
+	if ( swonpacct(afd, accountpath) == -1) {
 		(void) unlink(accountpath);
 		kill(parentpid, SIGTERM);
 		exit(6);
@@ -403,10 +371,9 @@ main(int argc, char *argv[])
 	(void) sigaction(SIGTERM, &sigcleanup, (struct sigaction *)0);
 
 	/*
- 	** create PID file
+	** create PID file
 	*/
-	if ( (pidf = fopen(PIDFILE, "w")) )
-	{
+	if ( (pidf = fopen(PIDFILE, "w")) ) {
 		fprintf(pidf, "%d\n", getpid());
 		fclose(pidf);
 	}
@@ -419,8 +386,7 @@ main(int argc, char *argv[])
 	/*
 	** main loop
 	*/
-	while (! cleanup_and_go)
-	{
+	while (! cleanup_and_go) {
 		int	state;
 
 		/*
@@ -428,17 +394,16 @@ main(int argc, char *argv[])
 		** copy the process accounting record(s)
 		*/
 		state = awaitprocterm(nfd, afd, sfd, accountpath,
-					&shadowbusy, &oldshadow, &curshadow);
+		                      &shadowbusy, &oldshadow, &curshadow);
 
 		if (state == -1)	// irrecoverable error?
 			break;
 
 		/*
- 		** verify if garbage collection is needed
+		** verify if garbage collection is needed
 		** i.e. removal of shadow files that are not in use any more
 		*/
-		if ( shadowbusy && time(0) > gclast + GCINTERVAL )
-		{
+		if ( shadowbusy && time(0) > gclast + GCINTERVAL ) {
 			gcshadows(&oldshadow, curshadow);
 			gclast = time(0);
 		}
@@ -450,34 +415,30 @@ main(int argc, char *argv[])
 	(void) acct((char *) 0);	// disable process accounting
 	(void) unlink(accountpath);	// remove source file
 
-	for (; oldshadow <= curshadow; oldshadow++)	// remove shadow files
-	{
+	for (; oldshadow <= curshadow; oldshadow++) {	// remove shadow files
 		/*
 		** assemble path name of shadow file (starting by oldest)
 		*/
 		snprintf(shadowpath, sizeof shadowpath, PACCTSHADOWF,
-					pacctdir, PACCTSHADOWD, oldshadow);
+		         pacctdir, PACCTSHADOWD, oldshadow);
 
 		(void) unlink(shadowpath);
 	}
 
 	snprintf(shadowpath, sizeof shadowpath, "%s/%s/%s",
-			pacctdir, PACCTSHADOWD, PACCTSHADOWC);
+	         pacctdir, PACCTSHADOWD, PACCTSHADOWC);
 
 	(void) unlink(shadowpath);	// remove file 'current'
 	(void) rmdir(shadowdir);	// remove shadow.d directory
 
-	if (cleanup_and_go)
-	{
+	if (cleanup_and_go) {
 		syslog(LOG_NOTICE, "Terminated by signal %d\n", cleanup_and_go);
 
 		if (cleanup_and_go == SIGTERM)
 			return 0;
 		else
 			return cleanup_and_go + 128;
-	}
-	else
-	{
+	} else {
 		syslog(LOG_NOTICE, "Terminated!\n");
 		return 13;
 	}
@@ -495,7 +456,7 @@ main(int argc, char *argv[])
 */
 static int
 awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
-	int *shadowbusyp, unsigned long *oldshadowp, unsigned long *curshadowp)
+              int *shadowbusyp, unsigned long *oldshadowp, unsigned long *curshadowp)
 {
 	static int			arecsize, netlinkactive = 1;
 	static unsigned long long	atotsize, stotsize, maxshadowsz;
@@ -509,7 +470,7 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 	/*
 	** neutral state:
 	**
- 	** wait for info from NETLINK indicating that at least
+	** wait for info from NETLINK indicating that at least
 	** one process has finished; the real contents of the
 	** NETLINK message is ignored, it is only used as trigger
 	** that something can be read from the process accounting file
@@ -525,48 +486,43 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 	**      records are available (repeatedly); ugly but the only
 	**	thing we can do if we can't use NETLINK
 	*/
-	if (netlinkactive)
-	{
+	if (netlinkactive) {
 		rv = netlink_recv(nfd, 0);
 
-		if (rv == 0) 		// EOF?
-		{
+		if (rv == 0) {	// EOF?
 			syslog(LOG_ERR, "unexpected EOF on NETLINK\n");
 			perror("unexpected EOF on NETLINK\n");
 			return -1;
 		}
 
-		if (rv < 0)		// failure?
-		{
-			switch (-rv)
-			{
-		   	   // acceptable errors that might indicate that
-		   	   // processes have terminated
-		   	   case EINTR:
-		   	   case ENOMEM:
-		   	   case ENOBUFS:
+		if (rv < 0) {	// failure?
+			switch (-rv) {
+			// acceptable errors that might indicate that
+			// processes have terminated
+			case EINTR:
+			case ENOMEM:
+			case ENOBUFS:
 				break;
-	
-		   	   default:
-				syslog(LOG_ERR,
-					"unexpected error on NETLINK: %s\n",
-					strerror(-rv));
-				fprintf(stderr,
-					"unexpected error on NETLINK: %s\n",
-                                       	strerror(-rv));
 
-				if (-rv == EINVAL)
-				{
-				   	syslog(LOG_ERR,
-				   	"(see ATOP README about kernel bug 190711)\n");
+			default:
+				syslog(LOG_ERR,
+				       "unexpected error on NETLINK: %s\n",
+				       strerror(-rv));
+				fprintf(stderr,
+				        "unexpected error on NETLINK: %s\n",
+				        strerror(-rv));
+
+				if (-rv == EINVAL) {
+					syslog(LOG_ERR,
+					       "(see ATOP README about kernel bug 190711)\n");
 					fprintf(stderr,
-				   	"(see ATOP README about kernel bug 190711)\n");
+					        "(see ATOP README about kernel bug 190711)\n");
 				}
 
 				syslog(LOG_ERR,
-					"switching to polling mode\n");
+				       "switching to polling mode\n");
 				fprintf(stderr,
-					"switching to polling mode\n");
+				        "switching to polling mode\n");
 
 				netlinkactive = 0;	// polling mode wanted
 
@@ -575,37 +531,31 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 		}
 
 		/*
- 		** get rid of all other waiting finished processes via netlink
+		** get rid of all other waiting finished processes via netlink
 		** before handling the process accounting record(s)
 		*/
 		while ( netlink_recv(nfd, MSG_DONTWAIT) > 0 );
-	}
-	else	// POLLING MODE
-	{
+	} else {	// POLLING MODE
 		sleep(POLLSEC);
 		retrycount = 1;
 	}
 
 	/*
- 	** read new process accounting record(s)
+	** read new process accounting record(s)
 	** such record(s) may not immediately be available (timing matter),
-	** so some retries might be necessary 
+	** so some retries might be necessary
 	*/
-	while ((asz = read(afd, abuf, sizeof abuf)) == 0 && --retrycount)
-	{
+	while ((asz = read(afd, abuf, sizeof abuf)) == 0 && --retrycount) {
 		nanosleep(&retrytimer, (struct timespec *)0);
 		retrytimer.tv_nsec = RETRYMS*1000000;
 	}
 
-	switch (asz)
-	{
-	   case 0:		// EOF (no records available)?
-		if (time(0) > reclast + NORECINTERVAL && reclast)
-		{
+	switch (asz) {
+	case 0:		// EOF (no records available)?
+		if (time(0) > reclast + NORECINTERVAL && reclast) {
 			syslog(LOG_WARNING, "reactivate process accounting\n");
 
-			if (truncate(accountpath, 0) != -1)
-			{
+			if (truncate(accountpath, 0) != -1) {
 				lseek(afd, 0, SEEK_SET);
 				atotsize = swonpacct(afd, accountpath);
 			}
@@ -615,29 +565,25 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 
 		return 0;	// wait for NETLINK again
 
-	   case -1:		// failure?
+	case -1:		// failure?
 		syslog(LOG_ERR, "%s - unexpected read error: %s\n",
-					accountpath, strerror(errno));
+		       accountpath, strerror(errno));
 		return -1;
 	}
 
 	reclast = time(0);
 
 	/*
- 	** only once: determine the size of an accounting
+	** only once: determine the size of an accounting
 	** record and calculate the maximum size for each
 	** shadow file
 	*/
-	if (!arecsize)
-	{
+	if (!arecsize) {
 		arecsize = acctsize((struct acct *)abuf);
 
-		if (arecsize)
-		{
+		if (arecsize) {
 			maxshadowsz = maxshadowrec * arecsize;
-		}
-		else
-		{
+		} else {
 			syslog(LOG_ERR,
 			       "cannot determine size of account record\n");
 			return -1;
@@ -645,32 +591,28 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 	}
 
 	/*
- 	** truncate process accounting file regularly
+	** truncate process accounting file regularly
 	*/
 	atotsize += asz;	// maintain current size
 
-	if (atotsize >= MAXORIGSZ)
-	{
-		if (truncate(accountpath, 0) != -1)
-		{
+	if (atotsize >= MAXORIGSZ) {
+		if (truncate(accountpath, 0) != -1) {
 			lseek(afd, 0, SEEK_SET);
 			atotsize = 0;
 		}
 	}
 
 	/*
- 	** determine if any client is using the shadow
+	** determine if any client is using the shadow
 	** accounting files; if not, verify if clients
 	** have been using the shadow files till now and
 	** cleanup has to be performed
 	*/
-	if (NUMCLIENTS == 0)
-	{
+	if (NUMCLIENTS == 0) {
 		/*
 		** did last client just disappeared?
 		*/
-		if (*shadowbusyp)
-		{
+		if (*shadowbusyp) {
 			/*
 			** remove all shadow files
 			*/
@@ -680,7 +622,7 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 			stotsize    = 0;
 
 			/*
- 			** create new file with sequence 0
+			** create new file with sequence 0
 			*/
 			(void) close(sfd);
 
@@ -696,12 +638,11 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 	*shadowbusyp = 1;
 
 	/*
- 	** transfer process accounting data to shadow file
+	** transfer process accounting data to shadow file
 	** but take care to fill a shadow file exactly
 	** to its maximum and not more...
 	*/
-	if (stotsize + asz <= maxshadowsz) 	// would fit?
-	{
+	if (stotsize + asz <= maxshadowsz) {	// would fit?
 		/*
 		** pass all data
 		*/
@@ -710,9 +651,7 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 
 		remsz  = 0;
 		partsz = 0;
-	}
-	else
-	{
+	} else {
 		/*
 		** calculate the remainder that has to
 		** be written to the next shadow file
@@ -729,12 +668,11 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 	}
 
 	/*
- 	** verify if current shadow file has reached its
+	** verify if current shadow file has reached its
 	** maximum size; if so, switch to next sequence number
 	** and write remaining data (if any)
 	*/
-	if (stotsize >= maxshadowsz)
-	{
+	if (stotsize >= maxshadowsz) {
 		close(sfd);
 
 		sfd = createshadow(++(*curshadowp));
@@ -745,8 +683,7 @@ awaitprocterm(int nfd, int afd, int sfd, char *accountpath,
 		/*
 		** transfer remaining part of the data
 		*/
-		if (remsz)
-		{
+		if (remsz) {
 			if ( (ssz = pass2shadow(sfd, abuf+partsz, remsz)) > 0)
 				stotsize += ssz;
 		}
@@ -766,13 +703,12 @@ createshadow(long seq)
 	char	shadowpath[128];
 
 	snprintf(shadowpath, sizeof shadowpath, PACCTSHADOWF,
-				pacctdir,  PACCTSHADOWD, seq);
+	         pacctdir,  PACCTSHADOWD, seq);
 
 	/*
 	** open the shadow file for write
 	*/
-	if ( (sfd = creat(shadowpath, 0644)) == -1)
-	{
+	if ( (sfd = creat(shadowpath, 0644)) == -1) {
 		perror(shadowpath);
 		exit(5);
 	}
@@ -792,16 +728,13 @@ pass2shadow(int sfd, char *sbuf, int ssz)
 	/*
 	** check if the filesystem is not filled for more than 95%
 	*/
-	if ( fstatvfs(sfd, &statvfs) != -1)
-	{
+	if ( fstatvfs(sfd, &statvfs) != -1) {
 		if (statvfs.f_blocks == 0 			||
-		    statvfs.f_bfree * 100 / statvfs.f_blocks < 5  )
-		{
-			if (nrskipped == 0)	// first skip?
-			{
+		    statvfs.f_bfree * 100 / statvfs.f_blocks < 5  ) {
+			if (nrskipped == 0) {	// first skip?
 				syslog(LOG_WARNING,
-					"Filesystem > 95%% full; "
-					"pacct writing skipped\n");
+				       "Filesystem > 95%% full; "
+				       "pacct writing skipped\n");
 			}
 
 			nrskipped++;
@@ -811,24 +744,22 @@ pass2shadow(int sfd, char *sbuf, int ssz)
 	}
 
 	/*
-  	** there is enough space in the filesystem (again)
+	** there is enough space in the filesystem (again)
 	** verify if writing has been suspended due to lack of space (if so,
 	** write a log message)
 	*/
-	if (nrskipped)
-	{
+	if (nrskipped) {
 		syslog(LOG_WARNING, "Pacct writing continued (%llu skipped)\n",
-								nrskipped);
+		       nrskipped);
 		nrskipped = 0;
 	}
 
 	/*
- 	** transfer process accounting record(s) to shadow file
+	** transfer process accounting record(s) to shadow file
 	*/
-	if ( write(sfd, sbuf, ssz) == -1 )
-	{
+	if ( write(sfd, sbuf, ssz) == -1 ) {
 		syslog(LOG_ERR, "Unexpected write error to shadow file: %s\n",
- 		     					strerror(errno));
+		       strerror(errno));
 		exit(7);
 	}
 
@@ -855,15 +786,13 @@ swonpacct(int afd, char *accountpath)
 	** works after switching it on. If not, we keep retrying
 	** for a while.
 	*/
-	while (! acctokay)
-	{
+	while (! acctokay) {
 		int  maxcnt = 40;
 
 		/*
 		** switch on process accounting
 		*/
-		if ( acct(accountpath) == -1)
-		{
+		if ( acct(accountpath) == -1) {
 			perror("cannot switch on process accounting");
 			return -1;
 		}
@@ -873,7 +802,7 @@ swonpacct(int afd, char *accountpath)
 		** child process that immediately finishes (should
 		** result in a process accounting record)
 		*/
-		if ( fork() == 0 )	
+		if ( fork() == 0 )
 			exit(0);
 
 		(void) wait((int *)0);		// wait for child to finish
@@ -881,16 +810,13 @@ swonpacct(int afd, char *accountpath)
 		while ( (n = read(afd, abuf, sizeof abuf)) <= 0 && --maxcnt)
 			usleep(50000);
 
-		if (n > 0)			// process accounting works
-		{
+		if (n > 0) {		// process accounting works
 			acctokay = 1;
-		}
-		else
-		{
+		} else {
 			syslog(LOG_ERR,
-			   "Retrying to switch on process accounting\n");
+			       "Retrying to switch on process accounting\n");
 			syslog(LOG_ERR,
-			   "(see ATOP README about kernel bug 190271)\n");
+			       "(see ATOP README about kernel bug 190271)\n");
 
 			acct((char *)0);	// switch off process accounting
 			sleep(PACCTSEC);	// wait a while before retrying
@@ -926,30 +852,28 @@ gcshadows(unsigned long *oldshadowp, unsigned long curshadow)
 	flock.l_whence 	= SEEK_SET;
 	flock.l_start 	= 0;
 	flock.l_len 	= 1;
-	
-	for (; *oldshadowp < curshadow; (*oldshadowp)++)
-	{
+
+	for (; *oldshadowp < curshadow; (*oldshadowp)++) {
 		/*
 		** assemble path name of shadow file (starting by oldest)
 		*/
 		snprintf(shadowpath, sizeof shadowpath, PACCTSHADOWF,
-					pacctdir, PACCTSHADOWD, *oldshadowp);
+		         pacctdir, PACCTSHADOWD, *oldshadowp);
 
 		/*
 		** try to open oldest existing file for write
- 		** and verify if it is in use
+		** and verify if it is in use
 		*/
 		if ( (tmpsfd = open(shadowpath, O_WRONLY)) == -1)
 			break;
 
-		if ( fcntl(tmpsfd, F_SETLK, &flock) == -1)  // no-wait trial
-		{
+		if ( fcntl(tmpsfd, F_SETLK, &flock) == -1) { // no-wait trial
 			close(tmpsfd);
 			break;		// setting lock failed, so still in use
 		}
 
 		/*
- 		** lock successfully set, so file is unused: remove file;
+		** lock successfully set, so file is unused: remove file;
 		** closing the file implicitly removes the succeeded lock
 		*/
 		(void) close(tmpsfd);
@@ -970,15 +894,13 @@ setcurrent(long curshadow)
 	/*
 	** assemble file name of currency file and open (only once)
 	*/
-	if (cfd == -1)
-	{
+	if (cfd == -1) {
 		snprintf(currentpath, sizeof currentpath, "%s/%s/%s",
-			pacctdir, PACCTSHADOWD, PACCTSHADOWC);
+		         pacctdir, PACCTSHADOWD, PACCTSHADOWC);
 
-		if ( (cfd = creat(currentpath, 0644)) == -1)
-		{
+		if ( (cfd = creat(currentpath, 0644)) == -1) {
 			syslog(LOG_ERR, "Could not create currency file: %s\n",
- 		     					strerror(errno));
+			       strerror(errno));
 			return;
 		}
 	}
@@ -987,7 +909,7 @@ setcurrent(long curshadow)
 	** assemble ASCII string to be written: seqnumber/maxrecords
 	*/
 	len = snprintf(currentdata, sizeof currentdata, "%ld/%lu",
-					curshadow, maxshadowrec);
+	               curshadow, maxshadowrec);
 
 	/*
 	** wipe currency file and write new assembled string
@@ -1003,15 +925,14 @@ setcurrent(long curshadow)
 static int
 acctsize(struct acct *parec)
 {
-	switch (parec->ac_version & 0x0f)
-	{
-	   case 2:
- 		return sizeof(struct acct);
+	switch (parec->ac_version & 0x0f) {
+	case 2:
+		return sizeof(struct acct);
 
-	   case 3:
-	   	return sizeof(struct acct_v3);
+	case 3:
+		return sizeof(struct acct_v3);
 
-	   default:
+	default:
 		return 0;
 	}
 }
@@ -1025,7 +946,7 @@ getstrvers(void)
 	static char vers[256];
 
 	snprintf(vers, sizeof vers, "Version: %s - %s",
-		atopacctdversion, atopacctddate);
+	         atopacctdversion, atopacctddate);
 
 	return vers;
 }

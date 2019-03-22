@@ -26,8 +26,8 @@
 #define	PNAMLEN		15
 #define	CMDLEN		255
 
-/* 
-** structure containing only relevant process-info extracted 
+/*
+** structure containing only relevant process-info extracted
 ** from kernel's process-administration
 */
 struct tstat {
@@ -85,7 +85,7 @@ struct tstat {
 		count_t	wio;		/* number of write requests 	*/
 		count_t	wsz;		/* cumulative # sectors written	*/
 		count_t	cwsz;		/* cumulative # written sectors */
-					/* being cancelled              */
+		/* being cancelled              */
 		count_t	cfuture[4];	/* reserved for future use	*/
 	} dsk;
 
@@ -130,8 +130,8 @@ struct tstat {
 		int	gpubusy;	// gpu busy perc process lifetime      -1 = n/a
 		int	membusy;	// memory busy perc process lifetime   -1 = n/a
 		count_t	timems;		// milliseconds accounting   -1 = n/a
-					// value 0   for active process,
-					// value > 0 after termination
+		// value 0   for active process,
+		// value > 0 after termination
 
 		count_t	memnow;		// current    memory consumption in KiB
 		count_t	memcum;		// cumulative memory consumption in KiB
@@ -152,16 +152,16 @@ struct pinfo {
 ** structure to maintains all deviation info related to one sample
 */
 struct devtstat {
-        struct tstat     *taskall;
-        struct tstat    **procall;
-        struct tstat    **procactive;
+	struct tstat     *taskall;
+	struct tstat    **procall;
+	struct tstat    **procactive;
 
 	unsigned long	ntaskall;
-        unsigned long	ntaskactive;
+	unsigned long	ntaskactive;
 	unsigned long	nprocall;
 	unsigned long	nprocactive;
 
-        unsigned long   totrun, totslpi, totslpu, totzombie;
+	unsigned long   totrun, totslpi, totslpu, totzombie;
 };
 
 /*
@@ -180,8 +180,8 @@ int		pdb_srchresidue(struct tstat *, struct pinfo **);
 struct netpertask;
 
 void		deviattask(struct tstat *, unsigned long,
- 		           struct tstat *, unsigned long, 
- 		           struct devtstat *, struct sstat *);
+                       struct tstat *, unsigned long,
+                       struct devtstat *, struct sstat *);
 
 unsigned long	photoproc(struct tstat *, int);
 unsigned long	counttasks(void);

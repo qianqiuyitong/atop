@@ -93,10 +93,10 @@ struct	netstat {
 /************************************************************************/
 
 struct freqcnt {
-        count_t maxfreq;/* frequency in MHz                    */
-        count_t cnt;    /* number of clock ticks times state   */
-        count_t ticks;  /* number of total clock ticks         */
-                        /* if zero, cnt is actul freq          */
+	count_t maxfreq;/* frequency in MHz                    */
+	count_t cnt;    /* number of clock ticks times state   */
+	count_t ticks;  /* number of total clock ticks         */
+	/* if zero, cnt is actul freq          */
 };
 
 struct percpu {
@@ -110,7 +110,7 @@ struct percpu {
 	count_t		Stime;	/* softirq time in clock ticks		*/
 	count_t		steal;	/* steal   time in clock ticks		*/
 	count_t		guest;	/* guest   time in clock ticks		*/
-        struct freqcnt	freqcnt;/* frequency scaling info  		*/
+	struct freqcnt	freqcnt;/* frequency scaling info  		*/
 	count_t		instr;	/* CPU instructions 			*/
 	count_t		cycle;	/* CPU cycles 				*/
 	count_t		cfuture[2];	/* reserved for future use	*/
@@ -133,13 +133,13 @@ struct	cpustat {
 /************************************************************************/
 
 struct	perdsk {
-        char	name[MAXDKNAM];	/* empty string for last        */
-        count_t	nread;	/* number of read  transfers            */
-        count_t	nrsect;	/* number of sectors read               */
-        count_t	nwrite;	/* number of write transfers            */
-        count_t	nwsect;	/* number of sectors written            */
-        count_t	io_ms;	/* number of millisecs spent for I/O    */
-        count_t	avque;	/* average queue length                 */
+	char	name[MAXDKNAM];	/* empty string for last        */
+	count_t	nread;	/* number of read  transfers            */
+	count_t	nrsect;	/* number of sectors read               */
+	count_t	nwrite;	/* number of write transfers            */
+	count_t	nwsect;	/* number of sectors written            */
+	count_t	io_ms;	/* number of millisecs spent for I/O    */
+	count_t	avque;	/* average queue length                 */
 	count_t	cfuture[4];	/* reserved for future use	*/
 };
 
@@ -155,10 +155,10 @@ struct dskstat {
 /************************************************************************/
 
 struct	perintf {
-        char	name[16];	/* empty string for last        */
+	char	name[16];	/* empty string for last        */
 
-        count_t	rbyte;	/* number of read bytes                 */
-        count_t	rpack;	/* number of read packets               */
+	count_t	rbyte;	/* number of read bytes                 */
+	count_t	rpack;	/* number of read packets               */
 	count_t rerrs;  /* receive errors                       */
 	count_t rdrop;  /* receive drops                        */
 	count_t rfifo;  /* receive fifo                         */
@@ -167,8 +167,8 @@ struct	perintf {
 	count_t rmultic;/* receive multicast                    */
 	count_t	rfuture[4];	/* reserved for future use	*/
 
-        count_t	sbyte;	/* number of written bytes              */
-        count_t	spack;	/* number of written packets            */
+	count_t	sbyte;	/* number of written bytes              */
+	count_t	spack;	/* number of written packets            */
 	count_t serrs;  /* transmit errors                      */
 	count_t sdrop;  /* transmit drops                       */
 	count_t sfifo;  /* transmit fifo                        */
@@ -192,9 +192,9 @@ struct intfstat {
 /************************************************************************/
 
 struct  pernfsmount {
-        char 	mountdev[128];		/* mountdevice 			*/
-        count_t	age;			/* number of seconds mounted	*/
-	
+	char 	mountdev[128];		/* mountdevice 			*/
+	count_t	age;			/* number of seconds mounted	*/
+
 	count_t	bytesread;		/* via normal reads		*/
 	count_t	byteswrite;		/* via normal writes		*/
 	count_t	bytesdread;		/* via direct reads		*/
@@ -209,7 +209,7 @@ struct  pernfsmount {
 
 struct nfsstat {
 	struct {
-        	count_t	netcnt;
+		count_t	netcnt;
 		count_t netudpcnt;
 		count_t nettcpcnt;
 		count_t nettcpcon;
@@ -222,12 +222,12 @@ struct nfsstat {
 		count_t rpcread;
 		count_t rpcwrite;
 
-	   	count_t	rchits;		/* repcache hits	*/
-	   	count_t	rcmiss;		/* repcache misses	*/
-	   	count_t	rcnoca;		/* uncached requests	*/
+		count_t	rchits;		/* repcache hits	*/
+		count_t	rcmiss;		/* repcache misses	*/
+		count_t	rcnoca;		/* uncached requests	*/
 
-	   	count_t	nrbytes;	/* read bytes		*/
-	   	count_t	nwbytes;	/* written bytes	*/
+		count_t	nrbytes;	/* read bytes		*/
+		count_t	nwbytes;	/* written bytes	*/
 
 		count_t	future[8];
 	} server;
@@ -244,8 +244,8 @@ struct nfsstat {
 	} client;
 
 	struct {
-        	int             	nrmounts;
-       		struct pernfsmount	nfsmnt[MAXNFSMOUNT];
+		int             	nrmounts;
+		struct pernfsmount	nfsmnt[MAXNFSMOUNT];
 	} nfsmounts;
 };
 
@@ -270,20 +270,20 @@ struct	pressure {
 /************************************************************************/
 
 struct  percontainer {
-        unsigned long	ctid;		/* container id			*/
-        unsigned long	numproc;	/* number of processes		*/
+	unsigned long	ctid;		/* container id			*/
+	unsigned long	numproc;	/* number of processes		*/
 
-        count_t system;  	/* */
-        count_t user;  		/* */
-        count_t nice;  		/* */
-        count_t uptime; 	/* */
+	count_t system;  	/* */
+	count_t user;  		/* */
+	count_t nice;  		/* */
+	count_t uptime; 	/* */
 
-        count_t physpages; 	/* */
+	count_t physpages; 	/* */
 };
 
 struct contstat {
-        int             	nrcontainer;
-        struct percontainer	cont[MAXCONTAINER];
+	int             	nrcontainer;
+	struct percontainer	cont[MAXCONTAINER];
 };
 
 /************************************************************************/
@@ -311,16 +311,16 @@ struct pergpu {
 	char	busid[MAXGPUBUS+1];	// GPU bus identification
 	int	gpunr;			// GPU number
 	int	gpupercnow;		// processor percentage last second
-					// -1 if not supported
+	// -1 if not supported
 	int	mempercnow;		// memory    percentage last second
-					// -1 if not supported
+	// -1 if not supported
 	count_t	memtotnow;		// total memory in KiB
 	count_t	memusenow;		// used  memory in KiB
 	count_t	samples;		// number of samples
 	count_t	gpuperccum;		// cumulative processor busy percentage
-					// -1 if not supported
-	count_t	memperccum;		// cumulative memory percentage 
-					// -1 if not supported
+	// -1 if not supported
+	count_t	memperccum;		// cumulative memory percentage
+	// -1 if not supported
 	count_t	memusecum;		// cumulative used memory in KiB
 };
 

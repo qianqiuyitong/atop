@@ -192,7 +192,7 @@ static const char rcsid[] __attribute__((unused)) = "$Id: deviate.c,v 1.45 2010/
 #define	MAX32BITVAL	0x100000000LL
 
 static void calcdiff(struct tstat *, struct tstat *, struct tstat *,
-							char, count_t);
+                     char, count_t);
 
 /*
 ** calculate the process-activity during the last sample
@@ -200,8 +200,8 @@ static void calcdiff(struct tstat *, struct tstat *, struct tstat *,
 void
 deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
            struct tstat    *curpexit, unsigned long nprocexit,
-  	   struct devtstat *devtstat,
-  	   struct sstat    *devsstat)
+           struct devtstat *devtstat,
+           struct sstat    *devsstat)
 {
 	register int		c, d, pall=0, pact=0;
 	register struct tstat	*curstat, *devstat, *thisproc;
@@ -214,9 +214,9 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 	** needed for sanity check later on...
 	*/
 	totusedcpu	= devsstat->cpu.all.stime + devsstat->cpu.all.utime +
-			  devsstat->cpu.all.ntime + devsstat->cpu.all.itime +
-			  devsstat->cpu.all.wtime + devsstat->cpu.all.Itime +
-			  devsstat->cpu.all.Stime + devsstat->cpu.all.steal;
+	              devsstat->cpu.all.ntime + devsstat->cpu.all.itime +
+	              devsstat->cpu.all.wtime + devsstat->cpu.all.Itime +
+	              devsstat->cpu.all.Stime + devsstat->cpu.all.steal;
 
 	/*
 	** make new list of all tasks in the task-database;
@@ -226,7 +226,7 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 	pdb_makeresidue();
 
 	/*
- 	** remove allocated lists of previous sample and initialize counters
+	** remove allocated lists of previous sample and initialize counters
 	*/
 	if (devtstat->taskall)
 		free(devtstat->taskall);
@@ -242,34 +242,29 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 	/*
 	** create list for the sample deviations of all tasks
 	*/
- 	devtstat->ntaskall = ntaskpres + nprocexit;
+	devtstat->ntaskall = ntaskpres + nprocexit;
 	devtstat->taskall  = malloc(devtstat->ntaskall * sizeof(struct tstat));
 
 	ptrverify(devtstat->taskall, "Malloc failed for %lu deviated tasks\n",
-                                  devtstat->ntaskall);
+	          devtstat->ntaskall);
 
 	/*
 	** calculate deviations per present task
 	*/
-	for (c=0, thisproc = devtstat->taskall; c < ntaskpres; c++)
-	{
+	for (c=0, thisproc = devtstat->taskall; c < ntaskpres; c++) {
 		char	newtask = 0;
 
 		curstat = curtpres+c;
 		devstat = devtstat->taskall+c;
 
-		if (curstat->gen.isproc)
-		{
+		if (curstat->gen.isproc) {
 			thisproc = devstat;	// remember last process seen
 
 			devtstat->nprocall++;
 
-			if (curstat->gen.state == 'Z')
-			{
+			if (curstat->gen.state == 'Z') {
 				devtstat->totzombie++;
-			}
-			else
-			{
+			} else {
 				devtstat->totrun   += curstat->gen.nthrrun;
 				devtstat->totslpi  += curstat->gen.nthrslpi;
 				devtstat->totslpu  += curstat->gen.nthrslpu;
@@ -280,8 +275,7 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 		** get previous figures from task-database
 		*/
 		if ( pdb_gettask(curstat->gen.pid, curstat->gen.isproc,
-		                 curstat->gen.btime, &pinfo))
-		{
+		                 curstat->gen.btime, &pinfo)) {
 			/*
 			** task already present in the previous sample
 			**
@@ -289,18 +283,15 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 			** further calculations) and store new statistics
 			** in task-database
 			*/
-			if (memcmp(curstat, &pinfo->tstat, 
-					           sizeof(struct tstat)) == EQ)
-			{
+			if (memcmp(curstat, &pinfo->tstat,
+			           sizeof(struct tstat)) == EQ) {
 				/*
- 				** no activity for task
+				** no activity for task
 				*/
 				curstat->gen.wasinactive = 1;
-			}
- 			else
-			{
+			} else {
 				/*
- 				** save the values of the previous sample
+				** save the values of the previous sample
 				** and overwrite the previous sample in
 				** the database with the current sample
 				*/
@@ -311,23 +302,17 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 
 				devtstat->ntaskactive++;
 
-				if (curstat->gen.isproc)
-				{
+				if (curstat->gen.isproc) {
 					devtstat->nprocactive++;
-				}
-				else
-				{
-					if (thisproc->gen.wasinactive)
-					{
+				} else {
+					if (thisproc->gen.wasinactive) {
 						thisproc->gen.wasinactive = 0;
 						devtstat->ntaskactive++;
 						devtstat->nprocactive++;
 					}
 				}
 			}
-		}
-		else
-		{
+		} else {
 			/*
 			** new task which must have been started during
 			** last interval
@@ -337,14 +322,10 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 			curstat->gen.wasinactive = 0;
 			devtstat->ntaskactive++;
 
-			if (curstat->gen.isproc)
-			{
+			if (curstat->gen.isproc) {
 				devtstat->nprocactive++;
-			}
-			else
-			{
-				if (thisproc->gen.wasinactive)
-				{
+			} else {
+				if (thisproc->gen.wasinactive) {
 					thisproc->gen.wasinactive = 0;
 					devtstat->ntaskactive++;
 					devtstat->nprocactive++;
@@ -377,8 +358,7 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 	/*
 	** calculate deviations per exited process
 	*/
-	if (nprocexit > 0 && supportflags&NETATOPD)
-	{
+	if (nprocexit > 0 && supportflags&NETATOPD) {
 		if (curpexit->gen.pid)
 			hashtype = 'p';
 		else
@@ -387,12 +367,11 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 		netatop_exithash(hashtype);
 	}
 
-	for (d=c, c=0; c < nprocexit; c++)
-	{
+	for (d=c, c=0; c < nprocexit; c++) {
 		/*
 		** check if this process has been started AND
 		** finished since previous sample;
-		** if so, it has no use to check if there is still 
+		** if so, it has no use to check if there is still
 		** existing info present in the process-database
 		*/
 		curstat = curpexit+c;
@@ -402,25 +381,19 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 		devtstat->nprocactive++;
 		devtstat->ntaskactive++;
 
-		if (curstat->gen.pid)	/* acctrecord contains pid? */
-		{
+		if (curstat->gen.pid) {	/* acctrecord contains pid? */
 			if ( pdb_gettask(curstat->gen.pid, 1,
 			                 curstat->gen.btime, &pinfo))
-					prestat = pinfo->tstat;
-				else
-					memset(&prestat, 0, sizeof(prestat));
-		}
-		else
-		{
-			if ( curstat->gen.btime > pretime )
-			{
+				prestat = pinfo->tstat;
+			else
+				memset(&prestat, 0, sizeof(prestat));
+		} else {
+			if ( curstat->gen.btime > pretime ) {
 				/*
 				** process-start and -finish in same interval
 				*/
 				memset(&prestat, 0, sizeof(prestat));
-			}
-			else
-			{
+			} else {
 				/*
 				** process must be known in process-database;
 				** try to match one of the remaining processes
@@ -430,7 +403,7 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 					prestat = pinfo->tstat;
 				else
 					memset(&prestat, 0, sizeof(prestat));
-		 	}
+			}
 		}
 
 		/*
@@ -465,7 +438,7 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 			                      prestat.cpu.utime;
 
 		if (curstat->mem.minflt > prestat.mem.minflt)
-			devstat->mem.minflt = curstat->mem.minflt - 
+			devstat->mem.minflt = curstat->mem.minflt -
 			                      prestat.mem.minflt;
 
 		if (curstat->mem.majflt > prestat.mem.majflt)
@@ -480,11 +453,10 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 		/*
 		** try to match the network counters of netatop
 		*/
-		if (supportflags & NETATOPD)
-		{
+		if (supportflags & NETATOPD) {
 			unsigned long	val = (hashtype == 'p' ?
-						curstat->gen.pid :
-						curstat->gen.btime);
+			                       curstat->gen.pid :
+			                       curstat->gen.btime);
 
 			netatop_exitfind(val, devstat, &prestat);
 		}
@@ -492,8 +464,7 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 		/*
 		** handle the gpu counters
 		*/
-		if (curstat->gpu.state || prestat.gpu.state) // GPU use?
-		{
+		if (curstat->gpu.state || prestat.gpu.state) { // GPU use?
 			if (curstat->gpu.state)
 				devstat->gpu.state = curstat->gpu.state;
 			else
@@ -507,12 +478,10 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 
 			devstat->gpu.memnow	= curstat->gpu.memnow;
 			devstat->gpu.memcum	= curstat->gpu.memcum -
-						  prestat.gpu.memcum;
+			                      prestat.gpu.memcum;
 			devstat->gpu.sample	= curstat->gpu.sample -
-						  prestat.gpu.sample;
-		}
-		else
-		{
+			                      prestat.gpu.sample;
+		} else {
 			devstat->gpu.state = '\0';
 		}
 
@@ -531,28 +500,26 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 	** create and fill other pointer lists
 	*/
 	devtstat->procall    = malloc(devtstat->nprocall *
-						sizeof(struct tstat *));
+	                              sizeof(struct tstat *));
 	devtstat->procactive = malloc(devtstat->nprocactive *
-						sizeof(struct tstat *));
+	                              sizeof(struct tstat *));
 
 	ptrverify(devtstat->procall, "Malloc failed for %d processes\n",
-                                  devtstat->nprocall);
+	          devtstat->nprocall);
 
 	ptrverify(devtstat->procactive, "Malloc failed for %d active procs\n",
-                                  devtstat->nprocactive);
+	          devtstat->nprocactive);
 
 
-        for (c=0, thisproc=devstat=devtstat->taskall; c < devtstat->ntaskall;
-								c++, devstat++)
-        {
-        	if (devstat->gen.isproc)
-		{
-        		devtstat->procall[pall++] = devstat;
+	for (c=0, thisproc=devstat=devtstat->taskall; c < devtstat->ntaskall;
+	     c++, devstat++) {
+		if (devstat->gen.isproc) {
+			devtstat->procall[pall++] = devstat;
 
 			if (! devstat->gen.wasinactive)
-       				devtstat->procactive[pact++] = devstat;
+				devtstat->procactive[pact++] = devstat;
 		}
-        }
+	}
 }
 
 /*
@@ -561,10 +528,10 @@ deviattask(struct tstat    *curtpres, unsigned long ntaskpres,
 */
 static void
 calcdiff(struct tstat *devstat, struct tstat *curstat, struct tstat *prestat,
-	                                      char newtask, count_t totusedcpu)
+         char newtask, count_t totusedcpu)
 {
 	/*
- 	** for inactive tasks, set all counters to zero
+	** for inactive tasks, set all counters to zero
 	*/
 	if (curstat->gen.wasinactive)
 		memset(devstat, 0, sizeof *devstat);
@@ -593,8 +560,7 @@ calcdiff(struct tstat *devstat, struct tstat *curstat, struct tstat *prestat,
 	devstat->mem.vlibs    = curstat->mem.vlibs;
 	devstat->mem.vswap    = curstat->mem.vswap;
 
-	if (curstat->gpu.state || prestat->gpu.state) // GPU use?
-	{
+	if (curstat->gpu.state || prestat->gpu.state) { // GPU use?
 		if (curstat->gpu.state)
 			devstat->gpu.state = curstat->gpu.state;
 		else
@@ -606,23 +572,21 @@ calcdiff(struct tstat *devstat, struct tstat *curstat, struct tstat *prestat,
 		devstat->gpu.membusy = curstat->gpu.membusy;
 		devstat->gpu.memnow  = curstat->gpu.memnow;
 		devstat->gpu.timems  = curstat->gpu.timems;
-	}
-	else
-	{
+	} else {
 		devstat->gpu.state = '\0';
 	}
 
 	/*
- 	** for inactive tasks, only the static values had to be copied, while
+	** for inactive tasks, only the static values had to be copied, while
 	** all use counters have been set to zero
 	*/
 	if (curstat->gen.wasinactive)
 		return;
 
-	devstat->cpu.stime  = 
-		subcount(curstat->cpu.stime, prestat->cpu.stime);
+	devstat->cpu.stime  =
+	    subcount(curstat->cpu.stime, prestat->cpu.stime);
 	devstat->cpu.utime  =
-		subcount(curstat->cpu.utime, prestat->cpu.utime);
+	    subcount(curstat->cpu.utime, prestat->cpu.utime);
 
 	/*
 	** particular kernel versions sometimes supply a smaller
@@ -640,79 +604,78 @@ calcdiff(struct tstat *devstat, struct tstat *curstat, struct tstat *prestat,
 	** do further calculations
 	*/
 	devstat->dsk.rio    =
-		subcount(curstat->dsk.rio, prestat->dsk.rio);
+	    subcount(curstat->dsk.rio, prestat->dsk.rio);
 	devstat->dsk.rsz    =
-		subcount(curstat->dsk.rsz, prestat->dsk.rsz);
+	    subcount(curstat->dsk.rsz, prestat->dsk.rsz);
 	devstat->dsk.wio    =
-		subcount(curstat->dsk.wio, prestat->dsk.wio);
+	    subcount(curstat->dsk.wio, prestat->dsk.wio);
 	devstat->dsk.wsz    =
-		subcount(curstat->dsk.wsz, prestat->dsk.wsz);
+	    subcount(curstat->dsk.wsz, prestat->dsk.wsz);
 	devstat->dsk.cwsz   =
-		subcount(curstat->dsk.cwsz, prestat->dsk.cwsz);
+	    subcount(curstat->dsk.cwsz, prestat->dsk.cwsz);
 
 	devstat->mem.vgrow  = curstat->mem.vmem   - prestat->mem.vmem;
 	devstat->mem.rgrow  = curstat->mem.rmem   - prestat->mem.rmem;
 
-	devstat->mem.minflt = 
-		subcount(curstat->mem.minflt, prestat->mem.minflt);
+	devstat->mem.minflt =
+	    subcount(curstat->mem.minflt, prestat->mem.minflt);
 	devstat->mem.majflt =
-		subcount(curstat->mem.majflt, prestat->mem.majflt);
+	    subcount(curstat->mem.majflt, prestat->mem.majflt);
 
 	/*
- 	** network counters: due to an unload/load of the netatop module,
+	** network counters: due to an unload/load of the netatop module,
 	** previous counters might be larger than the current
 	*/
 	if (curstat->net.tcpsnd >= prestat->net.tcpsnd)
 		devstat->net.tcpsnd =
-			subcount(curstat->net.tcpsnd, prestat->net.tcpsnd);
+		    subcount(curstat->net.tcpsnd, prestat->net.tcpsnd);
 	else
 		devstat->net.tcpsnd = curstat->net.tcpsnd;
 
 	if (curstat->net.tcpssz >= prestat->net.tcpssz)
 		devstat->net.tcpssz =
-			subcount(curstat->net.tcpssz, prestat->net.tcpssz);
+		    subcount(curstat->net.tcpssz, prestat->net.tcpssz);
 	else
 		devstat->net.tcpssz = curstat->net.tcpssz;
 
 	if (curstat->net.tcprcv >= prestat->net.tcprcv)
 		devstat->net.tcprcv =
-			subcount(curstat->net.tcprcv, prestat->net.tcprcv);
+		    subcount(curstat->net.tcprcv, prestat->net.tcprcv);
 	else
 		devstat->net.tcprcv = curstat->net.tcprcv;
 
 	if (curstat->net.tcprsz >= prestat->net.tcprsz)
 		devstat->net.tcprsz =
-			subcount(curstat->net.tcprsz, prestat->net.tcprsz);
+		    subcount(curstat->net.tcprsz, prestat->net.tcprsz);
 	else
 		devstat->net.tcprsz = curstat->net.tcprsz;
 
 	if (curstat->net.udpsnd >= prestat->net.udpsnd)
 		devstat->net.udpsnd =
-			subcount(curstat->net.udpsnd, prestat->net.udpsnd);
+		    subcount(curstat->net.udpsnd, prestat->net.udpsnd);
 	else
 		devstat->net.udpsnd = curstat->net.udpsnd;
 
 	if (curstat->net.udpssz >= prestat->net.udpssz)
 		devstat->net.udpssz =
-			subcount(curstat->net.udpssz, prestat->net.udpssz);
+		    subcount(curstat->net.udpssz, prestat->net.udpssz);
 	else
 		devstat->net.udpssz = curstat->net.udpssz;
 
 	if (curstat->net.udprcv >= prestat->net.udprcv)
 		devstat->net.udprcv =
-			subcount(curstat->net.udprcv, prestat->net.udprcv);
+		    subcount(curstat->net.udprcv, prestat->net.udprcv);
 	else
 		devstat->net.udprcv = curstat->net.udprcv;
 
 	if (curstat->net.udprsz >= prestat->net.udprsz)
 		devstat->net.udprsz =
-			subcount(curstat->net.udprsz, prestat->net.udprsz);
+		    subcount(curstat->net.udprsz, prestat->net.udprsz);
 	else
 		devstat->net.udprsz = curstat->net.udprsz;
 
 
-	if (curstat->gpu.state)
-	{
+	if (curstat->gpu.state) {
 		devstat->gpu.memcum = curstat->gpu.memcum - prestat->gpu.memcum;
 		devstat->gpu.sample = curstat->gpu.sample - prestat->gpu.sample;
 	}
@@ -723,7 +686,7 @@ calcdiff(struct tstat *devstat, struct tstat *curstat, struct tstat *prestat,
 */
 void
 deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
-							long interval)
+           long interval)
 {
 	register int	i, j;
 	count_t		*cdev, *ccur, *cpre;
@@ -748,49 +711,48 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	dev->cpu.all.instr = subcount(cur->cpu.all.instr, pre->cpu.all.instr);
 	dev->cpu.all.cycle = subcount(cur->cpu.all.cycle, pre->cpu.all.cycle);
 
-	for (i=0; i < dev->cpu.nrcpu; i++)
-	{
+	for (i=0; i < dev->cpu.nrcpu; i++) {
 		count_t 	ticks;
 
 		dev->cpu.cpu[i].cpunr = cur->cpu.cpu[i].cpunr;
 		dev->cpu.cpu[i].stime = subcount(cur->cpu.cpu[i].stime,
-					         pre->cpu.cpu[i].stime);
+		                                 pre->cpu.cpu[i].stime);
 		dev->cpu.cpu[i].utime = subcount(cur->cpu.cpu[i].utime,
-				 	         pre->cpu.cpu[i].utime);
+		                                 pre->cpu.cpu[i].utime);
 		dev->cpu.cpu[i].ntime = subcount(cur->cpu.cpu[i].ntime,
-					         pre->cpu.cpu[i].ntime);
+		                                 pre->cpu.cpu[i].ntime);
 		dev->cpu.cpu[i].itime = subcount(cur->cpu.cpu[i].itime,
-					         pre->cpu.cpu[i].itime);
+		                                 pre->cpu.cpu[i].itime);
 		dev->cpu.cpu[i].wtime = subcount(cur->cpu.cpu[i].wtime,
-					         pre->cpu.cpu[i].wtime);
+		                                 pre->cpu.cpu[i].wtime);
 		dev->cpu.cpu[i].Itime = subcount(cur->cpu.cpu[i].Itime,
-					         pre->cpu.cpu[i].Itime);
+		                                 pre->cpu.cpu[i].Itime);
 		dev->cpu.cpu[i].Stime = subcount(cur->cpu.cpu[i].Stime,
-					         pre->cpu.cpu[i].Stime);
+		                                 pre->cpu.cpu[i].Stime);
 
 		dev->cpu.cpu[i].steal = subcount(cur->cpu.cpu[i].steal,
-					         pre->cpu.cpu[i].steal);
+		                                 pre->cpu.cpu[i].steal);
 		dev->cpu.cpu[i].guest = subcount(cur->cpu.cpu[i].guest,
-					         pre->cpu.cpu[i].guest);
+		                                 pre->cpu.cpu[i].guest);
 
 		dev->cpu.cpu[i].instr = subcount(cur->cpu.cpu[i].instr,
-					         pre->cpu.cpu[i].instr);
+		                                 pre->cpu.cpu[i].instr);
 		dev->cpu.cpu[i].cycle = subcount(cur->cpu.cpu[i].cycle,
-					         pre->cpu.cpu[i].cycle);
+		                                 pre->cpu.cpu[i].cycle);
 
 		ticks 		      = cur->cpu.cpu[i].freqcnt.ticks;
 
-		dev->cpu.cpu[i].freqcnt.maxfreq = 
-					cur->cpu.cpu[i].freqcnt.maxfreq;
+		dev->cpu.cpu[i].freqcnt.maxfreq =
+		    cur->cpu.cpu[i].freqcnt.maxfreq;
 		dev->cpu.cpu[i].freqcnt.cnt = ticks ?
-					subcount(cur->cpu.cpu[i].freqcnt.cnt,
-					         pre->cpu.cpu[i].freqcnt.cnt)
-					       : cur->cpu.cpu[i].freqcnt.cnt;
+		                              subcount(cur->cpu.cpu[i].freqcnt.cnt,
+		                                       pre->cpu.cpu[i].freqcnt.cnt)
+		                              : cur->cpu.cpu[i].freqcnt.cnt;
 
 		dev->cpu.cpu[i].freqcnt.ticks = ticks ?
-					subcount(cur->cpu.cpu[i].freqcnt.ticks,
-					         pre->cpu.cpu[i].freqcnt.ticks)
-					       : cur->cpu.cpu[i].freqcnt.ticks;
+		                                subcount(cur->cpu.cpu[i].freqcnt.ticks,
+		                                        pre->cpu.cpu[i].freqcnt.ticks)
+		                                : cur->cpu.cpu[i].freqcnt.ticks;
 	}
 
 	dev->cpu.lavg1		= cur->cpu.lavg1;
@@ -824,22 +786,21 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	dev->mem.pgscans	= subcount(cur->mem.pgscans, pre->mem.pgscans);
 	dev->mem.pgsteal	= subcount(cur->mem.pgsteal, pre->mem.pgsteal);
 	dev->mem.allocstall	= subcount(cur->mem.allocstall,
-				                         pre->mem.allocstall);
+	                               pre->mem.allocstall);
 
 	dev->psi          	= cur->psi;
 
-	if (cur->psi.present)
-	{
+	if (cur->psi.present) {
 		dev->psi.cpusome.total 	= cur->psi.cpusome.total -
-					  pre->psi.cpusome.total;
+		                          pre->psi.cpusome.total;
 		dev->psi.memsome.total 	= cur->psi.memsome.total -
-					  pre->psi.memsome.total;
+		                          pre->psi.memsome.total;
 		dev->psi.memfull.total 	= cur->psi.memfull.total -
-					  pre->psi.memfull.total;
+		                          pre->psi.memfull.total;
 		dev->psi.iosome.total 	= cur->psi.iosome.total -
-					  pre->psi.iosome.total;
+		                          pre->psi.iosome.total;
 		dev->psi.iofull.total 	= cur->psi.iofull.total -
-					  pre->psi.iofull.total;
+		                          pre->psi.iofull.total;
 	}
 
 	/*
@@ -851,72 +812,72 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	     ccur = (count_t *)&cur->net.ipv4,
 	     cpre = (count_t *)&pre->net.ipv4,
 	     i    = 0;
-		i < (sizeof dev->net.ipv4 / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
-	
+	     i < (sizeof dev->net.ipv4 / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
+
 	dev->net.ipv4.Forwarding = cur->net.ipv4.Forwarding;
 	dev->net.ipv4.DefaultTTL = cur->net.ipv4.DefaultTTL;
 
-		/* ------------- */
+	/* ------------- */
 
 	for (cdev = (count_t *)&dev->net.icmpv4,
 	     ccur = (count_t *)&cur->net.icmpv4,
 	     cpre = (count_t *)&pre->net.icmpv4,
 	     i    = 0;
-		i < (sizeof dev->net.icmpv4 / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
+	     i < (sizeof dev->net.icmpv4 / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
 
-		/* ------------- */
+	/* ------------- */
 
 	for (cdev = (count_t *)&dev->net.udpv4,
 	     ccur = (count_t *)&cur->net.udpv4,
 	     cpre = (count_t *)&pre->net.udpv4,
 	     i    = 0;
-		i < (sizeof dev->net.udpv4 / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
+	     i < (sizeof dev->net.udpv4 / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
 
-		/* ------------- */
+	/* ------------- */
 
 	for (cdev = (count_t *)&dev->net.ipv6,
 	     ccur = (count_t *)&cur->net.ipv6,
 	     cpre = (count_t *)&pre->net.ipv6,
 	     i    = 0;
-		i < (sizeof dev->net.ipv6 / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
+	     i < (sizeof dev->net.ipv6 / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
 
-		/* ------------- */
+	/* ------------- */
 
 	for (cdev = (count_t *)&dev->net.icmpv6,
 	     ccur = (count_t *)&cur->net.icmpv6,
 	     cpre = (count_t *)&pre->net.icmpv6,
 	     i    = 0;
-		i < (sizeof dev->net.icmpv6 / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
+	     i < (sizeof dev->net.icmpv6 / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
 
-		/* ------------- */
+	/* ------------- */
 
 	for (cdev = (count_t *)&dev->net.udpv6,
 	     ccur = (count_t *)&cur->net.udpv6,
 	     cpre = (count_t *)&pre->net.udpv6,
 	     i    = 0;
-		i < (sizeof dev->net.udpv6 / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
+	     i < (sizeof dev->net.udpv6 / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
 
-		/* ------------- */
+	/* ------------- */
 
 	for (cdev = (count_t *)&dev->net.tcp,
 	     ccur = (count_t *)&cur->net.tcp,
 	     cpre = (count_t *)&pre->net.tcp,
 	     i    = 0;
-		i < (sizeof dev->net.tcp / sizeof(count_t));
-	     		cdev++, ccur++, cpre++, i++)
-				*cdev = *ccur - *cpre;
+	     i < (sizeof dev->net.tcp / sizeof(count_t));
+	     cdev++, ccur++, cpre++, i++)
+		*cdev = *ccur - *cpre;
 
 	dev->net.tcp.RtoAlgorithm = cur->net.tcp.RtoAlgorithm;
 	dev->net.tcp.RtoMin       = cur->net.tcp.RtoMin;
@@ -929,15 +890,14 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	**
 	** refresh all interface properties
 	*/
-        regainrootprivs();	/* get root privileges      */
+	regainrootprivs();	/* get root privileges      */
 
 	initifprop();		/* refresh interface info   */
 
 	if (! droprootprivs())  /* drop setuid-root privs   */
 		cleanstop(42);
 
-	for (i=0; cur->intf.intf[i].name[0]; i++)
-	{
+	for (i=0; cur->intf.intf[i].name[0]; i++) {
 		strcpy(ifprop.name, cur->intf.intf[i].name);
 
 		getifprop(&ifprop);
@@ -948,39 +908,33 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 		cur->intf.intf[i].duplex = ifprop.fullduplex;
 	}
 
-	if (pre->intf.intf[0].name[0] == '\0')	/* first sample? */
-	{
-		for (i=0; cur->intf.intf[i].name[0]; i++)
-		{
+	if (pre->intf.intf[0].name[0] == '\0') {	/* first sample? */
+		for (i=0; cur->intf.intf[i].name[0]; i++) {
 			strcpy(pre->intf.intf[i].name, cur->intf.intf[i].name);
 
 			pre->intf.intf[i].type   = cur->intf.intf[i].type;
 			pre->intf.intf[i].speed  = cur->intf.intf[i].speed;
 			pre->intf.intf[i].speedp = cur->intf.intf[i].speedp;
 			pre->intf.intf[i].duplex = cur->intf.intf[i].duplex;
- 		}
+		}
 	}
-	
-	for (i=0, j=0; cur->intf.intf[i].name[0]; i++, j++)
-	{
+
+	for (i=0, j=0; cur->intf.intf[i].name[0]; i++, j++) {
 		/*
 		** be sure that we have the same interface
 		** (interfaces could have been added or removed since
 		** previous sample)
 		*/
-		if (strcmp(cur->intf.intf[i].name, pre->intf.intf[j].name) != 0)
-		{
+		if (strcmp(cur->intf.intf[i].name, pre->intf.intf[j].name) != 0) {
 			// try to resync
-			for (j=0; pre->intf.intf[j].name[0]; j++)
-			{
+			for (j=0; pre->intf.intf[j].name[0]; j++) {
 				if (strcmp(cur->intf.intf[i].name,
 				           pre->intf.intf[j].name) == 0)
 					break;
 			}
 
 			// resync not succeeded?
-			if (! pre->intf.intf[j].name[0])
-			{
+			if (! pre->intf.intf[j].name[0]) {
 				memcpy(&dev->intf.intf[i],
 				       &cur->intf.intf[i],
 				       sizeof cur->intf.intf[i]);
@@ -996,7 +950,7 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 		strcpy(dev->intf.intf[i].name, cur->intf.intf[i].name);
 
 		dev->intf.intf[i].rbyte = subcount(cur->intf.intf[i].rbyte,
-           	                                   pre->intf.intf[j].rbyte);
+		                                   pre->intf.intf[j].rbyte);
 		dev->intf.intf[i].rpack = subcount(cur->intf.intf[i].rpack,
 		                                   pre->intf.intf[j].rpack);
 		dev->intf.intf[i].rerrs = subcount(cur->intf.intf[i].rerrs,
@@ -1023,9 +977,9 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 		dev->intf.intf[i].sfifo = subcount(cur->intf.intf[i].sfifo,
 		                                   pre->intf.intf[j].sfifo);
 		dev->intf.intf[i].scollis= subcount(cur->intf.intf[i].scollis,
-		                                   pre->intf.intf[j].scollis);
+		                                    pre->intf.intf[j].scollis);
 		dev->intf.intf[i].scarrier= subcount(cur->intf.intf[i].scarrier,
-		                                   pre->intf.intf[j].scarrier);
+		                                     pre->intf.intf[j].scarrier);
 		dev->intf.intf[i].scompr= subcount(cur->intf.intf[i].scompr,
 		                                   pre->intf.intf[j].scompr);
 
@@ -1043,20 +997,17 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	/*
 	** calculate deviations for disks
 	*/
-	for (i=j=0; cur->dsk.dsk[i].name[0]; i++)
-	{
+	for (i=j=0; cur->dsk.dsk[i].name[0]; i++) {
 		int	realj = j;
 
 		/*
- 		** check if disk has been added or removed since
+		** check if disk has been added or removed since
 		** previous interval
 		*/
-		if ( strcmp(cur->dsk.dsk[i].name, pre->dsk.dsk[j].name) != 0)
-		{
-			for (j++; pre->dsk.dsk[j].name[0]; j++)
-			{
+		if ( strcmp(cur->dsk.dsk[i].name, pre->dsk.dsk[j].name) != 0) {
+			for (j++; pre->dsk.dsk[j].name[0]; j++) {
 				if ( strcmp(cur->dsk.dsk[i].name,
-						pre->dsk.dsk[j].name) == 0)
+				            pre->dsk.dsk[j].name) == 0)
 					break;
 			}
 
@@ -1099,20 +1050,17 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	/*
 	** calculate deviations for multiple devices
 	*/
-	for (i=j=0; cur->dsk.mdd[i].name[0]; i++)
-	{
+	for (i=j=0; cur->dsk.mdd[i].name[0]; i++) {
 		int	realj = j;
 
 		/*
- 		** check if md has been added or removed since
+		** check if md has been added or removed since
 		** previous interval
 		*/
-		if ( strcmp(cur->dsk.mdd[i].name, pre->dsk.mdd[j].name) != 0)
-		{
-			for (j++; pre->dsk.mdd[j].name[0]; j++)
-			{
+		if ( strcmp(cur->dsk.mdd[i].name, pre->dsk.mdd[j].name) != 0) {
+			for (j++; pre->dsk.mdd[j].name[0]; j++) {
 				if ( strcmp(cur->dsk.mdd[i].name,
-						pre->dsk.mdd[j].name) == 0)
+				            pre->dsk.mdd[j].name) == 0)
 					break;
 			}
 
@@ -1155,20 +1103,17 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	/*
 	** calculate deviations for LVM logical volumes
 	*/
-	for (i=j=0; cur->dsk.lvm[i].name[0]; i++)
-	{
+	for (i=j=0; cur->dsk.lvm[i].name[0]; i++) {
 		int	realj = j;
 
 		/*
- 		** check if logical volume has been added or removed since
+		** check if logical volume has been added or removed since
 		** previous interval
 		*/
-		if ( strcmp(cur->dsk.lvm[i].name, pre->dsk.lvm[j].name) != 0)
-		{
-			for (j++; pre->dsk.lvm[j].name[0]; j++)
-			{
+		if ( strcmp(cur->dsk.lvm[i].name, pre->dsk.lvm[j].name) != 0) {
+			for (j++; pre->dsk.lvm[j].name[0]; j++) {
 				if ( strcmp(cur->dsk.lvm[i].name,
-						pre->dsk.lvm[j].name) == 0)
+				            pre->dsk.lvm[j].name) == 0)
 					break;
 			}
 
@@ -1232,7 +1177,7 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	                                     pre->nfs.server.rpcbadaut);
 	dev->nfs.server.rpcbadcln = subcount(cur->nfs.server.rpcbadcln,
 	                                     pre->nfs.server.rpcbadcln);
-	
+
 	dev->nfs.server.rchits    = subcount(cur->nfs.server.rchits,
 	                                     pre->nfs.server.rchits);
 	dev->nfs.server.rcmiss    = subcount(cur->nfs.server.rcmiss,
@@ -1246,31 +1191,28 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	                                     pre->nfs.server.nwbytes);
 
 	dev->nfs.client.rpccnt        = subcount(cur->nfs.client.rpccnt,
-	                                         pre->nfs.client.rpccnt);
+	                                pre->nfs.client.rpccnt);
 	dev->nfs.client.rpcread       = subcount(cur->nfs.client.rpcread,
-	                                         pre->nfs.client.rpcread);
+	                                pre->nfs.client.rpcread);
 	dev->nfs.client.rpcwrite      = subcount(cur->nfs.client.rpcwrite,
-	                                         pre->nfs.client.rpcwrite);
+	                                pre->nfs.client.rpcwrite);
 	dev->nfs.client.rpcretrans    = subcount(cur->nfs.client.rpcretrans,
-	                                         pre->nfs.client.rpcretrans);
+	                                pre->nfs.client.rpcretrans);
 	dev->nfs.client.rpcautrefresh = subcount(cur->nfs.client.rpcautrefresh,
-	                                         pre->nfs.client.rpcautrefresh);
+	                                pre->nfs.client.rpcautrefresh);
 
 
-	for (i=j=0; i < cur->nfs.nfsmounts.nrmounts; i++, j++)
-	{
+	for (i=j=0; i < cur->nfs.nfsmounts.nrmounts; i++, j++) {
 		/*
- 		** check if nfsmounts have been added or removed since
+		** check if nfsmounts have been added or removed since
 		** previous interval
 		*/
 		if ( strcmp(cur->nfs.nfsmounts.nfsmnt[i].mountdev,
-		            pre->nfs.nfsmounts.nfsmnt[j].mountdev) != 0)
-		{
-			for (j=0; j < pre->nfs.nfsmounts.nrmounts; j++)
-			{
-			    if ( strcmp(cur->nfs.nfsmounts.nfsmnt[i].mountdev,
-		                        pre->nfs.nfsmounts.nfsmnt[j].mountdev)
-									== 0)
+		            pre->nfs.nfsmounts.nfsmnt[j].mountdev) != 0) {
+			for (j=0; j < pre->nfs.nfsmounts.nrmounts; j++) {
+				if ( strcmp(cur->nfs.nfsmounts.nfsmnt[i].mountdev,
+				            pre->nfs.nfsmounts.nfsmnt[j].mountdev)
+				     == 0)
 					break;
 			}
 
@@ -1286,44 +1228,44 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 		strcpy(dev->nfs.nfsmounts.nfsmnt[i].mountdev,
 		       cur->nfs.nfsmounts.nfsmnt[i].mountdev);
 
-                dev->nfs.nfsmounts.nfsmnt[i].age = 
-                                    cur->nfs.nfsmounts.nfsmnt[i].age;
+		dev->nfs.nfsmounts.nfsmnt[i].age =
+		    cur->nfs.nfsmounts.nfsmnt[i].age;
 
 		if (dev->nfs.nfsmounts.nfsmnt[i].age <= interval)
-			memset(&(pre->nfs.nfsmounts.nfsmnt[j]), 0, 
-					sizeof(struct pernfsmount));
+			memset(&(pre->nfs.nfsmounts.nfsmnt[j]), 0,
+			       sizeof(struct pernfsmount));
 
-                dev->nfs.nfsmounts.nfsmnt[i].bytesread = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].bytesread,
-                                   pre->nfs.nfsmounts.nfsmnt[j].bytesread);
+		dev->nfs.nfsmounts.nfsmnt[i].bytesread =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].bytesread,
+		             pre->nfs.nfsmounts.nfsmnt[j].bytesread);
 
-                dev->nfs.nfsmounts.nfsmnt[i].byteswrite = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].byteswrite,
-                                   pre->nfs.nfsmounts.nfsmnt[j].byteswrite);
+		dev->nfs.nfsmounts.nfsmnt[i].byteswrite =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].byteswrite,
+		             pre->nfs.nfsmounts.nfsmnt[j].byteswrite);
 
-                dev->nfs.nfsmounts.nfsmnt[i].bytesdread = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].bytesdread,
-                                   pre->nfs.nfsmounts.nfsmnt[j].bytesdread);
+		dev->nfs.nfsmounts.nfsmnt[i].bytesdread =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].bytesdread,
+		             pre->nfs.nfsmounts.nfsmnt[j].bytesdread);
 
-                dev->nfs.nfsmounts.nfsmnt[i].bytesdwrite = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].bytesdwrite,
-                                   pre->nfs.nfsmounts.nfsmnt[j].bytesdwrite);
+		dev->nfs.nfsmounts.nfsmnt[i].bytesdwrite =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].bytesdwrite,
+		             pre->nfs.nfsmounts.nfsmnt[j].bytesdwrite);
 
-                dev->nfs.nfsmounts.nfsmnt[i].bytestotread = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].bytestotread,
-                                   pre->nfs.nfsmounts.nfsmnt[j].bytestotread);
+		dev->nfs.nfsmounts.nfsmnt[i].bytestotread =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].bytestotread,
+		             pre->nfs.nfsmounts.nfsmnt[j].bytestotread);
 
-                dev->nfs.nfsmounts.nfsmnt[i].bytestotwrite = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].bytestotwrite,
-                                   pre->nfs.nfsmounts.nfsmnt[j].bytestotwrite);
+		dev->nfs.nfsmounts.nfsmnt[i].bytestotwrite =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].bytestotwrite,
+		             pre->nfs.nfsmounts.nfsmnt[j].bytestotwrite);
 
-                dev->nfs.nfsmounts.nfsmnt[i].pagesmread = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].pagesmread,
-                                   pre->nfs.nfsmounts.nfsmnt[j].pagesmread);
+		dev->nfs.nfsmounts.nfsmnt[i].pagesmread =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].pagesmread,
+		             pre->nfs.nfsmounts.nfsmnt[j].pagesmread);
 
-                dev->nfs.nfsmounts.nfsmnt[i].pagesmwrite = 
-                          subcount(cur->nfs.nfsmounts.nfsmnt[i].pagesmwrite,
-                                   pre->nfs.nfsmounts.nfsmnt[j].pagesmwrite);
+		dev->nfs.nfsmounts.nfsmnt[i].pagesmwrite =
+		    subcount(cur->nfs.nfsmounts.nfsmnt[i].pagesmwrite,
+		             pre->nfs.nfsmounts.nfsmnt[j].pagesmwrite);
 	}
 
 	dev->nfs.nfsmounts.nrmounts = cur->nfs.nfsmounts.nrmounts;
@@ -1331,18 +1273,15 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	/*
 	** calculate deviations for containers
 	*/
-	for (i=j=0; i < cur->cfs.nrcontainer; i++, j++)
-	{
+	for (i=j=0; i < cur->cfs.nrcontainer; i++, j++) {
 		/*
- 		** check if containers have been added or removed since
+		** check if containers have been added or removed since
 		** previous interval
 		*/
-		if (cur->cfs.cont[i].ctid != pre->cfs.cont[j].ctid)
-		{
-			for (j=0; j < pre->cfs.nrcontainer; j++)
-			{
+		if (cur->cfs.cont[i].ctid != pre->cfs.cont[j].ctid) {
+			for (j=0; j < pre->cfs.nrcontainer; j++) {
 				if (cur->cfs.cont[i].ctid ==
-						pre->cfs.cont[j].ctid)
+				    pre->cfs.cont[j].ctid)
 					break;
 			}
 
@@ -1375,41 +1314,40 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	/*
 	** calculate deviations for GPUs
 	*/
-	for (i=0; i < cur->gpu.nrgpus; i++)
-	{
-	    dev->gpu.gpu[i].gpunr      = i;
+	for (i=0; i < cur->gpu.nrgpus; i++) {
+		dev->gpu.gpu[i].gpunr      = i;
 
-	    strcpy(dev->gpu.gpu[i].type,  cur->gpu.gpu[i].type);
-	    strcpy(dev->gpu.gpu[i].busid, cur->gpu.gpu[i].busid);
+		strcpy(dev->gpu.gpu[i].type,  cur->gpu.gpu[i].type);
+		strcpy(dev->gpu.gpu[i].busid, cur->gpu.gpu[i].busid);
 
-	    dev->gpu.gpu[i].taskstats  = cur->gpu.gpu[i].taskstats;
-	    dev->gpu.gpu[i].nrprocs    = cur->gpu.gpu[i].nrprocs;
+		dev->gpu.gpu[i].taskstats  = cur->gpu.gpu[i].taskstats;
+		dev->gpu.gpu[i].nrprocs    = cur->gpu.gpu[i].nrprocs;
 
-	    dev->gpu.gpu[i].gpupercnow = cur->gpu.gpu[i].gpupercnow;
-	    dev->gpu.gpu[i].mempercnow = cur->gpu.gpu[i].mempercnow;
-	    dev->gpu.gpu[i].memtotnow  = cur->gpu.gpu[i].memtotnow;
-	    dev->gpu.gpu[i].memusenow  = cur->gpu.gpu[i].memusenow;
+		dev->gpu.gpu[i].gpupercnow = cur->gpu.gpu[i].gpupercnow;
+		dev->gpu.gpu[i].mempercnow = cur->gpu.gpu[i].mempercnow;
+		dev->gpu.gpu[i].memtotnow  = cur->gpu.gpu[i].memtotnow;
+		dev->gpu.gpu[i].memusenow  = cur->gpu.gpu[i].memusenow;
 
-	    dev->gpu.gpu[i].samples    = subcount(cur->gpu.gpu[i].samples,
-	                                          pre->gpu.gpu[i].samples);
+		dev->gpu.gpu[i].samples    = subcount(cur->gpu.gpu[i].samples,
+		                                      pre->gpu.gpu[i].samples);
 
-	    if (cur->gpu.gpu[i].gpuperccum >= 0)
-	     dev->gpu.gpu[i].gpuperccum = subcount(cur->gpu.gpu[i].gpuperccum,
-	                                           pre->gpu.gpu[i].gpuperccum);
-	    else
-	     dev->gpu.gpu[i].gpuperccum = -1;
+		if (cur->gpu.gpu[i].gpuperccum >= 0)
+			dev->gpu.gpu[i].gpuperccum = subcount(cur->gpu.gpu[i].gpuperccum,
+			                                      pre->gpu.gpu[i].gpuperccum);
+		else
+			dev->gpu.gpu[i].gpuperccum = -1;
 
-	    if (cur->gpu.gpu[i].memusecum >= 0)
-	     dev->gpu.gpu[i].memusecum  = subcount(cur->gpu.gpu[i].memusecum,
-	                                           pre->gpu.gpu[i].memusecum);
-	    else
-	     dev->gpu.gpu[i].memusecum  = -1;
+		if (cur->gpu.gpu[i].memusecum >= 0)
+			dev->gpu.gpu[i].memusecum  = subcount(cur->gpu.gpu[i].memusecum,
+			                                      pre->gpu.gpu[i].memusecum);
+		else
+			dev->gpu.gpu[i].memusecum  = -1;
 
-	    if (cur->gpu.gpu[i].memperccum >= 0)
-	     dev->gpu.gpu[i].memperccum = subcount(cur->gpu.gpu[i].memperccum,
-	                                           pre->gpu.gpu[i].memperccum);
-	    else
-	     dev->gpu.gpu[i].memperccum = -1;
+		if (cur->gpu.gpu[i].memperccum >= 0)
+			dev->gpu.gpu[i].memperccum = subcount(cur->gpu.gpu[i].memperccum,
+			                                      pre->gpu.gpu[i].memperccum);
+		else
+			dev->gpu.gpu[i].memperccum = -1;
 	}
 
 	dev->gpu.nrgpus = cur->gpu.nrgpus;
@@ -1417,8 +1355,7 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 	/*
 	** calculate deviations for InfiniBand
 	*/
-	for (i=0; i < cur->ifb.nrports; i++)
-	{
+	for (i=0; i < cur->ifb.nrports; i++) {
 		strcpy(dev->ifb.ifb[i].ibname, cur->ifb.ifb[i].ibname);
 
 		dev->ifb.ifb[i].portnr = cur->ifb.ifb[i].portnr;
@@ -1437,22 +1374,19 @@ deviatsyst(struct sstat *cur, struct sstat *pre, struct sstat *dev,
 
 	dev->ifb.nrports = cur->ifb.nrports;
 
-	
+
 
 
 #if	HTTPSTATS
 	/*
 	** application-specific counters
 	*/
-	if (cur->www.uptime >= pre->www.uptime)
-	{
+	if (cur->www.uptime >= pre->www.uptime) {
 		dev->www.accesses  = subcount(cur->www.accesses,
-                                              pre->www.accesses);
+		                              pre->www.accesses);
 		dev->www.totkbytes = subcount(cur->www.totkbytes,
-                                              pre->www.totkbytes);
-	}
-	else
-	{
+		                              pre->www.totkbytes);
+	} else {
 		dev->www.accesses  = cur->www.accesses;
 		dev->www.totkbytes = cur->www.totkbytes;
 	}
@@ -1472,9 +1406,8 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 	register int	i;
 	count_t		*ctot, *cnew;
 
-	switch (category)
-	{
-	   case 'c':	/* accumulate cpu-related counters */
+	switch (category) {
+	case 'c':	/* accumulate cpu-related counters */
 		tot->cpu.nrcpu      = new->cpu.nrcpu;
 		tot->cpu.devint    += new->cpu.devint;
 		tot->cpu.csw       += new->cpu.csw;
@@ -1490,14 +1423,10 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 		tot->cpu.all.steal += new->cpu.all.steal;
 		tot->cpu.all.guest += new->cpu.all.guest;
 
-		if (new->cpu.nrcpu == 1)
-		{
+		if (new->cpu.nrcpu == 1) {
 			tot->cpu.cpu[0] = tot->cpu.all;
-		}
-		else
-		{
-			for (i=0; i < new->cpu.nrcpu; i++)
-			{
+		} else {
+			for (i=0; i < new->cpu.nrcpu; i++) {
 				tot->cpu.cpu[i].cpunr  = new->cpu.cpu[i].cpunr;
 				tot->cpu.cpu[i].stime += new->cpu.cpu[i].stime;
 				tot->cpu.cpu[i].utime += new->cpu.cpu[i].utime;
@@ -1516,7 +1445,7 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 		tot->cpu.lavg15	 = new->cpu.lavg15;
 		break;
 
-	   case 'm':	/* accumulate memory-related counters */
+	case 'm':	/* accumulate memory-related counters */
 		tot->mem.physmem	 = new->mem.physmem;
 		tot->mem.freemem	 = new->mem.freemem;
 		tot->mem.buffermem	 = new->mem.buffermem;
@@ -1539,7 +1468,7 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 		tot->mem.allocstall	+= new->mem.allocstall;
 		break;
 
-	   case 'n':	/* accumulate network-related counters */
+	case 'n':	/* accumulate network-related counters */
 		tot->nfs.server.rpccnt     += new->nfs.server.rpccnt;
 		tot->nfs.server.rpcread    += new->nfs.server.rpcread;
 		tot->nfs.server.rpcwrite   += new->nfs.server.rpcwrite;
@@ -1573,76 +1502,74 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 		*/
 		for (ctot = (count_t *)&tot->net.ipv4,
 		     cnew = (count_t *)&new->net.ipv4, i = 0;
-			i < (sizeof tot->net.ipv4 / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
+		     i < (sizeof tot->net.ipv4 / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
 
 		tot->net.ipv4.Forwarding = new->net.ipv4.Forwarding;
 		tot->net.ipv4.DefaultTTL = new->net.ipv4.DefaultTTL;
-	
-			/* ------------- */
-	
+
+		/* ------------- */
+
 		for (ctot = (count_t *)&tot->net.icmpv4,
 		     cnew = (count_t *)&new->net.icmpv4, i = 0;
-			i < (sizeof tot->net.icmpv4 / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
-	
-			/* ------------- */
-	
+		     i < (sizeof tot->net.icmpv4 / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
+
+		/* ------------- */
+
 		for (ctot = (count_t *)&tot->net.udpv4,
 		     cnew = (count_t *)&new->net.udpv4, i = 0;
-			i < (sizeof tot->net.udpv4 / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
-	
-			/* ------------- */
-	
+		     i < (sizeof tot->net.udpv4 / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
+
+		/* ------------- */
+
 		for (ctot = (count_t *)&tot->net.ipv6,
 		     cnew = (count_t *)&new->net.ipv6, i = 0;
-			i < (sizeof tot->net.ipv6 / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
-	
-			/* ------------- */
-	
+		     i < (sizeof tot->net.ipv6 / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
+
+		/* ------------- */
+
 		for (ctot = (count_t *)&tot->net.icmpv6,
 		     cnew = (count_t *)&new->net.icmpv6, i = 0;
-			i < (sizeof tot->net.icmpv6 / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
-	
-			/* ------------- */
-	
+		     i < (sizeof tot->net.icmpv6 / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
+
+		/* ------------- */
+
 		for (ctot = (count_t *)&tot->net.udpv6,
 		     cnew = (count_t *)&new->net.udpv6, i = 0;
-			i < (sizeof tot->net.udpv6 / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
-	
-			/* ------------- */
-	
+		     i < (sizeof tot->net.udpv6 / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
+
+		/* ------------- */
+
 		for (ctot = (count_t *)&tot->net.tcp,
 		     cnew = (count_t *)&new->net.tcp, i = 0;
-			i < (sizeof tot->net.tcp / sizeof(count_t));
-		     		ctot++, cnew++, i++)
-					*ctot += *cnew;
-	
+		     i < (sizeof tot->net.tcp / sizeof(count_t));
+		     ctot++, cnew++, i++)
+			*ctot += *cnew;
+
 		tot->net.tcp.RtoAlgorithm = new->net.tcp.RtoAlgorithm;
 		tot->net.tcp.RtoMin       = new->net.tcp.RtoMin;
 		tot->net.tcp.RtoMax       = new->net.tcp.RtoMax;
 		tot->net.tcp.MaxConn      = new->net.tcp.MaxConn;
 		tot->net.tcp.CurrEstab    = new->net.tcp.CurrEstab;
-	
-		for (i=0; new->intf.intf[i].name[0]; i++)
-		{
+
+		for (i=0; new->intf.intf[i].name[0]; i++) {
 			/*
 			** check if an interface has been added or removed;
 			** in that case, zero all counters
 			*/
 			if (strcmp(new->intf.intf[i].name,
-			           tot->intf.intf[i].name) != 0)
-			{
+			           tot->intf.intf[i].name) != 0) {
 				tot->intf.intf[i].rbyte    = 0;
 				tot->intf.intf[i].rpack    = 0;
 				tot->intf.intf[i].rerrs    = 0;
@@ -1651,7 +1578,7 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 				tot->intf.intf[i].rframe   = 0;
 				tot->intf.intf[i].rcompr   = 0;
 				tot->intf.intf[i].rmultic  = 0;
-	
+
 				tot->intf.intf[i].sbyte    = 0;
 				tot->intf.intf[i].spack    = 0;
 				tot->intf.intf[i].serrs    = 0;
@@ -1661,12 +1588,12 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 				tot->intf.intf[i].scarrier = 0;
 				tot->intf.intf[i].scompr   = 0;
 			}
-	
+
 			/*
 			** accumulate counters for this sample
 			*/
 			strcpy(tot->intf.intf[i].name, new->intf.intf[i].name);
-	
+
 			tot->intf.intf[i].rbyte   += new->intf.intf[i].rbyte;
 			tot->intf.intf[i].rpack   += new->intf.intf[i].rpack;
 			tot->intf.intf[i].rerrs   += new->intf.intf[i].rerrs;
@@ -1675,7 +1602,7 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 			tot->intf.intf[i].rframe  += new->intf.intf[i].rframe;
 			tot->intf.intf[i].rcompr  += new->intf.intf[i].rcompr;
 			tot->intf.intf[i].rmultic += new->intf.intf[i].rmultic;
-	
+
 			tot->intf.intf[i].sbyte   += new->intf.intf[i].sbyte;
 			tot->intf.intf[i].spack   += new->intf.intf[i].spack;
 			tot->intf.intf[i].serrs   += new->intf.intf[i].serrs;
@@ -1684,12 +1611,12 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 			tot->intf.intf[i].scollis += new->intf.intf[i].scollis;
 			tot->intf.intf[i].scarrier+= new->intf.intf[i].scarrier;
 			tot->intf.intf[i].scompr  += new->intf.intf[i].scompr;
-	
+
 			tot->intf.intf[i].type     = new->intf.intf[i].type;
 			tot->intf.intf[i].speed    = new->intf.intf[i].speed;
 			tot->intf.intf[i].duplex   = new->intf.intf[i].duplex;
 		}
-	
+
 		tot->intf.intf[i].name[0] = '\0';
 		tot->intf.nrintf          = i;
 
@@ -1701,11 +1628,10 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 #endif
 		break;
 
-	   case 'd':	/* accumulate disk-related counters */
-		for (i=0; new->dsk.dsk[i].name[0]; i++)
-		{
+	case 'd':	/* accumulate disk-related counters */
+		for (i=0; new->dsk.dsk[i].name[0]; i++) {
 			strcpy(tot->dsk.dsk[i].name, new->dsk.dsk[i].name);
-	
+
 			tot->dsk.dsk[i].nread  += new->dsk.dsk[i].nread;
 			tot->dsk.dsk[i].nwrite += new->dsk.dsk[i].nwrite;
 			tot->dsk.dsk[i].nrsect += new->dsk.dsk[i].nrsect;
@@ -1713,14 +1639,13 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 			tot->dsk.dsk[i].io_ms  += new->dsk.dsk[i].io_ms;
 			tot->dsk.dsk[i].avque  += new->dsk.dsk[i].avque;
 		}
-	
+
 		tot->dsk.dsk[i].name[0] = '\0';
 		tot->dsk.ndsk = i;
 
-		for (i=0; new->dsk.lvm[i].name[0]; i++)
-		{
+		for (i=0; new->dsk.lvm[i].name[0]; i++) {
 			strcpy(tot->dsk.lvm[i].name, new->dsk.lvm[i].name);
-	
+
 			tot->dsk.lvm[i].nread  += new->dsk.lvm[i].nread;
 			tot->dsk.lvm[i].nwrite += new->dsk.lvm[i].nwrite;
 			tot->dsk.lvm[i].nrsect += new->dsk.lvm[i].nrsect;
@@ -1728,14 +1653,13 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 			tot->dsk.lvm[i].io_ms  += new->dsk.lvm[i].io_ms;
 			tot->dsk.lvm[i].avque  += new->dsk.lvm[i].avque;
 		}
-	
+
 		tot->dsk.lvm[i].name[0] = '\0';
 		tot->dsk.nlvm = i;
 
-		for (i=0; new->dsk.mdd[i].name[0]; i++)
-		{
+		for (i=0; new->dsk.mdd[i].name[0]; i++) {
 			strcpy(tot->dsk.mdd[i].name, new->dsk.mdd[i].name);
-	
+
 			tot->dsk.mdd[i].nread  += new->dsk.mdd[i].nread;
 			tot->dsk.mdd[i].nwrite += new->dsk.mdd[i].nwrite;
 			tot->dsk.mdd[i].nrsect += new->dsk.mdd[i].nrsect;
@@ -1743,7 +1667,7 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 			tot->dsk.mdd[i].io_ms  += new->dsk.mdd[i].io_ms;
 			tot->dsk.mdd[i].avque  += new->dsk.mdd[i].avque;
 		}
-	
+
 		tot->dsk.mdd[i].name[0] = '\0';
 		tot->dsk.nmdd = i;
 		break;
@@ -1752,7 +1676,7 @@ totalsyst(char category, struct sstat *new, struct sstat *tot)
 
 
 /*
-** Generic function to subtract two counters taking into 
+** Generic function to subtract two counters taking into
 ** account the possibility of overflow of a 32-bit kernel-counter.
 */
 count_t

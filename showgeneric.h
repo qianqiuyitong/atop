@@ -135,7 +135,7 @@ struct sselection {
 */
 void	totalcap   (struct syscap *, struct sstat *, struct tstat **, int);
 void	pricumproc (struct sstat *,  struct devtstat *,
-				int, unsigned int, int, int);
+                    int, unsigned int, int, int);
 
 void	showgenproc(struct tstat *, double, int, int);
 void	showmemproc(struct tstat *, double, int, int);
@@ -148,7 +148,7 @@ void	showcmdproc(struct tstat *, double, int, int);
 
 void	printg     (const char *, ...);
 int	prisyst(struct sstat  *, int, int, int, int, struct sselection *,
-			char *, int, int, int, int, int, int, int, int, int);
+            char *, int, int, int, int, int, int, int, int, int);
 int	priproc(struct tstat  **, int, int, int, int, int, char, char,
-	        struct syscap *, int, int);
+            struct syscap *, int, int);
 void	priphead(int, int, char *, char *, char);

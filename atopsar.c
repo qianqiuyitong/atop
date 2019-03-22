@@ -1,7 +1,7 @@
 /*
 ** ATOP - System & Process Monitor
 **
-** The program 'atop'/'atopsar' offers the possibility to view the activity of 
+** The program 'atop'/'atopsar' offers the possibility to view the activity of
 ** the system on system-level as well as process-level.
 **
 ** This source-file contains the 'atopsar'-functionality, that makes use
@@ -78,21 +78,21 @@ static time_t		saved_begintime;
 static unsigned int	repeathead = 9999999;
 static unsigned int	summarycnt = 1;
 static char		*datemsg = "-------------------------- analysis "
-			           "date: %s --------------------------\n";
+                           "date: %s --------------------------\n";
 
 /*
 ** structure definition for print-functions
 */
-struct pridef { 
+struct pridef {
 	char    wanted;         /* selected option (boolean)              */
 	char    *cntcat;        /* used categories of counters            */
 	char    flag;           /* flag on command line                   */
 	void    (*prihead)();   /* print header of list                   */
 	int     (*priline)(struct sstat *, struct tstat *, struct tstat **,
-		           int, time_t, time_t, time_t,
-		           int, int, int, char *,
-        	           int, int, int, int, int, int);
-		                /* print counters per line (excl. time)   */
+	                   int, time_t, time_t, time_t,
+	                   int, int, int, char *,
+	                   int, int, int, int, int, int);
+	/* print counters per line (excl. time)   */
 	char    *about;         /* statistics about what                  */
 };
 
@@ -110,8 +110,8 @@ static void	engine(void);
 static void	pratopsaruse(char *);
 static void	reportlive(time_t, int, struct sstat *);
 static char     reportraw (time_t, int,
-                            struct devtstat *, struct sstat *,
-                            int, unsigned int, char);
+                           struct devtstat *, struct sstat *,
+                           int, unsigned int, char);
 
 static void	reportheader(struct utsname *, time_t);
 static time_t	daylimit(time_t);
@@ -125,12 +125,11 @@ atopsar(int argc, char *argv[])
 
 	usecolors = 't';
 
-	/* 
-	** interpret command-line arguments & flags 
+	/*
+	** interpret command-line arguments & flags
 	*/
-	if (argc > 1)
-	{
-		/* 
+	if (argc > 1) {
+		/*
 		** gather all flags for the print-functions
 		*/
 		flaglist = malloc(pricnt+32);
@@ -147,32 +146,30 @@ atopsar(int argc, char *argv[])
 		*/
 		strcat(flaglist, "b:e:SxCMHr:R:aA");
 
-		while ((c=getopt(argc, argv, flaglist)) != EOF)
-		{
-			switch (c)
-			{
-			   case '?':		/* usage wanted ?        */
+		while ((c=getopt(argc, argv, flaglist)) != EOF) {
+			switch (c) {
+			case '?':		/* usage wanted ?        */
 				pratopsaruse(argv[0]);
 				break;
 
-                           case 'b':		/* begin time ?          */
+			case 'b':		/* begin time ?          */
 				if ( !hhmm2secs(optarg, &begintime) )
 					pratopsaruse(argv[0]);
 
 				saved_begintime = begintime;
 				break;
 
-                           case 'e':		/* end   time ?          */
+			case 'e':		/* end   time ?          */
 				if ( !hhmm2secs(optarg, &endtime) )
 					pratopsaruse(argv[0]);
 				break;
 
-			   case 'r':		/* reading of file data ? */
+			case 'r':		/* reading of file data ? */
 				strncpy(rawname, optarg, RAWNAMESZ-1);
 				rawreadflag++;
 				break;
 
-			   case 'R':		/* summarize samples */
+			case 'R':		/* summarize samples */
 				if (!numeric(optarg))
 					pratopsaruse(argv[0]);
 
@@ -182,27 +179,26 @@ atopsar(int argc, char *argv[])
 					pratopsaruse(argv[0]);
 				break;
 
-			   case 'S':		/* timestamp on every line */
+			case 'S':		/* timestamp on every line */
 				stampalways = 1;
 				break;
 
-			   case 'x':		/* never use colors        */
+			case 'x':		/* never use colors        */
 				usecolors = 0;
 				break;
 
-			   case 'C':		/* always use colors       */
+			case 'C':		/* always use colors       */
 				usecolors = 'a';
 				break;
 
-			   case 'M':		/* markers for overload    */
+			case 'M':		/* markers for overload    */
 				usemarkers = 1;
 				break;
 
-			   case 'H':		/* repeat headers          */
+			case 'H':		/* repeat headers          */
 				repeathead = 23;	/* define default  */
 
-				if (isatty(1))
-				{
+				if (isatty(1)) {
 					struct winsize wsz;
 
 					if ( ioctl(1, TIOCGWINSZ, &wsz) != -1)
@@ -210,23 +206,21 @@ atopsar(int argc, char *argv[])
 				}
 				break;
 
-			   case 'a':		/* every interval all units */
+			case 'a':		/* every interval all units */
 				allresources = 1;
 				break;
 
-			   case 'A':		/* all reports wanted ?  */
+			case 'A':		/* all reports wanted ?  */
 				for (i=0; i < pricnt; i++)
 					pridef[i].wanted = 1;
 
 				numreports = pricnt;
 				break;
 
-			   default:		/* gather report-flags    */
-				for (i=0; i < pricnt; i++)
-				{
-					if (pridef[i].flag   == c && 
-					    pridef[i].wanted == 0   )
-					{
+			default:		/* gather report-flags    */
+				for (i=0; i < pricnt; i++) {
+					if (pridef[i].flag   == c &&
+					    pridef[i].wanted == 0   ) {
 						pridef[i].wanted = 1;
 						numreports++;
 						break;
@@ -242,36 +236,30 @@ atopsar(int argc, char *argv[])
 
 		/*
 		** get optional interval-value and
-		** optional number of samples	
+		** optional number of samples
 		*/
-		if (optind < argc && optind < MAXFL)
-		{
+		if (optind < argc && optind < MAXFL) {
 			if (rawreadflag)
 				pratopsaruse(argv[0]);
 
 			if (!numeric(argv[optind]))
 				pratopsaruse(argv[0]);
-	
+
 			interval = atoi(argv[optind]);
-	
+
 			optind++;
-	
-			if (optind < argc)
-			{
+
+			if (optind < argc) {
 				if (!numeric(argv[optind]) )
 					pratopsaruse(argv[0]);
 
 				if ( (nsamples = atoi(argv[optind])) < 1)
 					pratopsaruse(argv[0]);
 			}
-		}
-		else	/* if no interval specified, read from logfile */
-		{
+		} else {	/* if no interval specified, read from logfile */
 			rawreadflag++;
 		}
-	}
-	else	/* if no flags specified at all, read from logfile */
-	{
+	} else {	/* if no flags specified at all, read from logfile */
 		rawreadflag++;
 	}
 
@@ -279,8 +267,7 @@ atopsar(int argc, char *argv[])
 	** if no report-flags have been specified, take the first
 	** option in the print-list as default
 	*/
-	if (numreports == 0)
-	{
+	if (numreports == 0) {
 		pridef[0].wanted = 1;
 		numreports       = 1;
 	}
@@ -294,8 +281,7 @@ atopsar(int argc, char *argv[])
 	** if only use colors when the output is directed to a tty,
 	** be sure that output is directed to a tty
 	*/
-	if (usecolors == 't')
-	{
+	if (usecolors == 't') {
 		if (! isatty(1) )
 			usecolors = 0;
 	}
@@ -303,18 +289,15 @@ atopsar(int argc, char *argv[])
 	/*
 	** check if raw data from a file must be viewed
 	*/
-	if (rawreadflag)
-	{
+	if (rawreadflag) {
 		/*
 		** select own reportraw-function to be called
 		** by the rawread function
 		*/
 		vis.show_samp  = reportraw;
 
-		for (i=0; i < pricnt; i++)
-		{
-			if ( pridef[i].wanted )
-			{
+		for (i=0; i < pricnt; i++) {
+			if ( pridef[i].wanted ) {
 				prinow    = i;
 				daylim    = 0;
 				begintime = saved_begintime;
@@ -350,11 +333,11 @@ atopsar(int argc, char *argv[])
 	*/
 	curtime = time(0);
 
-        /*
+	/*
 	** regain the root-priviliges that we dropped at the beginning
 	** to do some priviliged work now
 	*/
-        regainrootprivs();
+	regainrootprivs();
 
 	/*
 	** lock in memory to get reliable samples (also when
@@ -405,7 +388,7 @@ engine(void)
 
 	int			nrgpus;         /* number of GPUs        */
 	int			nrgpuproc,	/* number of GPU procs   */
-				gpustats=0;	/* boolean: request sent */
+	            gpustats=0;	/* boolean: request sent */
 
 	/*
 	** reserve space for system-level statistics
@@ -461,8 +444,7 @@ engine(void)
 	**
 	**    -	Call the print-function to visualize the differences
 	*/
-	for (sampcnt=0; sampcnt < nsamples+1; sampcnt++)
-	{
+	for (sampcnt=0; sampcnt < nsamples+1; sampcnt++) {
 		/*
 		** wait for alarm-signal to arrive or
 		** wait for SIGUSR1 in case of an interval of 0.
@@ -483,7 +465,7 @@ engine(void)
 			gpustats = gpud_statrequest();
 
 		/*
-		** take a snapshot of the current system-level statistics 
+		** take a snapshot of the current system-level statistics
 		** and calculate the deviations (i.e. calculate the activity
 		** during the last sample)
 		*/
@@ -496,29 +478,25 @@ engine(void)
 		/*
 		** receive and parse response from atopgpud
 		*/
-		if (nrgpus && gpustats)
-		{
+		if (nrgpus && gpustats) {
 			nrgpuproc = gpud_statresponse(nrgpus, cursstat->gpu.gpu, NULL);
 
 			// connection lost or timeout on receive?
-			if (nrgpuproc == -1)
-			{
+			if (nrgpuproc == -1) {
 				int ng;
 
 				// try to reconnect
-        			ng = gpud_init();
+				ng = gpud_init();
 
 				if (ng != nrgpus)	// no success
 					nrgpus = 0;
 
-				if (nrgpus)
-				{
+				if (nrgpus) {
 					// request for stats again
-					if (gpud_statrequest())
-					{
+					if (gpud_statrequest()) {
 						// receive stats response
 						nrgpuproc = gpud_statresponse(nrgpus,
-						     cursstat->gpu.gpu, NULL);
+						                              cursstat->gpu.gpu, NULL);
 
 						// persistent failure?
 						if (nrgpuproc == -1)
@@ -534,13 +512,13 @@ engine(void)
 		** calculate deviations, i.e. activity during interval
 		*/
 		deviatsyst(cursstat, presstat, devsstat,
-				 curtime-pretime > 0 ? curtime-pretime : 1);
+		           curtime-pretime > 0 ? curtime-pretime : 1);
 
 		/*
 		** activate the report-function to visualize the deviations
 		*/
 		reportlive(curtime,
-			curtime-pretime > 0 ? curtime-pretime : 1, devsstat);
+		           curtime-pretime > 0 ? curtime-pretime : 1, devsstat);
 	} /* end of main-loop */
 }
 
@@ -558,8 +536,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 	** printing more reports needs another way of handling compared
 	** to printing one report
 	*/
-	if (numreports > 1)
-	{
+	if (numreports > 1) {
 		/*
 		** skip first sample
 		*/
@@ -568,8 +545,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 
 		printf(datemsg, convdate(curtime, datebuf));
 
-		for (i=0; i < pricnt && nr > 0; i++)
-		{
+		for (i=0; i < pricnt && nr > 0; i++) {
 			if ( !pridef[i].wanted )
 				continue;
 
@@ -584,9 +560,9 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 				printf(COLSETHEAD);
 
 			printf("%s  ", convtime(curtime-numsecs, timebuf));
-	
+
 			(pridef[i].prihead)(osvers, osrel, ossub);
-	
+
 			if (usecolors)
 				printf(COLRESET);
 
@@ -596,28 +572,25 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 			** print line with statistical counters
 			*/
 			printf("%s  ", convtime(curtime, timebuf));
-	
+
 			if ( !(pridef[i].priline)(ss, (struct tstat *)0, 0, 0,
-				numsecs, numsecs*hertz, hertz,
-				osvers, osrel, ossub,
-				stampalways ? timebuf : "        ",
-	                        0, 0, 0, 0, 0, 0) )
-			{
+			                          numsecs, numsecs*hertz, hertz,
+			                          osvers, osrel, ossub,
+			                          stampalways ? timebuf : "        ",
+			                          0, 0, 0, 0, 0, 0) ) {
 				/*
 				** print line has failed;
 				** do not call function again
 				*/
 				pridef[i].wanted = 0;
-	
+
 				if (--numreports == 0)
 					cleanstop(1);
 			}
 		}
 
 		printf("\n");
-	}
-	else		/* just one report to be printed */
-	{
+	} else {	/* just one report to be printed */
 		/*
 		** search required report
 		*/
@@ -628,8 +601,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 		/*
 		** verify if we have passed midnight of some day
 		*/
-		if (curtime > daylim)
-		{
+		if (curtime > daylim) {
 			printf(datemsg, convdate(curtime, datebuf));
 			daylim = daylimit(curtime);
 			curline++;
@@ -638,8 +610,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 		/*
 		** print first header
 		*/
-		if (sampcnt == 0)
-		{
+		if (sampcnt == 0) {
 			/*
 			** print header-line
 			*/
@@ -649,7 +620,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 				printf(COLSETHEAD);
 
 			printf("%s  ", convtime(curtime, timebuf));
-	
+
 			(pridef[i].prihead)(osvers, osrel, ossub);
 
 			if (usecolors)
@@ -667,13 +638,12 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 		** print line with statistical counters
 		*/
 		printf("%s  ", convtime(curtime, timebuf));
-	
+
 		if ( !(rv = (pridef[i].priline)(ss, (struct tstat *)0, 0, 0,
-					numsecs, numsecs*hertz, hertz,
-					osvers, osrel, ossub, 
-		                        stampalways ? timebuf : "        ",
-	                        	0, 0, 0, 0, 0, 0) ) )
-		{
+		                                numsecs, numsecs*hertz, hertz,
+		                                osvers, osrel, ossub,
+		                                stampalways ? timebuf : "        ",
+		                                0, 0, 0, 0, 0, 0) ) ) {
 			/*
 			** print line has failed;
 			** do not call function again
@@ -683,8 +653,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 
 		curline+=rv;
 
-		if (curline >= headline)
-		{
+		if (curline >= headline) {
 			headline = curline + repeathead;
 
 			/*
@@ -696,7 +665,7 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 				printf(COLSETHEAD);
 
 			printf("%s  ", convtime(curtime, timebuf));
-	
+
 			(pridef[i].prihead)(osvers, osrel, ossub);
 
 			if (usecolors)
@@ -714,15 +683,15 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 */
 static char
 reportraw(time_t curtime, int numsecs,
-         	struct devtstat *devtstat, struct sstat *sstat,
-		int nexit, unsigned int noverflow, char flags)
+          struct devtstat *devtstat, struct sstat *sstat,
+          int nexit, unsigned int noverflow, char flags)
 {
 	static char		firstcall = 1;
 	char			timebuf[16], datebuf[16];
 	unsigned int		rv;
 	static unsigned int	curline, headline, sampsum,
-				totalsec, totalexit, lastnpres,
-				lastntrun, lastntslpi, lastntslpu, lastnzomb;
+	       totalsec, totalexit, lastnpres,
+	       lastntrun, lastntslpi, lastntslpu, lastnzomb;
 	static time_t		lasttime;
 	static struct sstat	totsyst;
 
@@ -736,8 +705,7 @@ reportraw(time_t curtime, int numsecs,
 	** when this is first call to this function,
 	** print overall header with system information
 	*/
-	if (firstcall)
-	{
+	if (firstcall) {
 		reportheader(&utsname, time(0));
 		firstcall = 0;
 	}
@@ -745,8 +713,7 @@ reportraw(time_t curtime, int numsecs,
 	/*
 	** verify if we have passed midnight
 	*/
-	if (curtime > daylim)
-	{
+	if (curtime > daylim) {
 		printf(datemsg, convdate(curtime, datebuf));
 		daylim = daylimit(curtime);
 		curline++;
@@ -756,8 +723,7 @@ reportraw(time_t curtime, int numsecs,
 	** when this is the first record for a new report,
 	** initialize various variables
 	*/
-	if (sampcnt == 1)
-	{
+	if (sampcnt == 1) {
 		/*
 		** initialize variables for new report
 		*/
@@ -766,7 +732,7 @@ reportraw(time_t curtime, int numsecs,
 		curline   = 1;
 		headline  = 0;
 
- 		sampsum   = summarycnt + 1;
+		sampsum   = summarycnt + 1;
 		totalsec  = 0;
 		totalexit = 0;
 		memset(&totsyst, 0, sizeof totsyst);
@@ -777,8 +743,7 @@ reportraw(time_t curtime, int numsecs,
 	/*
 	** check if a (new) report header needs to be printed
 	*/
-	if (curline >= headline)
-	{
+	if (curline >= headline) {
 		headline = curline + repeathead;
 
 		/*
@@ -805,34 +770,29 @@ reportraw(time_t curtime, int numsecs,
 	** when current record contains log-restart indicator,
 	** print message and reinitialize variables
 	*/
-	if (flags & RRBOOT)
-	{
+	if (flags & RRBOOT) {
 		/*
 		** when accumulating counters, print results upto
 		** the *previous* record
 		*/
-		if (summarycnt > 1 && sampcnt <= sampsum && totalsec)
-		{
+		if (summarycnt > 1 && sampcnt <= sampsum && totalsec) {
 			printf("%s  ", convtime(lasttime, timebuf));
 
 			rv = (pridef[prinow].priline)(&totsyst,
-				(struct tstat *)0, 0, 0,
-				totalsec, totalsec*hertz, hertz,
-			        osvers, osrel, ossub,
-		                stampalways ? timebuf : "        ",
-	                        lastnpres, lastntrun, lastntslpi, lastntslpu,
-				totalexit, lastnzomb);
+			                              (struct tstat *)0, 0, 0,
+			                              totalsec, totalsec*hertz, hertz,
+			                              osvers, osrel, ossub,
+			                              stampalways ? timebuf : "        ",
+			                              lastnpres, lastntrun, lastntslpi, lastntslpu,
+			                              totalexit, lastnzomb);
 
-			if (rv == 0)
-			{
+			if (rv == 0) {
 				curline++;
 				pridef[prinow].wanted = 0; /* not call again */
 
 				if (--numreports == 0)
 					cleanstop(1);
-			}
-			else
-			{
+			} else {
 				curline += rv;
 			}
 		}
@@ -851,7 +811,7 @@ reportraw(time_t curtime, int numsecs,
 		/*
 		** reinitialize variables
 		*/
- 		sampsum   = summarycnt + sampcnt;
+		sampsum   = summarycnt + sampcnt;
 		totalsec  = 0;
 		totalexit = 0;
 		memset(&totsyst, 0, sizeof totsyst);
@@ -863,41 +823,34 @@ reportraw(time_t curtime, int numsecs,
 	** when no accumulation is required,
 	** just print current sample
 	*/
-	if (summarycnt == 1)
-	{
+	if (summarycnt == 1) {
 		printf("%s  ", convtime(curtime, timebuf));
 
 		rv = (pridef[prinow].priline) (sstat, devtstat->taskall,
-				devtstat->procall, devtstat->nprocall,
-				numsecs, numsecs*hertz, hertz,
-				osvers, osrel, ossub,
-	               		stampalways ? timebuf : "        ",
-				devtstat->ntaskall, devtstat->totrun,
-				devtstat->totslpi, devtstat->totslpu,
-				nexit, devtstat->totzombie);
+		                               devtstat->procall, devtstat->nprocall,
+		                               numsecs, numsecs*hertz, hertz,
+		                               osvers, osrel, ossub,
+		                               stampalways ? timebuf : "        ",
+		                               devtstat->ntaskall, devtstat->totrun,
+		                               devtstat->totslpi, devtstat->totslpu,
+		                               nexit, devtstat->totzombie);
 
-		if (rv == 0)
-		{
+		if (rv == 0) {
 			curline++;
 			pridef[prinow].wanted = 0; /* not call again */
 
 			if (--numreports == 0)
 				cleanstop(1);
-		}
-		else
-		{
+		} else {
 			curline += rv;
 		}
-	}
-	else 		/* accumulation is required */
-	{
+	} else {	/* accumulation is required */
 		char  *cp = pridef[prinow].cntcat;
 
 		/*
 		** maintain totals per category
 		*/
-		while (*cp)
-		{
+		while (*cp) {
 			totalsyst(*cp, sstat, &totsyst);
 			cp++;
 		}
@@ -919,48 +872,41 @@ reportraw(time_t curtime, int numsecs,
 		/*
 		** print line only if needed
 		*/
-		if (sampcnt >= sampsum || ( (flags&RRLAST) && totalsec) )
-		{
+		if (sampcnt >= sampsum || ( (flags&RRLAST) && totalsec) ) {
 			/*
 			** print output line for required report
 			*/
 			printf("%s  ", convtime(curtime, timebuf));
 
 			rv = (pridef[prinow].priline) (&totsyst,
-					(struct tstat *)0, 0, 0,
-					totalsec, totalsec*hertz, hertz,
-					osvers, osrel, ossub,
-					stampalways ? timebuf : "        ",
-					devtstat->ntaskall, devtstat->totrun,
-					devtstat->totslpi, devtstat->totslpu,
-					totalexit, devtstat->totzombie);
+			                               (struct tstat *)0, 0, 0,
+			                               totalsec, totalsec*hertz, hertz,
+			                               osvers, osrel, ossub,
+			                               stampalways ? timebuf : "        ",
+			                               devtstat->ntaskall, devtstat->totrun,
+			                               devtstat->totslpi, devtstat->totslpu,
+			                               totalexit, devtstat->totzombie);
 
-			if (rv == 0)
-			{
+			if (rv == 0) {
 				curline++;
 				pridef[prinow].wanted = 0; /* not call again */
 
 				if (--numreports == 0)
 					cleanstop(1);
-			}
-			else
-			{
+			} else {
 				curline += rv;
 			}
 
-		 	sampsum   = summarycnt + sampcnt;
+			sampsum   = summarycnt + sampcnt;
 			totalsec  = 0;
 			totalexit = 0;
 			memset(&totsyst, 0, sizeof totsyst);
-		}
-		else
-		{
+		} else {
 			rv = 1;
 		}
 	}
 
-	if (!rv)
-	{
+	if (!rv) {
 		/*
 		** print for line has failed;
 		** never call this function again
@@ -982,14 +928,14 @@ reportraw(time_t curtime, int numsecs,
 static void
 reportheader(struct utsname *uname, time_t mtime)
 {
-        char            cdate[16];
+	char            cdate[16];
 
-        printf("\n%s  %s  %s  %s  %s\n\n",
-                uname->nodename,
-                uname->release,
-                uname->version,
-                uname->machine,
-        	convdate(mtime, cdate));
+	printf("\n%s  %s  %s  %s  %s\n\n",
+	       uname->nodename,
+	       uname->release,
+	       uname->version,
+	       uname->machine,
+	       convdate(mtime, cdate));
 }
 
 /*
@@ -1001,57 +947,57 @@ pratopsaruse(char *myname)
 	int	i;
 
 	fprintf(stderr,
-		"Usage: %s [-flags] [-r file|date|y...] [-R cnt] [-b hh:mm] [-e hh:mm]\n",
-								myname);
+	        "Usage: %s [-flags] [-r file|date|y...] [-R cnt] [-b hh:mm] [-e hh:mm]\n",
+	        myname);
 	fprintf(stderr, "\t\tor\n");
 	fprintf(stderr,
-		"Usage: %s [-flags] interval [samples]\n", myname);
+	        "Usage: %s [-flags] interval [samples]\n", myname);
 	fprintf(stderr, "\n");
 	fprintf(stderr,
-		"\tToday's atop logfile is used by default!\n");
+	        "\tToday's atop logfile is used by default!\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr,
-		"\tGeneric flags:\n");
+	        "\tGeneric flags:\n");
 	fprintf(stderr,
-		"\t  -r  read statistical data from specific atop logfile\n");
+	        "\t  -r  read statistical data from specific atop logfile\n");
 	fprintf(stderr,
-		"\t      (pathname, or date in format YYYYMMDD, or y[y..])\n");
+	        "\t      (pathname, or date in format YYYYMMDD, or y[y..])\n");
 	fprintf(stderr,
-		"\t  -R  summarize <cnt> samples into one sample\n");
+	        "\t  -R  summarize <cnt> samples into one sample\n");
 	fprintf(stderr,
-		"\t  -b  begin  showing data from  specified time\n");
+	        "\t  -b  begin  showing data from  specified time\n");
 	fprintf(stderr,
-		"\t  -e  finish showing data after specified time\n");
+	        "\t  -e  finish showing data after specified time\n");
 	fprintf(stderr,
-		"\t  -S  print timestamp on every line in case of more "
-		"resources\n");
+	        "\t  -S  print timestamp on every line in case of more "
+	        "resources\n");
 	fprintf(stderr,
-		"\t  -x  never  use colors to indicate overload"
-		" (default: only if tty)\n");
+	        "\t  -x  never  use colors to indicate overload"
+	        " (default: only if tty)\n");
 	fprintf(stderr,
-		"\t  -C  always use colors to indicate overload"
-		" (default: only if tty)\n");
+	        "\t  -C  always use colors to indicate overload"
+	        " (default: only if tty)\n");
 	fprintf(stderr,
-		"\t  -M  use markers to indicate overload "
-		"(* = critical, + = almost)\n");
+	        "\t  -M  use markers to indicate overload "
+	        "(* = critical, + = almost)\n");
 	fprintf(stderr,
-		"\t  -H  repeat report headers "
-		"(in case of tty: depending on screen lines)\n");
+	        "\t  -H  repeat report headers "
+	        "(in case of tty: depending on screen lines)\n");
 	fprintf(stderr,
-		"\t  -a  print all resources, even when inactive\n");
+	        "\t  -a  print all resources, even when inactive\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr,
-		"\tSpecific flags to select reports:\n");
+	        "\tSpecific flags to select reports:\n");
 	fprintf(stderr,
-		"\t  -A  print all available reports\n");
+	        "\t  -A  print all available reports\n");
 
 	for (i=0; i < pricnt; i++)
 		fprintf(stderr,
-		"\t  -%c  %s\n", pridef[i].flag, pridef[i].about);
+		        "\t  -%c  %s\n", pridef[i].flag, pridef[i].about);
 
 	fprintf(stderr, "\n");
 	fprintf(stderr,
-                "Please refer to the man-page of 'atopsar' "
+	        "Please refer to the man-page of 'atopsar' "
 	        "for more details.\n");
 
 
@@ -1081,17 +1027,12 @@ daylimit(time_t timval)
 static void
 preprint(unsigned int badness)
 {
-	if (usecolors)
-	{
-		if (badness >= 100)
-		{
+	if (usecolors) {
+		if (badness >= 100) {
 			coloron = 1;
 			printf(COLSETHIGH);
-		}
-		else
-		{
-			if (almostcrit && badness >= almostcrit)
-			{
+		} else {
+			if (almostcrit && badness >= almostcrit) {
 				coloron = 1;
 				printf(COLSETMED);
 			}
@@ -1106,20 +1047,15 @@ preprint(unsigned int badness)
 static void
 postprint(unsigned int badness)
 {
-	if (coloron)
-	{
+	if (coloron) {
 		coloron = 0;
 		printf(COLRESET);
 	}
 
-	if (usemarkers)
-	{
-		if (badness >= 100)
-		{
+	if (usemarkers) {
+		if (badness >= 100) {
 			printf(" *");
-		}
-		else
-		{
+		} else {
 			if (almostcrit && badness >= almostcrit)
 				printf(" +");
 		}
@@ -1137,34 +1073,31 @@ do_atopsarflags(char *val)
 {
 	int     i, j;
 
-	for (i=0; val[i]; i++)
-	{
-		switch (val[i])
-		{
-		   case '-':
+	for (i=0; val[i]; i++) {
+		switch (val[i]) {
+		case '-':
 			break;
 
-		   case 'S':		/* timestamp on every line */
+		case 'S':		/* timestamp on every line */
 			stampalways = 1;
 			break;
 
-		   case 'x':		/* always colors for overload */
+		case 'x':		/* always colors for overload */
 			usecolors = 0;
 			break;
 
-		   case 'C':		/* always colors for overload */
+		case 'C':		/* always colors for overload */
 			usecolors = 'a';
 			break;
 
-		   case 'M':		/* markers for overload    */
+		case 'M':		/* markers for overload    */
 			usemarkers = 1;
 			break;
 
-		   case 'H':		/* repeat headers          */
+		case 'H':		/* repeat headers          */
 			repeathead = 23;	/* define default  */
 
-			if (isatty(1))
-			{
+			if (isatty(1)) {
 				struct winsize wsz;
 
 				if ( ioctl(1, TIOCGWINSZ, &wsz) != -1)
@@ -1172,23 +1105,21 @@ do_atopsarflags(char *val)
 			}
 			break;
 
-		   case 'a':		/* every interval all units */
+		case 'a':		/* every interval all units */
 			allresources = 1;
 			break;
 
-		   case 'A':		/* all reports wanted ?  */
+		case 'A':		/* all reports wanted ?  */
 			for (j=0; j < pricnt; j++)
 				pridef[j].wanted = 1;
 
 			numreports = pricnt;
 			break;
 
-		   default:		/* gather report-flags    */
-			for (j=0; j < pricnt; j++)
-			{
-				if (pridef[j].flag   == val[i] && 
-				    pridef[j].wanted == 0        )
-				{
+		default:		/* gather report-flags    */
+			for (j=0; j < pricnt; j++) {
+				if (pridef[j].flag   == val[i] &&
+				    pridef[j].wanted == 0        ) {
 					pridef[j].wanted = 1;
 					numreports++;
 					break;
@@ -1224,54 +1155,52 @@ cpuline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	/*
 	** print overall statistics
 	*/
-        cputot = ss->cpu.all.stime + ss->cpu.all.utime +
-                 ss->cpu.all.ntime + ss->cpu.all.itime +
-                 ss->cpu.all.wtime + ss->cpu.all.Itime +
-                 ss->cpu.all.Stime + ss->cpu.all.steal;
+	cputot = ss->cpu.all.stime + ss->cpu.all.utime +
+	         ss->cpu.all.ntime + ss->cpu.all.itime +
+	         ss->cpu.all.wtime + ss->cpu.all.Itime +
+	         ss->cpu.all.Stime + ss->cpu.all.steal;
 
 	if (cputot == 0)
 		cputot = 1;	/* avoid divide-by-zero */
 
 	if (cpubadness)
 		badness = ((cputot - ss->cpu.all.itime - ss->cpu.all.wtime) *
-                            100.0 / cputot) * 100 / cpubadness;
+		           100.0 / cputot) * 100 / cpubadness;
 	else
 		badness = 0;
 
 	preprint(badness);
 
 	printf("all %5.0lf %5.0lf %4.0lf %4.0lf %8.0lf %7.0f %6.0f %6.0lf %5.0lf",
-                (double) (ss->cpu.all.utime * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.ntime * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.stime * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.Itime * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.Stime * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.steal * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.guest * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.wtime * 100.0) / cputot * ss->cpu.nrcpu,
-                (double) (ss->cpu.all.itime * 100.0) / cputot * ss->cpu.nrcpu);
+	       (double) (ss->cpu.all.utime * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.ntime * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.stime * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.Itime * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.Stime * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.steal * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.guest * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.wtime * 100.0) / cputot * ss->cpu.nrcpu,
+	       (double) (ss->cpu.all.itime * 100.0) / cputot * ss->cpu.nrcpu);
 
 	postprint(badness);
 
 	/*
 	** print per-cpu statistics
 	*/
-	if (ss->cpu.nrcpu > 1)
-	{
-		for (i=0; i < ss->cpu.nrcpu; i++)
-		{
-        		cputot = ss->cpu.cpu[i].stime + ss->cpu.cpu[i].utime +
-                 	         ss->cpu.cpu[i].ntime + ss->cpu.cpu[i].itime +
-                 	         ss->cpu.cpu[i].wtime + ss->cpu.cpu[i].Itime +
-                 	         ss->cpu.cpu[i].Stime + ss->cpu.cpu[i].steal;
+	if (ss->cpu.nrcpu > 1) {
+		for (i=0; i < ss->cpu.nrcpu; i++) {
+			cputot = ss->cpu.cpu[i].stime + ss->cpu.cpu[i].utime +
+			         ss->cpu.cpu[i].ntime + ss->cpu.cpu[i].itime +
+			         ss->cpu.cpu[i].wtime + ss->cpu.cpu[i].Itime +
+			         ss->cpu.cpu[i].Stime + ss->cpu.cpu[i].steal;
 
 			if (cputot == 0)
 				cputot = 1;	/* avoid divide-by-zero */
 
 			if (cpubadness)
 				badness = ((cputot - ss->cpu.cpu[i].itime -
-					    ss->cpu.cpu[i].wtime) * 100.0 /
-				            cputot) * 100 / cpubadness;
+				            ss->cpu.cpu[i].wtime) * 100.0 /
+				           cputot) * 100 / cpubadness;
 			else
 				badness = 0;
 
@@ -1281,16 +1210,16 @@ cpuline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 
 			printf("%4d %5.0lf %5.0lf %4.0lf %4.0lf %8.0lf "
 			       "%7.0f %6.0lf %6.0lf %5.0lf",
-			     i,
-                 	     (double)(ss->cpu.cpu[i].utime * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].ntime * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].stime * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].Itime * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].Stime * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].steal * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].guest * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].wtime * 100.0) / cputot,
-                	     (double)(ss->cpu.cpu[i].itime * 100.0) / cputot);
+			       i,
+			       (double)(ss->cpu.cpu[i].utime * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].ntime * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].stime * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].Itime * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].Stime * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].steal * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].guest * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].wtime * 100.0) / cputot,
+			       (double)(ss->cpu.cpu[i].itime * 100.0) / cputot);
 
 			postprint(badness);
 
@@ -1323,8 +1252,7 @@ gpuline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	char		fmt1[16], fmt2[16];
 	count_t		avgmemuse;
 
-	for (i=0; i < ss->gpu.nrgpus; i++)	/* per GPU */
-	{
+	for (i=0; i < ss->gpu.nrgpus; i++) {	/* per GPU */
 		/*
 		** determine whether or not the GPU has been active
 		** during interval
@@ -1366,28 +1294,27 @@ gpuline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 			strcpy(fmt1, "N/A");
 		else
 			snprintf(fmt1, sizeof fmt1, "%lld%%",
-			   ss->gpu.gpu[i].gpuperccum / ss->gpu.gpu[i].samples);
+			         ss->gpu.gpu[i].gpuperccum / ss->gpu.gpu[i].samples);
 
 		if (ss->gpu.gpu[i].memperccum == -1)
 			strcpy(fmt2, "N/A");
 		else
 			snprintf(fmt2, sizeof fmt2, "%lld%%",
-			   ss->gpu.gpu[i].memperccum / ss->gpu.gpu[i].samples);
+			         ss->gpu.gpu[i].memperccum / ss->gpu.gpu[i].samples);
 
 		if (ss->gpu.gpu[i].memtotnow == 0)
 			ss->gpu.gpu[i].memtotnow = 1;
 
 		printf("%2ld/%9.9s %7s  %7s  %5lld%%  %5lldM %5lldM  %s\n",
-			i, ss->gpu.gpu[i].busid,
-			fmt1, fmt2,
-			ss->gpu.gpu[i].memusenow*100/ss->gpu.gpu[i].memtotnow,
-			ss->gpu.gpu[i].memtotnow / 1024,
-			ss->gpu.gpu[i].memusenow / 1024,
-			ss->gpu.gpu[i].type);
+		       i, ss->gpu.gpu[i].busid,
+		       fmt1, fmt2,
+		       ss->gpu.gpu[i].memusenow*100/ss->gpu.gpu[i].memtotnow,
+		       ss->gpu.gpu[i].memtotnow / 1024,
+		       ss->gpu.gpu[i].memusenow / 1024,
+		       ss->gpu.gpu[i].type);
 	}
 
-	if (nlines == 0)
-	{
+	if (nlines == 0) {
 		printf("\n");
 		nlines++;
 	}
@@ -1408,15 +1335,15 @@ prochead(int osvers, int osrel, int ossub)
 
 static int
 procline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%7.0lf %9.0lf %9.2lf  %8.2lf %8.2lf  %8.2lf\n",
-		(double)ss->cpu.csw    / deltasec,
-		(double)ss->cpu.devint / deltasec,
-		(double)ss->cpu.nprocs / deltasec,
-		ss->cpu.lavg1, ss->cpu.lavg5, ss->cpu.lavg15);
+	       (double)ss->cpu.csw    / deltasec,
+	       (double)ss->cpu.devint / deltasec,
+	       (double)ss->cpu.nprocs / deltasec,
+	       ss->cpu.lavg1, ss->cpu.lavg5, ss->cpu.lavg15);
 	return 1;
 }
 
@@ -1432,29 +1359,25 @@ taskhead(int osvers, int osrel, int ossub)
 
 static int
 taskline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
-	if (ppres == 0)
-	{
+	if (ppres == 0) {
 		printf("report not available for live measurements.....\n");
 		return 0;
 	}
 
-	if (ts)		/* process statistics available */
-	{
+	if (ts) {	/* process statistics available */
 		printf("%8.2lf %7.2lf  %7d %7d    %6d %7d %7d\n",
-			(double)ss->cpu.nprocs / deltasec,
-			(double)pexit          / deltasec,
-			nactproc-pexit, pzombie, ntrun, ntslpi, ntslpu);
-	}
-	else
-	{
+		       (double)ss->cpu.nprocs / deltasec,
+		       (double)pexit          / deltasec,
+		       nactproc-pexit, pzombie, ntrun, ntslpi, ntslpu);
+	} else {
 		printf("%8.2lf %7.2lf  %7d %7d\n",
-			(double)ss->cpu.nprocs / deltasec,
-			(double)pexit          / deltasec,
-			nactproc-pexit, pzombie);
+		       (double)ss->cpu.nprocs / deltasec,
+		       (double)pexit          / deltasec,
+		       nactproc-pexit, pzombie);
 	}
 
 	return 1;
@@ -1480,30 +1403,30 @@ memline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 
 	if (membadness)
 		mbadness = ((ss->mem.physmem  - ss->mem.freemem -
-	                     ss->mem.cachemem - ss->mem.buffermem)
-	                               * 100.0 / ss->mem.physmem) 
-	                               * 100   / membadness;
+		             ss->mem.cachemem - ss->mem.buffermem)
+		            * 100.0 / ss->mem.physmem)
+		           * 100   / membadness;
 	else
 		mbadness = 0;
 
-        if (swpbadness)
-        	sbadness = ((ss->mem.totswap - ss->mem.freeswap)
-	                               * 100.0 / ss->mem.totswap)
-                                       * 100   / swpbadness;
-        else
-                sbadness = 0;
+	if (swpbadness)
+		sbadness = ((ss->mem.totswap - ss->mem.freeswap)
+		            * 100.0 / ss->mem.totswap)
+		           * 100   / swpbadness;
+	else
+		sbadness = 0;
 
 	preprint(mbadness >= sbadness ? mbadness : sbadness);
 
 	printf("%7lldM %6lldM %6lldM %5lldM %4lldM %6lldM  %7lldM %6lldM",
-		ss->mem.physmem   * (pagesize / 1024) /1024,
-		ss->mem.freemem   * (pagesize / 1024) /1024,
-		ss->mem.buffermem * (pagesize / 1024) /1024,
-		ss->mem.cachemem  * (pagesize / 1024) /1024,
-		ss->mem.cachedrt  * (pagesize / 1024) /1024,
-		ss->mem.slabmem   * (pagesize / 1024) /1024,
-		ss->mem.totswap   * (pagesize / 1024) /1024,
-		ss->mem.freeswap  * (pagesize / 1024) /1024);
+	       ss->mem.physmem   * (pagesize / 1024) /1024,
+	       ss->mem.freemem   * (pagesize / 1024) /1024,
+	       ss->mem.buffermem * (pagesize / 1024) /1024,
+	       ss->mem.cachemem  * (pagesize / 1024) /1024,
+	       ss->mem.cachedrt  * (pagesize / 1024) /1024,
+	       ss->mem.slabmem   * (pagesize / 1024) /1024,
+	       ss->mem.totswap   * (pagesize / 1024) /1024,
+	       ss->mem.freeswap  * (pagesize / 1024) /1024);
 
 	postprint(mbadness >= sbadness ? mbadness : sbadness);
 
@@ -1522,15 +1445,15 @@ swaphead(int osvers, int osrel, int ossub)
 
 static int
 swapline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	unsigned int	badness;
 
 	if (membadness)
-                badness = (ss->mem.swouts / deltasec * pagbadness)
-				* 100 / membadness;
+		badness = (ss->mem.swouts / deltasec * pagbadness)
+		          * 100 / membadness;
 	else
 		badness = 0;
 
@@ -1548,11 +1471,11 @@ swapline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	preprint(badness);
 
 	printf("%10.2lf  %9.2lf  %9.2lf       %9lluM %9lluM",
-		(double)ss->mem.pgscans / deltasec,
-		(double)ss->mem.swins   / deltasec,
-		(double)ss->mem.swouts  / deltasec,
-		        ss->mem.committed * (pagesize / 1024) / 1024,
-		        ss->mem.commitlim * (pagesize / 1024) / 1024);
+	       (double)ss->mem.pgscans / deltasec,
+	       (double)ss->mem.swins   / deltasec,
+	       (double)ss->mem.swouts  / deltasec,
+	       ss->mem.committed * (pagesize / 1024) / 1024,
+	       ss->mem.commitlim * (pagesize / 1024) / 1024);
 
 	postprint(badness);
 
@@ -1575,8 +1498,7 @@ psiline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
         int osvers, int osrel, int ossub, char *tstamp,
         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
-	if (!ss->psi.present)
-	{
+	if (!ss->psi.present) {
 		printf("no PSI stats available for this system .....\n");
 		return 0;
 	}
@@ -1584,16 +1506,16 @@ psiline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	printf("%3.0f%%%3.0f%%%3.0f%%   %3.0f%%%3.0f%%%3.0f%% "
 	       "%3.0f%%%3.0f%%%3.0f%%   %3.0f%%%3.0f%%%3.0f%% "
 	       "%3.0f%%%3.0f%%%3.0f%%\n",
-		ss->psi.cpusome.avg10, ss->psi.cpusome.avg60,
-		ss->psi.cpusome.avg300,
-		ss->psi.memsome.avg10, ss->psi.memsome.avg60,
-		ss->psi.memsome.avg300,
-		ss->psi.memfull.avg10, ss->psi.memfull.avg60,
-		ss->psi.memfull.avg300,
-		ss->psi.iosome.avg10, ss->psi.iosome.avg60,
-		ss->psi.iosome.avg300,
-		ss->psi.iofull.avg10, ss->psi.iofull.avg60,
-		ss->psi.iofull.avg300);
+	       ss->psi.cpusome.avg10, ss->psi.cpusome.avg60,
+	       ss->psi.cpusome.avg300,
+	       ss->psi.memsome.avg10, ss->psi.memsome.avg60,
+	       ss->psi.memsome.avg300,
+	       ss->psi.memfull.avg10, ss->psi.memfull.avg60,
+	       ss->psi.memfull.avg300,
+	       ss->psi.iosome.avg10, ss->psi.iosome.avg60,
+	       ss->psi.iosome.avg300,
+	       ss->psi.iofull.avg10, ss->psi.iofull.avg60,
+	       ss->psi.iofull.avg300);
 
 	return 1;
 }
@@ -1632,40 +1554,38 @@ gendskline(struct sstat *ss, char *tstamp, char selector)
 	struct perdsk 	*dp;
 	unsigned int	badness;
 
-	switch (selector)
-	{
-	   case 'l':
+	switch (selector) {
+	case 'l':
 		dp 	= ss->dsk.lvm;
 		nunit	= ss->dsk.nlvm;
 		break;
 
-	   case 'm':
+	case 'm':
 		dp 	= ss->dsk.mdd;
 		nunit	= ss->dsk.nmdd;
 		break;
 
-	   case 'd':
+	case 'd':
 		dp 	= ss->dsk.dsk;
 		nunit	= ss->dsk.ndsk;
 		break;
 
-	   default:
+	default:
 		return 0;
 	}
 
-        mstot  = (ss->cpu.all.stime + ss->cpu.all.utime +
-                  ss->cpu.all.ntime + ss->cpu.all.itime +
-                  ss->cpu.all.wtime + ss->cpu.all.Itime +
-                  ss->cpu.all.Stime + ss->cpu.all.steal  )
-				* (count_t)1000 / hertz / ss->cpu.nrcpu;
+	mstot  = (ss->cpu.all.stime + ss->cpu.all.utime +
+	          ss->cpu.all.ntime + ss->cpu.all.itime +
+	          ss->cpu.all.wtime + ss->cpu.all.Itime +
+	          ss->cpu.all.Stime + ss->cpu.all.steal  )
+	         * (count_t)1000 / hertz / ss->cpu.nrcpu;
 
-	for (i=0; i < nunit; i++, dp++)
-	{
+	for (i=0; i < nunit; i++, dp++) {
 		char	*pn;
 		int	len;
 
 		if ( (iotot = dp->nread + dp->nwrite) == 0 &&
- 		     !firstcall && !allresources             )
+		     !firstcall && !allresources             )
 			continue;	/* no activity on this disk */
 
 		/*
@@ -1676,7 +1596,7 @@ gendskline(struct sstat *ss, char *tstamp, char selector)
 
 		if (dskbadness)
 			badness = (dp->io_ms * 100.0 / mstot) * 100/dskbadness;
-                else
+		else
 			badness = 0;
 
 		preprint(badness);
@@ -1688,22 +1608,21 @@ gendskline(struct sstat *ss, char *tstamp, char selector)
 
 		printf("%-14s %3.0lf%% %6.1lf %7.1lf %7.1lf %7.1lf "
 		       "%5.1lf %6.2lf ms",
-		    	pn,
-			mstot ? (double)dp->io_ms  *  100.0 / mstot   : 0.0,
-			mstot ? (double)dp->nread  * 1000.0 / mstot   : 0.0,
-			dp->nread  ?
-			        (double)dp->nrsect / dp->nread / 2.0  : 0.0,
-			mstot ? (double)dp->nwrite * 1000.0 / mstot   : 0.0,
-			dp->nwrite ?
-  			        (double)dp->nwsect / dp->nwrite / 2.0 : 0.0,
-			dp->io_ms  ? (double)dp->avque / dp->io_ms    : 0.0,
-		      	iotot ? (double)dp->io_ms  / iotot            : 0.0);
+		       pn,
+		       mstot ? (double)dp->io_ms  *  100.0 / mstot   : 0.0,
+		       mstot ? (double)dp->nread  * 1000.0 / mstot   : 0.0,
+		       dp->nread  ?
+		       (double)dp->nrsect / dp->nread / 2.0  : 0.0,
+		       mstot ? (double)dp->nwrite * 1000.0 / mstot   : 0.0,
+		       dp->nwrite ?
+		       (double)dp->nwsect / dp->nwrite / 2.0 : 0.0,
+		       dp->io_ms  ? (double)dp->avque / dp->io_ms    : 0.0,
+		       iotot ? (double)dp->io_ms  / iotot            : 0.0);
 
 		postprint(badness);
 	}
 
-	if (nlines == 0)
-	{
+	if (nlines == 0) {
 		printf("\n");
 		nlines++;
 	}
@@ -1747,7 +1666,7 @@ static void
 nfmhead(int osvers, int osrel, int ossub)
 {
 	printf("mounted_device                          physread/s  physwrit/s"
-               "  _nfm_");
+	       "  _nfm_");
 }
 
 static int
@@ -1761,8 +1680,7 @@ nfmline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	char		*pn, state;
 	int		len;
 
-	for (i=0; i < ss->nfs.nfsmounts.nrmounts; i++)	/* per NFS mount */
-	{
+	for (i=0; i < ss->nfs.nfsmounts.nrmounts; i++) {	/* per NFS mount */
 		/*
 		** print for the first sample all mounts that
 		** are found; afterwards print only the mounts
@@ -1772,8 +1690,7 @@ nfmline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 		    allresources                               ||
 		    ss->nfs.nfsmounts.nfsmnt[i].age < deltasec ||
 		    ss->nfs.nfsmounts.nfsmnt[i].bytestotread   ||
-		    ss->nfs.nfsmounts.nfsmnt[i].bytestotwrite    )
-		{
+		    ss->nfs.nfsmounts.nfsmnt[i].bytestotwrite    ) {
 			if (nlines++)
 				printf("%s  ", tstamp);
 
@@ -1782,23 +1699,22 @@ nfmline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 			else
 				pn = ss->nfs.nfsmounts.nfsmnt[i].mountdev;
 
-		    	if (ss->nfs.nfsmounts.nfsmnt[i].age < deltasec)
+			if (ss->nfs.nfsmounts.nfsmnt[i].age < deltasec)
 				state = 'M';
 			else
 				state = ' ';
 
-			printf("%-38s %10.3lfK %10.3lfK    %c\n", 
-			    pn,
-			    (double)ss->nfs.nfsmounts.nfsmnt[i].bytestotread  /
-								1024 / deltasec,
-			    (double)ss->nfs.nfsmounts.nfsmnt[i].bytestotwrite /
-								1024 / deltasec,
-			    state);
+			printf("%-38s %10.3lfK %10.3lfK    %c\n",
+			       pn,
+			       (double)ss->nfs.nfsmounts.nfsmnt[i].bytestotread  /
+			       1024 / deltasec,
+			       (double)ss->nfs.nfsmounts.nfsmnt[i].bytestotwrite /
+			       1024 / deltasec,
+			       state);
 		}
 	}
 
-	if (nlines == 0)
-	{
+	if (nlines == 0) {
 		printf("\n");
 		nlines++;
 	}
@@ -1811,7 +1727,7 @@ static void
 nfchead(int osvers, int osrel, int ossub)
 {
 	printf("     rpc/s   rpcread/s  rpcwrite/s  retrans/s  autrefresh/s   "
-               "  _nfc_");
+	       "  _nfc_");
 }
 
 static int
@@ -1821,11 +1737,11 @@ nfcline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%10.2lf  %10.2lf  %10.2lf %10.2lf  %12.2lf\n",
-		(double)ss->nfs.client.rpccnt        / deltasec,
-		(double)ss->nfs.client.rpcread       / deltasec,
-		(double)ss->nfs.client.rpcwrite      / deltasec,
-		(double)ss->nfs.client.rpcretrans    / deltasec,
-		(double)ss->nfs.client.rpcautrefresh / deltasec);
+	       (double)ss->nfs.client.rpccnt        / deltasec,
+	       (double)ss->nfs.client.rpcread       / deltasec,
+	       (double)ss->nfs.client.rpcwrite      / deltasec,
+	       (double)ss->nfs.client.rpcretrans    / deltasec,
+	       (double)ss->nfs.client.rpcautrefresh / deltasec);
 
 	return 1;
 }
@@ -1834,7 +1750,7 @@ static void
 nfshead(int osvers, int osrel, int ossub)
 {
 	printf("  rpc/s  rpcread/s rpcwrite/s MBcr/s  MBcw/s  "
-               "nettcp/s netudp/s _nfs_");
+	       "nettcp/s netudp/s _nfs_");
 }
 
 static int
@@ -1844,13 +1760,13 @@ nfsline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%7.2lf %10.2lf %10.2lf %6.2lf %7.2lf %9.2lf %8.2lf\n",
-		(double)ss->nfs.server.rpccnt    / deltasec,
-		(double)ss->nfs.server.rpcread   / deltasec,
-		(double)ss->nfs.server.rpcwrite  / deltasec,
-		(double)ss->nfs.server.nrbytes / 1024.0 / 1024.0 / deltasec,
-		(double)ss->nfs.server.nwbytes / 1024.0 / 1024.0 / deltasec,
-		(double)ss->nfs.server.nettcpcnt / deltasec,
-		(double)ss->nfs.server.netudpcnt / deltasec);
+	       (double)ss->nfs.server.rpccnt    / deltasec,
+	       (double)ss->nfs.server.rpcread   / deltasec,
+	       (double)ss->nfs.server.rpcwrite  / deltasec,
+	       (double)ss->nfs.server.nrbytes / 1024.0 / 1024.0 / deltasec,
+	       (double)ss->nfs.server.nwbytes / 1024.0 / 1024.0 / deltasec,
+	       (double)ss->nfs.server.nettcpcnt / deltasec,
+	       (double)ss->nfs.server.netudpcnt / deltasec);
 
 	return 1;
 }
@@ -1867,17 +1783,16 @@ ibhead(int osvers, int osrel, int ossub)
 
 static int
 ibline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+       time_t deltasec, time_t deltatic, time_t hz,
+       int osvers, int osrel, int ossub, char *tstamp,
+       int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	static char	firstcall = 1;
 	register long	i, nlines = 0;
 	double		busy;
 	unsigned int	badness;
 
-	for (i=0; i < ss->ifb.nrports; i++)	/* per interface */
-	{
+	for (i=0; i < ss->ifb.nrports; i++) {	/* per interface */
 		count_t ival, oval;
 
 		/*
@@ -1912,21 +1827,20 @@ ibline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 
 		preprint(badness);
 
-		printf("%-10s %4hd %4.0f%% %7.1lf %7.1lf %5lld %5lld %7lld %5d", 
-			ss->ifb.ifb[i].ibname,
-			ss->ifb.ifb[i].portnr,
-			busy,
-			(double)ss->ifb.ifb[i].rcvp / deltasec,
-			(double)ss->ifb.ifb[i].sndp / deltasec,
-			ival, oval,
-			ss->ifb.ifb[i].rate / 1000,
-			ss->ifb.ifb[i].lanes);
+		printf("%-10s %4hd %4.0f%% %7.1lf %7.1lf %5lld %5lld %7lld %5d",
+		       ss->ifb.ifb[i].ibname,
+		       ss->ifb.ifb[i].portnr,
+		       busy,
+		       (double)ss->ifb.ifb[i].rcvp / deltasec,
+		       (double)ss->ifb.ifb[i].sndp / deltasec,
+		       ival, oval,
+		       ss->ifb.ifb[i].rate / 1000,
+		       ss->ifb.ifb[i].lanes);
 
 		postprint(badness);
 	}
 
-	if (nlines == 0)
-	{
+	if (nlines == 0) {
 		printf("\n");
 		nlines++;
 	}
@@ -1948,9 +1862,9 @@ ifhead(int osvers, int osrel, int ossub)
 
 static int
 ifline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+       time_t deltasec, time_t deltatic, time_t hz,
+       int osvers, int osrel, int ossub, char *tstamp,
+       int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	static char	firstcall = 1;
 	register long	i, nlines = 0;
@@ -1960,8 +1874,7 @@ ifline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	char		*pn;
 	int		len;
 
-	for (i=0; i < ss->intf.nrintf; i++)	/* per interface */
-	{
+	for (i=0; i < ss->intf.nrintf; i++) {	/* per interface */
 		count_t ival, oval;
 
 		/*
@@ -1984,39 +1897,35 @@ ifline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 		/*
 		** calculate busy-percentage for interface
 		*/
-		if (ss->intf.intf[i].speed)	/* speed known? */
-		{
+		if (ss->intf.intf[i].speed) {	/* speed known? */
 			if (ss->intf.intf[i].duplex)
 				busy = (ival > oval ? ival*100 : oval*100) /
-				        ss->intf.intf[i].speed;
+				       ss->intf.intf[i].speed;
 			else
 				busy = (ival + oval) * 100 /
-				        ss->intf.intf[i].speed;
+				       ss->intf.intf[i].speed;
 
 			// especially with wireless, the speed might have
 			// dropped temporarily to a very low value (snapshot)
 			// it might be better to take the speed of the
 			// previous sample
 			if (busy > 100 && ss->intf.intf[i].speed <
-			                  	ss->intf.intf[i].speedp )
-			{
+			    ss->intf.intf[i].speedp ) {
 				ss->intf.intf[i].speed =
-					ss->intf.intf[i].speedp;
+				    ss->intf.intf[i].speedp;
 
 				if (ss->intf.intf[i].duplex)
 					busy = (ival > oval ?
-						ival*100 : oval*100) /
-				        	ss->intf.intf[i].speed;
+					        ival*100 : oval*100) /
+					       ss->intf.intf[i].speed;
 				else
 					busy = (ival + oval) * 100 /
-				        	ss->intf.intf[i].speed;
+					       ss->intf.intf[i].speed;
 			}
 
 			snprintf(busyval, sizeof busyval,
-						"%3.0lf%%", busy);
-		}
-		else
-		{
+			         "%3.0lf%%", busy);
+		} else {
 			strcpy(busyval, "?"); /* speed unknown */
 			busy = 0;
 		}
@@ -2024,15 +1933,12 @@ ifline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 		if (nlines++)
 			printf("%s  ", tstamp);
 
-		if (ss->intf.intf[i].speed)
-		{
+		if (ss->intf.intf[i].speed) {
 			if (ss->intf.intf[i].duplex)
 				dupval = 'f';
 			else
 				dupval = 'h';
-		}
-		else
-		{
+		} else {
 			dupval = ' ';
 		}
 
@@ -2049,20 +1955,19 @@ ifline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 		preprint(badness);
 
 		printf("%-6s %4s %7.1lf %7.1lf %8.0lf %8.0lf "
-		       "%5lld %5lld %7ld %c", 
-			pn, busyval,
-			(double)ss->intf.intf[i].rpack / deltasec,
-			(double)ss->intf.intf[i].spack / deltasec,
-			(double)ss->intf.intf[i].rbyte / 1024 / deltasec,
-			(double)ss->intf.intf[i].sbyte / 1024 / deltasec,
-			ival, oval,
-			ss->intf.intf[i].speed, dupval);
+		       "%5lld %5lld %7ld %c",
+		       pn, busyval,
+		       (double)ss->intf.intf[i].rpack / deltasec,
+		       (double)ss->intf.intf[i].spack / deltasec,
+		       (double)ss->intf.intf[i].rbyte / 1024 / deltasec,
+		       (double)ss->intf.intf[i].sbyte / 1024 / deltasec,
+		       ival, oval,
+		       ss->intf.intf[i].speed, dupval);
 
 		postprint(badness);
 	}
 
-	if (nlines == 0)
-	{
+	if (nlines == 0) {
 		printf("\n");
 		nlines++;
 	}
@@ -2080,17 +1985,16 @@ IFhead(int osvers, int osrel, int ossub)
 
 static int
 IFline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+       time_t deltasec, time_t deltatic, time_t hz,
+       int osvers, int osrel, int ossub, char *tstamp,
+       int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	static char	firstcall = 1;
 	register long	i, nlines = 0;
 	char		*pn;
 	int		len;
 
-	for (i=0; i < ss->intf.nrintf; i++)	/* per interface */
-	{
+	for (i=0; i < ss->intf.nrintf; i++) {	/* per interface */
 		/*
 		** print for the first sample all interfaces which
 		** are found; afterwards print only the interfaces
@@ -2109,19 +2013,18 @@ IFline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 			pn = ss->intf.intf[i].name;
 
 		printf("%-6s %6.2lf %6.2lf %6.2lf %7.2lf %7.2lf "
-		       "%8.2lf %10.2lf\n", 
-			pn,
-			(double)ss->intf.intf[i].rerrs    / deltasec,
-			(double)ss->intf.intf[i].serrs    / deltasec,
-			(double)ss->intf.intf[i].scollis  / deltasec,
-			(double)ss->intf.intf[i].rdrop    / deltasec,
-			(double)ss->intf.intf[i].sdrop    / deltasec,
-			(double)ss->intf.intf[i].rframe   / deltasec,
-			(double)ss->intf.intf[i].scarrier / deltasec);
+		       "%8.2lf %10.2lf\n",
+		       pn,
+		       (double)ss->intf.intf[i].rerrs    / deltasec,
+		       (double)ss->intf.intf[i].serrs    / deltasec,
+		       (double)ss->intf.intf[i].scollis  / deltasec,
+		       (double)ss->intf.intf[i].rdrop    / deltasec,
+		       (double)ss->intf.intf[i].sdrop    / deltasec,
+		       (double)ss->intf.intf[i].rframe   / deltasec,
+		       (double)ss->intf.intf[i].scarrier / deltasec);
 	}
 
-	if (nlines == 0)
-	{
+	if (nlines == 0) {
 		printf("\n");
 		nlines++;
 	}
@@ -2142,17 +2045,17 @@ ipv4head(int osvers, int osrel, int ossub)
 
 static int
 ipv4line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
-	printf("%8.1lf %8.1lf %11.1lf %9.1lf %9.1lf %11.1lf\n", 
-		(double)ss->net.ipv4.InReceives  / deltasec,
-		(double)ss->net.ipv4.OutRequests / deltasec,
-		(double)ss->net.ipv4.InDelivers  / deltasec,
-		(double)ss->net.ipv4.Forwarding  / deltasec,
-		(double)ss->net.ipv4.ReasmOKs    / deltasec,
-		(double)ss->net.ipv4.FragCreates / deltasec);
+	printf("%8.1lf %8.1lf %11.1lf %9.1lf %9.1lf %11.1lf\n",
+	       (double)ss->net.ipv4.InReceives  / deltasec,
+	       (double)ss->net.ipv4.OutRequests / deltasec,
+	       (double)ss->net.ipv4.InDelivers  / deltasec,
+	       (double)ss->net.ipv4.Forwarding  / deltasec,
+	       (double)ss->net.ipv4.ReasmOKs    / deltasec,
+	       (double)ss->net.ipv4.FragCreates / deltasec);
 	return 1;
 }
 
@@ -2165,20 +2068,20 @@ IPv4head(int osvers, int osrel, int ossub)
 
 static int
 IPv4line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("    %5.1lf %6.1lf %6.1lf %6.1lf %7.1lf %7.1lf  "
-	       "    %5.1lf %5.1lf\n", 
-		(double)ss->net.ipv4.InDiscards      / deltasec,
-		(double)ss->net.ipv4.InHdrErrors     / deltasec,
-		(double)ss->net.ipv4.InAddrErrors    / deltasec,
-		(double)ss->net.ipv4.InUnknownProtos / deltasec,
-		(double)ss->net.ipv4.ReasmTimeout    / deltasec,
-		(double)ss->net.ipv4.ReasmFails      / deltasec,
-		(double)ss->net.ipv4.OutDiscards     / deltasec,
-		(double)ss->net.ipv4.OutNoRoutes     / deltasec);
+	       "    %5.1lf %5.1lf\n",
+	       (double)ss->net.ipv4.InDiscards      / deltasec,
+	       (double)ss->net.ipv4.InHdrErrors     / deltasec,
+	       (double)ss->net.ipv4.InAddrErrors    / deltasec,
+	       (double)ss->net.ipv4.InUnknownProtos / deltasec,
+	       (double)ss->net.ipv4.ReasmTimeout    / deltasec,
+	       (double)ss->net.ipv4.ReasmFails      / deltasec,
+	       (double)ss->net.ipv4.OutDiscards     / deltasec,
+	       (double)ss->net.ipv4.OutNoRoutes     / deltasec);
 	return 1;
 }
 
@@ -2194,17 +2097,17 @@ icmpv4head(int osvers, int osrel, int ossub)
 
 static int
 icmpv4line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+           time_t deltasec, time_t deltatic, time_t hz,
+           int osvers, int osrel, int ossub, char *tstamp,
+           int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
-	printf("%7.1lf %8.1lf  %8.2lf %8.2lf  %8.2lf %8.2lf\n", 
-		(double)ss->net.icmpv4.InMsgs      / deltasec, 
-		(double)ss->net.icmpv4.OutMsgs     / deltasec, 
-		(double)ss->net.icmpv4.InEchos     / deltasec, 
-		(double)ss->net.icmpv4.OutEchos    / deltasec, 
-		(double)ss->net.icmpv4.InEchoReps  / deltasec, 
-		(double)ss->net.icmpv4.OutEchoReps / deltasec);
+	printf("%7.1lf %8.1lf  %8.2lf %8.2lf  %8.2lf %8.2lf\n",
+	       (double)ss->net.icmpv4.InMsgs      / deltasec,
+	       (double)ss->net.icmpv4.OutMsgs     / deltasec,
+	       (double)ss->net.icmpv4.InEchos     / deltasec,
+	       (double)ss->net.icmpv4.OutEchos    / deltasec,
+	       (double)ss->net.icmpv4.InEchoReps  / deltasec,
+	       (double)ss->net.icmpv4.OutEchoReps / deltasec);
 	return 1;
 }
 
@@ -2217,22 +2120,22 @@ ICMPv4head(int osvers, int osrel, int ossub)
 
 static int
 ICMPv4line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+           time_t deltasec, time_t deltatic, time_t hz,
+           int osvers, int osrel, int ossub, char *tstamp,
+           int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%6.2lf %5.2lf %5.2lf %5.2lf %5.2lf "
-	       "%6.2lf %5.2lf %5.2lf %5.2lf %5.2lf\n", 
-		(double)ss->net.icmpv4.InErrors        / deltasec,
-		(double)ss->net.icmpv4.InSrcQuenchs    / deltasec,
-		(double)ss->net.icmpv4.InRedirects     / deltasec,
-		(double)ss->net.icmpv4.InDestUnreachs  / deltasec,
-		(double)ss->net.icmpv4.InTimeExcds     / deltasec,
-		(double)ss->net.icmpv4.OutErrors       / deltasec,
-		(double)ss->net.icmpv4.OutSrcQuenchs   / deltasec,
-		(double)ss->net.icmpv4.OutRedirects    / deltasec,
-		(double)ss->net.icmpv4.OutDestUnreachs / deltasec,
-		(double)ss->net.icmpv4.OutTimeExcds    / deltasec);
+	       "%6.2lf %5.2lf %5.2lf %5.2lf %5.2lf\n",
+	       (double)ss->net.icmpv4.InErrors        / deltasec,
+	       (double)ss->net.icmpv4.InSrcQuenchs    / deltasec,
+	       (double)ss->net.icmpv4.InRedirects     / deltasec,
+	       (double)ss->net.icmpv4.InDestUnreachs  / deltasec,
+	       (double)ss->net.icmpv4.InTimeExcds     / deltasec,
+	       (double)ss->net.icmpv4.OutErrors       / deltasec,
+	       (double)ss->net.icmpv4.OutSrcQuenchs   / deltasec,
+	       (double)ss->net.icmpv4.OutRedirects    / deltasec,
+	       (double)ss->net.icmpv4.OutDestUnreachs / deltasec,
+	       (double)ss->net.icmpv4.OutTimeExcds    / deltasec);
 	return 1;
 }
 
@@ -2248,15 +2151,15 @@ udpv4head(int osvers, int osrel, int ossub)
 
 static int
 udpv4line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+          time_t deltasec, time_t deltatic, time_t hz,
+          int osvers, int osrel, int ossub, char *tstamp,
+          int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%9.1lf %10.1lf   %7.2lf %9.2lf\n",
-		(double)ss->net.udpv4.InDatagrams  / deltasec,
-		(double)ss->net.udpv4.OutDatagrams / deltasec,
-		(double)ss->net.udpv4.InErrors     / deltasec,
-		(double)ss->net.udpv4.NoPorts      / deltasec);
+	       (double)ss->net.udpv4.InDatagrams  / deltasec,
+	       (double)ss->net.udpv4.OutDatagrams / deltasec,
+	       (double)ss->net.udpv4.InErrors     / deltasec,
+	       (double)ss->net.udpv4.NoPorts      / deltasec);
 	return 1;
 }
 
@@ -2272,18 +2175,18 @@ ipv6head(int osvers, int osrel, int ossub)
 
 static int
 ipv6line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
-	printf("%8.1lf %8.1lf %6.1lf %7.1lf %9.1lf %9.1lf %9.1lf\n", 
-		(double)ss->net.ipv6.Ip6InReceives   / deltasec,
-		(double)ss->net.ipv6.Ip6OutRequests  / deltasec,
-		(double)ss->net.ipv6.Ip6InMcastPkts  / deltasec,
-		(double)ss->net.ipv6.Ip6OutMcastPkts / deltasec,
-		(double)ss->net.ipv6.Ip6InDelivers   / deltasec,
-		(double)ss->net.ipv6.Ip6ReasmOKs     / deltasec,
-		(double)ss->net.ipv6.Ip6FragCreates  / deltasec);
+	printf("%8.1lf %8.1lf %6.1lf %7.1lf %9.1lf %9.1lf %9.1lf\n",
+	       (double)ss->net.ipv6.Ip6InReceives   / deltasec,
+	       (double)ss->net.ipv6.Ip6OutRequests  / deltasec,
+	       (double)ss->net.ipv6.Ip6InMcastPkts  / deltasec,
+	       (double)ss->net.ipv6.Ip6OutMcastPkts / deltasec,
+	       (double)ss->net.ipv6.Ip6InDelivers   / deltasec,
+	       (double)ss->net.ipv6.Ip6ReasmOKs     / deltasec,
+	       (double)ss->net.ipv6.Ip6FragCreates  / deltasec);
 	return 1;
 }
 
@@ -2296,20 +2199,20 @@ IPv6head(int osvers, int osrel, int ossub)
 
 static int
 IPv6line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("    %5.1lf %6.1lf %6.1lf %6.1lf %7.1lf %7.1lf  "
-	       "    %5.1lf %5.1lf\n", 
-		(double)ss->net.ipv6.Ip6InDiscards      / deltasec,
-		(double)ss->net.ipv6.Ip6InHdrErrors     / deltasec,
-		(double)ss->net.ipv6.Ip6InAddrErrors    / deltasec,
-		(double)ss->net.ipv6.Ip6InUnknownProtos / deltasec,
-		(double)ss->net.ipv6.Ip6ReasmTimeout    / deltasec,
-		(double)ss->net.ipv6.Ip6ReasmFails      / deltasec,
-		(double)ss->net.ipv6.Ip6OutDiscards  / deltasec,
-		(double)ss->net.ipv6.Ip6OutNoRoutes     / deltasec);
+	       "    %5.1lf %5.1lf\n",
+	       (double)ss->net.ipv6.Ip6InDiscards      / deltasec,
+	       (double)ss->net.ipv6.Ip6InHdrErrors     / deltasec,
+	       (double)ss->net.ipv6.Ip6InAddrErrors    / deltasec,
+	       (double)ss->net.ipv6.Ip6InUnknownProtos / deltasec,
+	       (double)ss->net.ipv6.Ip6ReasmTimeout    / deltasec,
+	       (double)ss->net.ipv6.Ip6ReasmFails      / deltasec,
+	       (double)ss->net.ipv6.Ip6OutDiscards  / deltasec,
+	       (double)ss->net.ipv6.Ip6OutNoRoutes     / deltasec);
 	return 1;
 }
 
@@ -2325,19 +2228,19 @@ icmpv6head(int osvers, int osrel, int ossub)
 
 static int
 icmpv6line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+           time_t deltasec, time_t deltatic, time_t hz,
+           int osvers, int osrel, int ossub, char *tstamp,
+           int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
-	printf("%7.1lf %8.1lf %7.2lf %8.2lf %8.2lf %8.2lf %8.2lf\n", 
-		(double)ss->net.icmpv6.Icmp6InMsgs                  / deltasec, 
-		(double)ss->net.icmpv6.Icmp6OutMsgs                 / deltasec, 
-		(double)ss->net.icmpv6.Icmp6InErrors                / deltasec, 
-		(double)ss->net.icmpv6.Icmp6InNeighborSolicits      / deltasec, 
-		(double)ss->net.icmpv6.Icmp6InNeighborAdvertisements/ deltasec, 
-		(double)ss->net.icmpv6.Icmp6OutNeighborSolicits     / deltasec, 
-		(double)ss->net.icmpv6.Icmp6OutNeighborAdvertisements
-								/deltasec);
+	printf("%7.1lf %8.1lf %7.2lf %8.2lf %8.2lf %8.2lf %8.2lf\n",
+	       (double)ss->net.icmpv6.Icmp6InMsgs                  / deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutMsgs                 / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InErrors                / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InNeighborSolicits      / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InNeighborAdvertisements/ deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutNeighborSolicits     / deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutNeighborAdvertisements
+	       /deltasec);
 	return 1;
 }
 
@@ -2350,21 +2253,21 @@ ICMPv6head(int osvers, int osrel, int ossub)
 
 static int
 ICMPv6line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+           time_t deltasec, time_t deltatic, time_t hz,
+           int osvers, int osrel, int ossub, char *tstamp,
+           int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%7.2lf %7.2lf %7.2lf %5.2lf %5.2lf "
-	       "%5.2lf %5.2lf %5.2lf %5.2lf\n", 
-		(double)ss->net.icmpv6.Icmp6InEchos         / deltasec,
-		(double)ss->net.icmpv6.Icmp6InEchoReplies   / deltasec,
-		(double)ss->net.icmpv6.Icmp6OutEchoReplies  / deltasec,
-		(double)ss->net.icmpv6.Icmp6InDestUnreachs  / deltasec,
-		(double)ss->net.icmpv6.Icmp6OutDestUnreachs / deltasec,
-		(double)ss->net.icmpv6.Icmp6InRedirects     / deltasec,
-		(double)ss->net.icmpv6.Icmp6OutRedirects    / deltasec,
-		(double)ss->net.icmpv6.Icmp6InTimeExcds     / deltasec,
-		(double)ss->net.icmpv6.Icmp6OutTimeExcds    / deltasec);
+	       "%5.2lf %5.2lf %5.2lf %5.2lf\n",
+	       (double)ss->net.icmpv6.Icmp6InEchos         / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InEchoReplies   / deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutEchoReplies  / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InDestUnreachs  / deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutDestUnreachs / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InRedirects     / deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutRedirects    / deltasec,
+	       (double)ss->net.icmpv6.Icmp6InTimeExcds     / deltasec,
+	       (double)ss->net.icmpv6.Icmp6OutTimeExcds    / deltasec);
 	return 1;
 }
 
@@ -2380,15 +2283,15 @@ udpv6head(int osvers, int osrel, int ossub)
 
 static int
 udpv6line(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+          time_t deltasec, time_t deltatic, time_t hz,
+          int osvers, int osrel, int ossub, char *tstamp,
+          int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%9.1lf %10.1lf   %7.2lf %9.2lf\n",
-		(double)ss->net.udpv6.Udp6InDatagrams  / deltasec,
-		(double)ss->net.udpv6.Udp6OutDatagrams / deltasec,
-		(double)ss->net.udpv6.Udp6InErrors     / deltasec,
-		(double)ss->net.udpv6.Udp6NoPorts      / deltasec);
+	       (double)ss->net.udpv6.Udp6InDatagrams  / deltasec,
+	       (double)ss->net.udpv6.Udp6OutDatagrams / deltasec,
+	       (double)ss->net.udpv6.Udp6InErrors     / deltasec,
+	       (double)ss->net.udpv6.Udp6NoPorts      / deltasec);
 	return 1;
 }
 
@@ -2409,11 +2312,11 @@ tcpline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%8.1lf %9.1lf  %9.1lf %9.1lf  %7lld\n",
-		(double)ss->net.tcp.InSegs       / deltasec,
-		(double)ss->net.tcp.OutSegs      / deltasec,
-		(double)ss->net.tcp.ActiveOpens  / deltasec,
-		(double)ss->net.tcp.PassiveOpens / deltasec,
-		        ss->net.tcp.CurrEstab);
+	       (double)ss->net.tcp.InSegs       / deltasec,
+	       (double)ss->net.tcp.OutSegs      / deltasec,
+	       (double)ss->net.tcp.ActiveOpens  / deltasec,
+	       (double)ss->net.tcp.PassiveOpens / deltasec,
+	       ss->net.tcp.CurrEstab);
 	return 1;
 }
 
@@ -2431,11 +2334,11 @@ TCPline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%7.1lf  %9.1lf  %9.1lf  %12.1lf  %10.1lf\n",
-		(double)ss->net.tcp.InErrs       / deltasec,
-		(double)ss->net.tcp.RetransSegs  / deltasec,
-		(double)ss->net.tcp.AttemptFails / deltasec,
-		(double)ss->net.tcp.EstabResets  / deltasec,
-		(double)ss->net.tcp.OutRsts      / deltasec);
+	       (double)ss->net.tcp.InErrs       / deltasec,
+	       (double)ss->net.tcp.RetransSegs  / deltasec,
+	       (double)ss->net.tcp.AttemptFails / deltasec,
+	       (double)ss->net.tcp.EstabResets  / deltasec,
+	       (double)ss->net.tcp.OutRsts      / deltasec);
 	return 1;
 }
 
@@ -2449,17 +2352,17 @@ httphead(int osvers, int osrel, int ossub)
 
 static int
 httpline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	printf("%10.2lf  %8.2lf  %9.2lf    %11d %11d\n",
-		(double)ss->www.accesses      / deltasec,
-		(double)ss->www.totkbytes     / deltasec,
-		ss->www.accesses ? 
-		    (double)ss->www.totkbytes*1024/ss->www.accesses : 0,
-		        ss->www.iworkers,
-		        ss->www.bworkers);
+	       (double)ss->www.accesses      / deltasec,
+	       (double)ss->www.totkbytes     / deltasec,
+	       ss->www.accesses ?
+	       (double)ss->www.totkbytes*1024/ss->www.accesses : 0,
+	       ss->www.iworkers,
+	       ss->www.bworkers);
 
 	return 1;
 }
@@ -2477,14 +2380,13 @@ topchead(int osvers, int osrel, int ossub)
 
 static int
 topcline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	count_t	availcpu;
 
-	if (!ts)
-	{
+	if (!ts) {
 		printf("report not available.....\n");
 		return 0;
 	}
@@ -2497,7 +2399,7 @@ topcline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	availcpu  = ss->cpu.all.stime + ss->cpu.all.utime +
 	            ss->cpu.all.ntime + ss->cpu.all.itime +
 	            ss->cpu.all.wtime + ss->cpu.all.Itime +
-		    ss->cpu.all.Stime + ss->cpu.all.steal;
+	            ss->cpu.all.Stime + ss->cpu.all.steal;
 
 	availcpu /= ss->cpu.nrcpu;
 
@@ -2505,25 +2407,25 @@ topcline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 		availcpu = 1;	/* avoid divide-by-zero */
 
 	if (nactproc >= 1 && (ps[0])->cpu.stime + (ps[0])->cpu.utime > 0)
-	    printf("%5d %-8.8s %3.0lf%% | ",
-	      (ps[0])->gen.pid, (ps[0])->gen.name,
-	      (double)((ps[0])->cpu.stime + (ps[0])->cpu.utime)*100.0/availcpu);
-        else
-	    printf("%19s | ", " ");
+		printf("%5d %-8.8s %3.0lf%% | ",
+		       (ps[0])->gen.pid, (ps[0])->gen.name,
+		       (double)((ps[0])->cpu.stime + (ps[0])->cpu.utime)*100.0/availcpu);
+	else
+		printf("%19s | ", " ");
 
 	if (nactproc >= 2 && (ps[1])->cpu.stime + (ps[1])->cpu.utime > 0)
-	    printf("%5d %-8.8s %3.0lf%% | ",
-	      (ps[1])->gen.pid, (ps[1])->gen.name,
-	      (double)((ps[1])->cpu.stime + (ps[1])->cpu.utime)*100.0/availcpu);
-        else
-	    printf("%19s | ", " ");
+		printf("%5d %-8.8s %3.0lf%% | ",
+		       (ps[1])->gen.pid, (ps[1])->gen.name,
+		       (double)((ps[1])->cpu.stime + (ps[1])->cpu.utime)*100.0/availcpu);
+	else
+		printf("%19s | ", " ");
 
 	if (nactproc >= 3 && (ps[2])->cpu.stime + (ps[2])->cpu.utime > 0)
-	    printf("%5d %-8.8s %3.0lf%%\n",
-	      (ps[2])->gen.pid, (ps[2])->gen.name,
-	      (double)((ps[2])->cpu.stime + (ps[2])->cpu.utime)*100.0/availcpu);
-        else
-	    printf("%19s\n", " ");
+		printf("%5d %-8.8s %3.0lf%%\n",
+		       (ps[2])->gen.pid, (ps[2])->gen.name,
+		       (double)((ps[2])->cpu.stime + (ps[2])->cpu.utime)*100.0/availcpu);
+	else
+		printf("%19s\n", " ");
 
 
 	return 1;
@@ -2541,14 +2443,13 @@ topmhead(int osvers, int osrel, int ossub)
 
 static int
 topmline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	count_t		availmem;
 
-	if (!ts)
-	{
+	if (!ts) {
 		printf("report not available.....\n");
 		return 0;
 	}
@@ -2560,26 +2461,26 @@ topmline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 
 	availmem  = ss->mem.physmem * pagesize/1024;
 
-        if (nactproc >= 1)
-	    printf("%5d %-8.8s %3.0lf%% | ",
-	      (ps[0])->gen.pid, (ps[0])->gen.name,
-	      (double)(ps[0])->mem.rmem * 100.0 / availmem);
-        else
-	    printf("%19s | ", " ");
+	if (nactproc >= 1)
+		printf("%5d %-8.8s %3.0lf%% | ",
+		       (ps[0])->gen.pid, (ps[0])->gen.name,
+		       (double)(ps[0])->mem.rmem * 100.0 / availmem);
+	else
+		printf("%19s | ", " ");
 
-        if (nactproc >= 2)
-	    printf("%5d %-8.8s %3.0lf%% | ",
-	      (ps[1])->gen.pid, (ps[1])->gen.name,
-	      (double)(ps[1])->mem.rmem * 100.0 / availmem);
-        else
-	    printf("%19s | ", " ");
+	if (nactproc >= 2)
+		printf("%5d %-8.8s %3.0lf%% | ",
+		       (ps[1])->gen.pid, (ps[1])->gen.name,
+		       (double)(ps[1])->mem.rmem * 100.0 / availmem);
+	else
+		printf("%19s | ", " ");
 
-        if (nactproc >= 3)
-	    printf("%5d %-8.8s %3.0lf%%\n",
-	      (ps[2])->gen.pid, (ps[2])->gen.name,
-	      (double)(ps[2])->mem.rmem * 100.0 / availmem);
-        else
-	    printf("%19s\n", " ");
+	if (nactproc >= 3)
+		printf("%5d %-8.8s %3.0lf%%\n",
+		       (ps[2])->gen.pid, (ps[2])->gen.name,
+		       (double)(ps[2])->mem.rmem * 100.0 / availmem);
+	else
+		printf("%19s\n", " ");
 
 
 	return 1;
@@ -2597,21 +2498,19 @@ topdhead(int osvers, int osrel, int ossub)
 
 static int
 topdline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	int		i;
 	count_t		availdsk;
 
-	if (!ts)
-	{
+	if (!ts) {
 		printf("report not available.....\n");
 		return 0;
 	}
 
-	if ( !(supportflags & IOSTAT) )
-	{
+	if ( !(supportflags & IOSTAT) ) {
 		printf("no per-process disk counters available.....\n");
 		return 0;
 	}
@@ -2619,8 +2518,7 @@ topdline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	/*
 	** determine total disk accesses for all processes
 	*/
-	for (i=0, availdsk=0; i < nactproc; i++)
-	{
+	for (i=0, availdsk=0; i < nactproc; i++) {
 		availdsk += (ps[i])->dsk.rio + (ps[i])->dsk.wio;
 	}
 
@@ -2632,26 +2530,26 @@ topdline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	*/
 	qsort(ps, nactproc, sizeof(struct tstat *), compdsk);
 
-        if (nactproc >= 1 && (ps[0])->dsk.rio + (ps[0])->dsk.wio > 0)
-	    printf("%5d %-8.8s %3.0lf%% | ",
-	      (ps[0])->gen.pid, (ps[0])->gen.name,
-	      (double)((ps[0])->dsk.rio+(ps[0])->dsk.wio) *100.0/availdsk);
-        else
-	    printf("%19s | ", " ");
+	if (nactproc >= 1 && (ps[0])->dsk.rio + (ps[0])->dsk.wio > 0)
+		printf("%5d %-8.8s %3.0lf%% | ",
+		       (ps[0])->gen.pid, (ps[0])->gen.name,
+		       (double)((ps[0])->dsk.rio+(ps[0])->dsk.wio) *100.0/availdsk);
+	else
+		printf("%19s | ", " ");
 
-        if (nactproc >= 2 && (ps[1])->dsk.rio + (ps[1])->dsk.wio > 0)
-	    printf("%5d %-8.8s %3.0lf%% | ",
-	      (ps[1])->gen.pid, (ps[1])->gen.name,
-	      (double)((ps[1])->dsk.rio+(ps[1])->dsk.wio) *100.0/availdsk);
-        else
-	    printf("%19s | ", " ");
+	if (nactproc >= 2 && (ps[1])->dsk.rio + (ps[1])->dsk.wio > 0)
+		printf("%5d %-8.8s %3.0lf%% | ",
+		       (ps[1])->gen.pid, (ps[1])->gen.name,
+		       (double)((ps[1])->dsk.rio+(ps[1])->dsk.wio) *100.0/availdsk);
+	else
+		printf("%19s | ", " ");
 
-        if (nactproc >= 3 && (ps[2])->dsk.rio + (ps[2])->dsk.wio > 0)
-	    printf("%5d %-8.8s %3.0lf%%\n",
-	      (ps[2])->gen.pid, (ps[2])->gen.name,
-	      (double)((ps[2])->dsk.rio+(ps[2])->dsk.wio) *100.0/availdsk);
-        else
-	    printf("%19s\n", " ");
+	if (nactproc >= 3 && (ps[2])->dsk.rio + (ps[2])->dsk.wio > 0)
+		printf("%5d %-8.8s %3.0lf%%\n",
+		       (ps[2])->gen.pid, (ps[2])->gen.name,
+		       (double)((ps[2])->dsk.rio+(ps[2])->dsk.wio) *100.0/availdsk);
+	else
+		printf("%19s\n", " ");
 
 
 	return 1;
@@ -2669,22 +2567,20 @@ topnhead(int osvers, int osrel, int ossub)
 
 static int
 topnline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
-        time_t deltasec, time_t deltatic, time_t hz,
-        int osvers, int osrel, int ossub, char *tstamp,
-        int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
+         time_t deltasec, time_t deltatic, time_t hz,
+         int osvers, int osrel, int ossub, char *tstamp,
+         int ppres,  int ntrun, int ntslpi, int ntslpu, int pexit, int pzombie)
 {
 	int		i;
 	count_t		availnet;
 	count_t		totbytes;
 
-	if (!ts)
-	{
+	if (!ts) {
 		printf("report not available.....\n");
 		return 0;
 	}
 
-	if ( !(supportflags & NETATOP) )
-	{
+	if ( !(supportflags & NETATOP) ) {
 		printf("no per-process network counters available.....\n");
 		return 0;
 	}
@@ -2692,8 +2588,7 @@ topnline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	/*
 	** determine total network accesses for all processes
 	*/
-	for (i=0, availnet=0; i < nactproc; i++)
-	{
+	for (i=0, availnet=0; i < nactproc; i++) {
 		availnet += (*(ps+i))->net.tcpssz + (*(ps+i))->net.tcprsz +
 		            (*(ps+i))->net.udpssz + (*(ps+i))->net.udprsz;
 	}
@@ -2706,49 +2601,43 @@ topnline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 	*/
 	qsort(ps, nactproc, sizeof(struct tstat *), compnet);
 
-        if (nactproc >= 1)
-	{
+	if (nactproc >= 1) {
 		totbytes = (ps[0])->net.tcpssz + (ps[0])->net.tcprsz +
 		           (ps[0])->net.udpssz + (ps[0])->net.udprsz;
 
 		if (totbytes > 0)
 			printf("%5d %-8.8s %3.0lf%% | ",
-				(ps[0])->gen.pid, (ps[0])->gen.name,
-				(double)totbytes * 100.0 / availnet);
-        	else
+			       (ps[0])->gen.pid, (ps[0])->gen.name,
+			       (double)totbytes * 100.0 / availnet);
+		else
 			printf("%19s | ", " ");
-	}
-        else
+	} else
 		printf("%19s | ", " ");
 
-        if (nactproc >= 2)
-	{
+	if (nactproc >= 2) {
 		totbytes = (ps[1])->net.tcpssz + (ps[1])->net.tcprsz +
 		           (ps[1])->net.udpssz + (ps[1])->net.udprsz;
 
 		if (totbytes > 0)
 			printf("%5d %-8.8s %3.0lf%% | ",
-				(ps[1])->gen.pid, (ps[1])->gen.name,
-				(double)totbytes * 100.0 / availnet);
-        	else
+			       (ps[1])->gen.pid, (ps[1])->gen.name,
+			       (double)totbytes * 100.0 / availnet);
+		else
 			printf("%19s | ", " ");
-	}
-        else
+	} else
 		printf("%19s | ", " ");
 
-        if (nactproc >= 3)
-	{
+	if (nactproc >= 3) {
 		totbytes = (ps[2])->net.tcpssz + (ps[2])->net.tcprsz +
 		           (ps[2])->net.udpssz + (ps[2])->net.udprsz;
 
 		if (totbytes > 0)
 			printf("%5d %-8.8s %3.0lf%%\n",
-				(ps[2])->gen.pid, (ps[2])->gen.name,
-				(double)totbytes * 100.0 / availnet);
-        	else
-	    		printf("%19s\n", " ");
-	}
-        else
+			       (ps[2])->gen.pid, (ps[2])->gen.name,
+			       (double)totbytes * 100.0 / availnet);
+		else
+			printf("%19s\n", " ");
+	} else
 		printf("%19s\n", " ");
 
 
@@ -2791,43 +2680,42 @@ topnline(struct sstat *ss, struct tstat *ts, struct tstat **ps, int nactproc,
 /*        specified by the table-entry. This text is printed as      */
 /*        command-usage.                                             */
 /*********************************************************************/
-struct pridef pridef[] =
-{
-   {0,  "c",  'c',  cpuhead,	cpuline,  	"cpu utilization",        },
-   {0,  "c",  'p',  prochead,	procline,  	"process(or) load",       },
-   {0,  "c",  'P',  taskhead,	taskline,  	"processes & threads",    },
-   {0,  "c",  'g',  gpuhead,	gpuline,  	"gpu utilization",        },
-   {0,  "m",  'm',  memhead,	memline,	"memory & swapspace",     },
-   {0,  "m",  's',  swaphead,	swapline,	"swap rate",              },
-   {0,  "cmd",'B',  psihead,	psiline,	"pressure stall info (PSI)",},
-   {0,  "cd", 'l',  lvmhead,	lvmline,	"logical volume activity", },
-   {0,  "cd", 'f',  mddhead,	mddline,	"multiple device activity",},
-   {0,  "cd", 'd',  dskhead,	dskline,	"disk activity",          },
-   {0,  "n",  'h',  ibhead,	ibline,		"infiniband utilization", },
-   {0,  "n",  'n',  nfmhead,	nfmline,	"NFS client mounts",      },
-   {0,  "n",  'j',  nfchead,	nfcline,	"NFS client activity",    },
-   {0,  "n",  'J',  nfshead,	nfsline,	"NFS server activity",    },
-   {0,  "n",  'i',  ifhead,	ifline,		"net-interf (general)",   },
-   {0,  "n",  'I',  IFhead,	IFline,		"net-interf (errors)",    },
-   {0,  "n",  'w',  ipv4head,	ipv4line,	"ip   v4    (general)",   },
-   {0,  "n",  'W',  IPv4head,	IPv4line,	"ip   v4    (errors)",    },
-   {0,  "n",  'y',  icmpv4head,	icmpv4line,	"icmp v4    (general)",   },
-   {0,  "n",  'Y',  ICMPv4head,	ICMPv4line,	"icmp v4    (per type)",  },
-   {0,  "n",  'u',  udpv4head,	udpv4line,  	"udp  v4",                },
-   {0,  "n",  'z',  ipv6head,	ipv6line,	"ip   v6    (general)",   },
-   {0,  "n",  'Z',  IPv6head,	IPv6line,	"ip   v6    (errors)",    },
-   {0,  "n",  'k',  icmpv6head,	icmpv6line,	"icmp v6    (general)",   },
-   {0,  "n",  'K',  ICMPv6head,	ICMPv6line,	"icmp v6    (per type)",  },
-   {0,  "n",  'U',  udpv6head,	udpv6line,  	"udp  v6",                },
-   {0,  "n",  't',  tcphead,	tcpline,  	"tcp        (general)",   },
-   {0,  "n",  'T',  TCPhead,	TCPline,  	"tcp        (errors)",    },
+struct pridef pridef[] = {
+	{0,  "c",  'c',  cpuhead,	cpuline,  	"cpu utilization",        },
+	{0,  "c",  'p',  prochead,	procline,  	"process(or) load",       },
+	{0,  "c",  'P',  taskhead,	taskline,  	"processes & threads",    },
+	{0,  "c",  'g',  gpuhead,	gpuline,  	"gpu utilization",        },
+	{0,  "m",  'm',  memhead,	memline,	"memory & swapspace",     },
+	{0,  "m",  's',  swaphead,	swapline,	"swap rate",              },
+	{0,  "cmd",'B',  psihead,	psiline,	"pressure stall info (PSI)",},
+	{0,  "cd", 'l',  lvmhead,	lvmline,	"logical volume activity", },
+	{0,  "cd", 'f',  mddhead,	mddline,	"multiple device activity",},
+	{0,  "cd", 'd',  dskhead,	dskline,	"disk activity",          },
+	{0,  "n",  'h',  ibhead,	ibline,		"infiniband utilization", },
+	{0,  "n",  'n',  nfmhead,	nfmline,	"NFS client mounts",      },
+	{0,  "n",  'j',  nfchead,	nfcline,	"NFS client activity",    },
+	{0,  "n",  'J',  nfshead,	nfsline,	"NFS server activity",    },
+	{0,  "n",  'i',  ifhead,	ifline,		"net-interf (general)",   },
+	{0,  "n",  'I',  IFhead,	IFline,		"net-interf (errors)",    },
+	{0,  "n",  'w',  ipv4head,	ipv4line,	"ip   v4    (general)",   },
+	{0,  "n",  'W',  IPv4head,	IPv4line,	"ip   v4    (errors)",    },
+	{0,  "n",  'y',  icmpv4head,	icmpv4line,	"icmp v4    (general)",   },
+	{0,  "n",  'Y',  ICMPv4head,	ICMPv4line,	"icmp v4    (per type)",  },
+	{0,  "n",  'u',  udpv4head,	udpv4line,  	"udp  v4",                },
+	{0,  "n",  'z',  ipv6head,	ipv6line,	"ip   v6    (general)",   },
+	{0,  "n",  'Z',  IPv6head,	IPv6line,	"ip   v6    (errors)",    },
+	{0,  "n",  'k',  icmpv6head,	icmpv6line,	"icmp v6    (general)",   },
+	{0,  "n",  'K',  ICMPv6head,	ICMPv6line,	"icmp v6    (per type)",  },
+	{0,  "n",  'U',  udpv6head,	udpv6line,  	"udp  v6",                },
+	{0,  "n",  't',  tcphead,	tcpline,  	"tcp        (general)",   },
+	{0,  "n",  'T',  TCPhead,	TCPline,  	"tcp        (errors)",    },
 #if	HTTPSTATS
-   {0,  "n",  'h',  httphead,	httpline,  	"HTTP activity",          },
+	{0,  "n",  'h',  httphead,	httpline,  	"HTTP activity",          },
 #endif
-   {0,  "",   'O',  topchead,	topcline,  	"top-3 processes cpu",    },
-   {0,  "",   'G',  topmhead,	topmline,  	"top-3 processes memory", },
-   {0,  "",   'D',  topdhead,	topdline,  	"top-3 processes disk",   },
-   {0,  "",   'N',  topnhead,	topnline,  	"top-3 processes network",},
+	{0,  "",   'O',  topchead,	topcline,  	"top-3 processes cpu",    },
+	{0,  "",   'G',  topmhead,	topmline,  	"top-3 processes memory", },
+	{0,  "",   'D',  topdhead,	topdline,  	"top-3 processes disk",   },
+	{0,  "",   'N',  topnhead,	topnline,  	"top-3 processes network",},
 };
 
 int	pricnt = sizeof(pridef)/sizeof(struct pridef);

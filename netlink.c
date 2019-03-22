@@ -64,9 +64,8 @@ netlink_open(void)
 	** indicate to listen for processes from all CPU's
 	*/
 	if (nlsock_sendcmd(nlsock, famid, getpid(), TASKSTATS_CMD_GET,
-		TASKSTATS_CMD_ATTR_REGISTER_CPUMASK,
-		&cpudef, strlen(cpudef)+1) == -1)
-	{
+	                   TASKSTATS_CMD_ATTR_REGISTER_CPUMASK,
+	                   &cpudef, strlen(cpudef)+1) == -1) {
 		fprintf(stderr, "register cpumask failed\n");
 		return -1;
 	}
@@ -79,13 +78,12 @@ int
 netlink_recv(int nlsock, int flags)
 {
 	int			len;
-        struct msgtemplate	msg;
+	struct msgtemplate	msg;
 
-        if ( (len = recv(nlsock, &msg, sizeof msg, flags)) == -1)
+	if ( (len = recv(nlsock, &msg, sizeof msg, flags)) == -1)
 		return -errno;		// negative: errno
 
-	if  (msg.n.nlmsg_type == NLMSG_ERROR || !NLMSG_OK(&msg.n, len))
-	{
+	if  (msg.n.nlmsg_type == NLMSG_ERROR || !NLMSG_OK(&msg.n, len)) {
 		struct nlmsgerr *err = NLMSG_DATA(&msg);
 
 		return err->error;	// negative: errno
@@ -98,36 +96,33 @@ static int
 nlsock_getfam(int nlsock)
 {
 	int			len;
-        struct nlattr		*nlattr;
-        struct msgtemplate	msg;
+	struct nlattr		*nlattr;
+	struct msgtemplate	msg;
 
-        nlsock_sendcmd(nlsock, GENL_ID_CTRL, getpid(),
-			CTRL_CMD_GETFAMILY,
-                        CTRL_ATTR_FAMILY_NAME,
-			TASKSTATS_GENL_NAME, sizeof TASKSTATS_GENL_NAME);
+	nlsock_sendcmd(nlsock, GENL_ID_CTRL, getpid(),
+	               CTRL_CMD_GETFAMILY,
+	               CTRL_ATTR_FAMILY_NAME,
+	               TASKSTATS_GENL_NAME, sizeof TASKSTATS_GENL_NAME);
 
-        if ( (len = recv(nlsock, &msg, sizeof msg, 0)) == -1)
-	{
+	if ( (len = recv(nlsock, &msg, sizeof msg, 0)) == -1) {
 		perror("receive NETLINK family");
 		exit(1);
 	}
 
-	if  (msg.n.nlmsg_type == NLMSG_ERROR || !NLMSG_OK(&msg.n, len))
-	{
+	if  (msg.n.nlmsg_type == NLMSG_ERROR || !NLMSG_OK(&msg.n, len)) {
 		struct nlmsgerr *err = NLMSG_DATA(&msg);
 
 		fprintf(stderr, "receive NETLINK family, errno %d\n",
-                                err->error);
+		        err->error);
 
 		exit(1);
 	}
 
-        nlattr = (struct nlattr *) GENLMSG_DATA(&msg);
+	nlattr = (struct nlattr *) GENLMSG_DATA(&msg);
 	nlattr = (struct nlattr *) ((char *) nlattr +
-					NLA_ALIGN(nlattr->nla_len));
+	                            NLA_ALIGN(nlattr->nla_len));
 
-	if (nlattr->nla_type != CTRL_ATTR_FAMILY_ID)
-	{
+	if (nlattr->nla_type != CTRL_ATTR_FAMILY_ID) {
 		fprintf(stderr, "unexpected family id\n");
 		exit(1);
 	}
@@ -142,15 +137,13 @@ nlsock_open(void)
 	int 			nlsock, rcvsz = 256*1024;
 	struct sockaddr_nl	nlsockaddr;
 
-	if ( (nlsock = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC) ) == -1)
-	{
+	if ( (nlsock = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC) ) == -1) {
 		perror("open NETLINK socket");
 		exit(1);
 	}
 
 	if (setsockopt(nlsock, SOL_SOCKET, SO_RCVBUF, &rcvsz, sizeof rcvsz)
-									== -1)
-	{
+	    == -1) {
 		perror("set length receive buffer");
 		exit(1);
 	}
@@ -159,8 +152,7 @@ nlsock_open(void)
 	nlsockaddr.nl_family = AF_NETLINK;
 
 	if (bind(nlsock, (struct sockaddr *) &nlsockaddr, sizeof nlsockaddr)
-									== -1)
-	{
+	    == -1) {
 		perror("bind NETLINK socket");
 		close(nlsock);
 		exit(1);
@@ -171,8 +163,8 @@ nlsock_open(void)
 
 static int
 nlsock_sendcmd(int nlsock, __u16 nlmsg_type,
-	__u32 nlmsg_pid, __u8 genl_cmd,
-	__u16 nla_type, void *nla_data, int nla_len)
+               __u32 nlmsg_pid, __u8 genl_cmd,
+               __u16 nla_type, void *nla_data, int nla_len)
 {
 	struct nlattr		*na;
 	struct sockaddr_nl	nlsockaddr;
@@ -201,18 +193,13 @@ nlsock_sendcmd(int nlsock, __u16 nlmsg_type,
 	nlsockaddr.nl_family = AF_NETLINK;
 
 	while ((rv = sendto(nlsock, buf, buflen, 0,
-		(struct sockaddr *) &nlsockaddr, sizeof(nlsockaddr))) < buflen)
-	{
-		if (rv == -1)
-		{
-			if (errno != EAGAIN)
-			{
+	                    (struct sockaddr *) &nlsockaddr, sizeof(nlsockaddr))) < buflen) {
+		if (rv == -1) {
+			if (errno != EAGAIN) {
 				perror("sendto NETLINK");
 				return -1;
 			}
-		}
-		else
-		{
+		} else {
 			buf 	+= rv;
 			buflen 	-= rv;
 		}
@@ -228,14 +215,11 @@ getnumcpu(void)
 	char	linebuf[4096], label[256];
 	int	cpunum, maxcpu = 0;
 
-	if ( (fp = fopen("/proc/stat", "r")) != NULL)
-	{
-		while ( fgets(linebuf, sizeof(linebuf), fp) != NULL)
-		{
+	if ( (fp = fopen("/proc/stat", "r")) != NULL) {
+		while ( fgets(linebuf, sizeof(linebuf), fp) != NULL) {
 			sscanf(linebuf, "%255s", label);
 
-			if ( strncmp("cpu", label, 3) == 0 && strlen(label) >3)
-			{
+			if ( strncmp("cpu", label, 3) == 0 && strlen(label) >3) {
 				cpunum = atoi(&label[3]);
 
 				if (maxcpu < cpunum)

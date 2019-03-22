@@ -1,7 +1,7 @@
 /*
 ** ATOP - System & Process Monitor
 **
-** The program 'atop' offers the possibility to view the activity of 
+** The program 'atop' offers the possibility to view the activity of
 ** the system on system-level as well as process-level.
 ** ==========================================================================
 ** Author:      Gerlof Langeveld
@@ -51,7 +51,7 @@
 #include "photoproc.h"
 #include "photosyst.h"
 
-#define	BASEPATH	"/var/log/atop"  
+#define	BASEPATH	"/var/log/atop"
 
 /*
 ** structure which describes the raw file contents
@@ -154,8 +154,7 @@ devstat_filter_topn(struct devtstat *devtstat)
 	int i = 0;
 
 	/* get cpu topN pid list */
-	if (recordcputop > 0)
-	{
+	if (recordcputop > 0) {
 		if (recordcputop > devtstat->nprocall)
 			return devtstat;
 
@@ -163,7 +162,7 @@ devstat_filter_topn(struct devtstat *devtstat)
 		ptrverify(cpu_top_list, "Malloc failed for sorting cpu topN");
 
 		qsort(devtstat->procall, devtstat->nprocall, sizeof(struct tstat *),
-				compcpu);
+		      compcpu);
 
 		for (i = 0; i < recordcputop; i++)
 			cpu_top_list[i] = devtstat->procall[i]->gen.tgid;
@@ -172,8 +171,7 @@ devstat_filter_topn(struct devtstat *devtstat)
 	}
 
 	/* get mem topN pid list */
-	if (recordmemtop > 0)
-	{
+	if (recordmemtop > 0) {
 		if (recordmemtop > devtstat->nprocall)
 			return devtstat;
 
@@ -181,7 +179,7 @@ devstat_filter_topn(struct devtstat *devtstat)
 		ptrverify(mem_top_list, "Malloc failed for sorting mem topN");
 
 		qsort(devtstat->procall, devtstat->nprocall, sizeof(struct tstat *),
-				compmem);
+		      compmem);
 
 		for (i = 0; i < recordmemtop; i++)
 			mem_top_list[i] = devtstat->procall[i]->gen.tgid;
@@ -190,29 +188,25 @@ devstat_filter_topn(struct devtstat *devtstat)
 	}
 
 	/* filter cpu & mem topN by pid list */
-	if ((recordcputop > 0) || (recordmemtop > 0))
-	{
+	if ((recordcputop > 0) || (recordmemtop > 0)) {
 		tstat = (struct devtstat *)malloc(sizeof(struct devtstat));
 		ptrverify(tstat, "Malloc failed for sorted devtstat");
 		memcpy(tstat, devtstat, sizeof(struct devtstat));
 		tstat->ntaskall = 0;
 		tstat->taskall = (struct tstat*) malloc(devtstat->ntaskall *
-				sizeof(struct tstat));
+		                                        sizeof(struct tstat));
 
-		for (i = 0; i < devtstat->ntaskall; i++)
-		{
+		for (i = 0; i < devtstat->ntaskall; i++) {
 			int tgid = devtstat->taskall[i].gen.tgid;
 			if ((recordcputop > 0) && (cpu_top_list != NULL) &&
-				bsearch(&tgid, cpu_top_list, recordcputop, sizeof(int), compint))
-			{
+			    bsearch(&tgid, cpu_top_list, recordcputop, sizeof(int), compint)) {
 				tstat->taskall[tstat->ntaskall] = devtstat->taskall[i];
 				tstat->ntaskall++;
 				continue;
 			}
 
 			if ((recordmemtop > 0) && (mem_top_list != NULL) &&
-				bsearch(&tgid, mem_top_list, recordmemtop, sizeof(int), compint))
-			{
+			    bsearch(&tgid, mem_top_list, recordmemtop, sizeof(int), compint)) {
 				tstat->taskall[tstat->ntaskall] = devtstat->taskall[i];
 				tstat->ntaskall++;
 				continue;
@@ -231,7 +225,7 @@ devstat_filter_topn(struct devtstat *devtstat)
 ** (file is opened/created during the first call)
 */
 char
-rawwrite(time_t curtime, int numsecs, 
+rawwrite(time_t curtime, int numsecs,
          struct devtstat *devtstat, struct sstat *sstat,
          int nexit, unsigned int noverflow, char flag)
 {
@@ -243,7 +237,7 @@ rawwrite(time_t curtime, int numsecs,
 	Byte			scompbuf[sizeof(struct sstat)], *pcompbuf;
 	unsigned long		scomplen = sizeof scompbuf;
 	unsigned long		pcomplen = sizeof(struct tstat) *
-						devtstat->ntaskall;
+	                               devtstat->ntaskall;
 	struct iovec iov[3];
 	struct devtstat *filter_devtstat;
 
@@ -255,7 +249,7 @@ rawwrite(time_t curtime, int numsecs,
 		rawfd = rawwopen();
 
 	/*
- 	** register current size of file in order to "roll back"
+	** register current size of file in order to "roll back"
 	** writes that have been done while not *all* writes could
 	** succeed, e.g. when file system full
 	*/
@@ -265,7 +259,7 @@ rawwrite(time_t curtime, int numsecs,
 	** compress system- and process-level statistics
 	*/
 	rv = compress(scompbuf, &scomplen,
-				(Byte *)sstat, (unsigned long)sizeof *sstat);
+	              (Byte *)sstat, (unsigned long)sizeof *sstat);
 
 	testcompval(rv, "compress");
 
@@ -277,7 +271,7 @@ rawwrite(time_t curtime, int numsecs,
 	ptrverify(pcompbuf, "Malloc failed for compression buffer\n");
 
 	rv = compress(pcompbuf, &pcomplen, (Byte *)filter_devtstat->taskall,
-						(unsigned long)pcomplen);
+	              (unsigned long)pcomplen);
 
 	testcompval(rv, "compress");
 
@@ -333,8 +327,7 @@ rawwrite(time_t curtime, int numsecs,
 	iov[1].iov_len = scomplen;
 	iov[2].iov_base = pcompbuf;
 	iov[2].iov_len = pcomplen;
-	if ( writev(rawfd, iov, 3) == -1)
-	{
+	if ( writev(rawfd, iov, 3) == -1) {
 		fprintf(stderr, "%s - ", rawname);
 		perror("write raw record & status record & process record");
 		if ( ftruncate(rawfd, filestat.st_size) == -1)
@@ -343,8 +336,7 @@ rawwrite(time_t curtime, int numsecs,
 	}
 
 	free(pcompbuf);
-	if (filter_devtstat != devtstat)
-	{
+	if (filter_devtstat != devtstat) {
 		free(filter_devtstat->taskall);
 		free(filter_devtstat);
 	}
@@ -375,45 +367,40 @@ rawwopen()
 	/*
 	** check if the file exists already
 	*/
-	if ( (fd = open(rawname, O_RDWR)) >= 0)
-	{
+	if ( (fd = open(rawname, O_RDWR)) >= 0) {
 		/*
 		** read and verify header record
 		*/
-		if ( read(fd, &rh, sizeof rh) < sizeof rh)
-		{
+		if ( read(fd, &rh, sizeof rh) < sizeof rh) {
 			fprintf(stderr, "%s - cannot read header\n", rawname);
 			cleanstop(7);
 		}
 
-		if (rh.magic != MYMAGIC)
-		{
+		if (rh.magic != MYMAGIC) {
 			fprintf(stderr,
-				"file %s exists but does not contain raw "
-				"atop output (wrong magic number)\n", rawname);
+			        "file %s exists but does not contain raw "
+			        "atop output (wrong magic number)\n", rawname);
 
 			cleanstop(7);
 		}
 
 		if ( rh.sstatlen	!= sizeof(struct sstat)		||
 		     rh.tstatlen	!= sizeof(struct tstat)		||
-	    	     rh.rawheadlen	!= sizeof(struct rawheader)	||
-		     rh.rawreclen	!= sizeof(struct rawrecord)	  )
-		{
+		     rh.rawheadlen	!= sizeof(struct rawheader)	||
+		     rh.rawreclen	!= sizeof(struct rawrecord)	  ) {
 			fprintf(stderr,
-				"existing file %s has incompatible header\n",
-				rawname);
+			        "existing file %s has incompatible header\n",
+			        rawname);
 
 			if (rh.aversion & 0x8000 &&
-			   (rh.aversion & 0x7fff) != getnumvers())
-			{
+			    (rh.aversion & 0x7fff) != getnumvers()) {
 				fprintf(stderr,
-					"(created by version %d.%d - "
-					"current version %d.%d)\n",
-					(rh.aversion >> 8) & 0x7f,
-					 rh.aversion & 0xff,
-					 getnumvers() >> 8,
-					 getnumvers() & 0x7f);
+				        "(created by version %d.%d - "
+				        "current version %d.%d)\n",
+				        (rh.aversion >> 8) & 0x7f,
+				        rh.aversion & 0xff,
+				        getnumvers() >> 8,
+				        getnumvers() & 0x7f);
 			}
 
 			cleanstop(7);
@@ -427,8 +414,7 @@ rawwopen()
 	/*
 	** file does not exist (or can not be opened)
 	*/
-	if ( (fd = creat(rawname, 0666)) == -1)
-	{
+	if ( (fd = creat(rawname, 0666)) == -1) {
 		fprintf(stderr, "%s - ", rawname);
 		perror("create raw file");
 		cleanstop(7);
@@ -451,8 +437,7 @@ rawwopen()
 
 	memcpy(&rh.utsname, &utsname, sizeof rh.utsname);
 
-	if ( write(fd, &rh, sizeof rh) == -1)
-	{
+	if ( write(fd, &rh, sizeof rh) == -1) {
 		fprintf(stderr, "%s - ", rawname);
 		perror("write raw header");
 		cleanstop(7);
@@ -490,51 +475,49 @@ rawread(void)
 	time_t			timenow;
 	struct tm		*tp;
 
-	switch ( len = strlen(rawname) )
-	{
-	   /*
-	   ** if no filename is specified, assemble the name of the raw file
-	   */
-	   case 0:
+	switch ( len = strlen(rawname) ) {
+	/*
+	** if no filename is specified, assemble the name of the raw file
+	*/
+	case 0:
 		timenow	= time(0);
 		tp	= localtime(&timenow);
 
 		snprintf(rawname, RAWNAMESZ, "%s/atop_%04d%02d%02d",
-			BASEPATH, 
-			tp->tm_year+1900,
-			tp->tm_mon+1,
-			tp->tm_mday);
+		         BASEPATH,
+		         tp->tm_year+1900,
+		         tp->tm_mon+1,
+		         tp->tm_mday);
 
 		break;
 
-	   /*
-	   ** if date specified as filename in format YYYYMMDD, assemble
-	   ** the full pathname of the raw file
-	   */
-	   case 8:
-		if ( access(rawname, F_OK) == 0) 
+	/*
+	** if date specified as filename in format YYYYMMDD, assemble
+	** the full pathname of the raw file
+	*/
+	case 8:
+		if ( access(rawname, F_OK) == 0)
 			break;		/* existing file */
 
-		if (lookslikedatetome(rawname))
-		{
+		if (lookslikedatetome(rawname)) {
 			char	savedname[RAWNAMESZ];
 
 			strncpy(savedname, rawname, RAWNAMESZ-1);
 
 			snprintf(rawname, RAWNAMESZ, "%s/atop_%s",
-				BASEPATH, 
-				savedname);
+			         BASEPATH,
+			         savedname);
 			break;
 		}
 
-	   /*
-	   ** if one or more 'y' (yesterday) characters are used and that
-	   ** string is not known as an existing file, the standard logfile
-	   ** is shown from N days ago (N is determined by the number
-	   ** of y's).
-	   */
-	   default:
-		if ( access(rawname, F_OK) == 0) 
+	/*
+	** if one or more 'y' (yesterday) characters are used and that
+	** string is not known as an existing file, the standard logfile
+	** is shown from N days ago (N is determined by the number
+	** of y's).
+	*/
+	default:
+		if ( access(rawname, F_OK) == 0)
 			break;		/* existing file */
 
 		/*
@@ -547,17 +530,16 @@ rawread(void)
 		memset(py, 'y', len);
 		*(py+len) = '\0';
 
-		if ( strcmp(rawname, py) == 0 )
-		{
+		if ( strcmp(rawname, py) == 0 ) {
 			timenow	 = time(0);
 			timenow -= len*3600*24;
 			tp	 = localtime(&timenow);
 
 			snprintf(rawname, RAWNAMESZ, "%s/atop_%04d%02d%02d",
-				BASEPATH, 
-				tp->tm_year+1900,
-				tp->tm_mon+1,
-				tp->tm_mday);
+			         BASEPATH,
+			         tp->tm_year+1900,
+			         tp->tm_mon+1,
+			         tp->tm_mday);
 		}
 
 		free(py);
@@ -566,8 +548,7 @@ rawread(void)
 	/*
 	** open raw file
 	*/
-	if ( (rawfd = open(rawname, O_RDONLY)) == -1)
-	{
+	if ( (rawfd = open(rawname, O_RDONLY)) == -1) {
 		char	command[512], tmpname1[RAWNAMESZ], tmpname2[RAWNAMESZ];
 
 		/*
@@ -575,8 +556,7 @@ rawread(void)
 		*/
 		snprintf(tmpname1, sizeof tmpname1, "%s.gz", rawname);
 
-		if ( access(tmpname1, F_OK|R_OK) == -1)
-		{
+		if ( access(tmpname1, F_OK|R_OK) == -1) {
 			fprintf(stderr, "%s - ", rawname);
 			perror("open raw file");
 			cleanstop(7);
@@ -588,20 +568,18 @@ rawread(void)
 		fprintf(stderr, "Decompressing logfile ....\n");
 		snprintf(tmpname2, sizeof tmpname2, "/tmp/atopwrkXXXXXX");
 		rawfd = mkstemp(tmpname2);
-		if (rawfd == -1)
-		{
+		if (rawfd == -1) {
 			fprintf(stderr, "%s - ", rawname);
 			perror("creating decompression temp file");
 			cleanstop(7);
 		}
 
 		snprintf(command,  sizeof command, "gunzip -c %s > %s",
-							tmpname1, tmpname2);
+		         tmpname1, tmpname2);
 		const int system_res = system (command);
 		unlink(tmpname2);
 
-		if (system_res)
-		{
+		if (system_res) {
 			fprintf(stderr, "%s - gunzip failed", rawname);
 			cleanstop(7);
 		}
@@ -610,16 +588,14 @@ rawread(void)
 	/*
 	** read the raw header and verify the magic
 	*/
-	if ( read(rawfd, &rh, sizeof rh) < sizeof rh)
-	{
+	if ( read(rawfd, &rh, sizeof rh) < sizeof rh) {
 		fprintf(stderr, "can not read raw file header\n");
 		cleanstop(7);
 	}
 
-	if (rh.magic != MYMAGIC)
-	{
+	if (rh.magic != MYMAGIC) {
 		fprintf(stderr, "file %s does not contain raw atop/atopsar "
-				"output (wrong magic number)\n", rawname);
+		        "output (wrong magic number)\n", rawname);
 		cleanstop(7);
 	}
 
@@ -629,36 +605,31 @@ rawread(void)
 	if (rh.sstatlen   != sizeof(struct sstat)		||
 	    rh.tstatlen   != sizeof(struct tstat)		||
 	    rh.rawheadlen != sizeof(struct rawheader)		||
-	    rh.rawreclen  != sizeof(struct rawrecord)		  )
-	{
+	    rh.rawreclen  != sizeof(struct rawrecord)		  ) {
 		fprintf(stderr,
-			"raw file %s has incompatible format\n", rawname);
+		        "raw file %s has incompatible format\n", rawname);
 
 		if (rh.aversion & 0x8000 &&
-       		   (rh.aversion & 0x7fff) != getnumvers())
-		{
+		    (rh.aversion & 0x7fff) != getnumvers()) {
 			fprintf(stderr,
-				"(created by version %d.%d - "
-				"current version %d.%d)\n",
-				(rh.aversion >> 8) & 0x7f,
-				 rh.aversion       & 0xff,
-				 getnumvers() >> 8,
-				 getnumvers() & 0x7f);
-		}
-		else
-		{
+			        "(created by version %d.%d - "
+			        "current version %d.%d)\n",
+			        (rh.aversion >> 8) & 0x7f,
+			        rh.aversion       & 0xff,
+			        getnumvers() >> 8,
+			        getnumvers() & 0x7f);
+		} else {
 			fprintf(stderr,
-				"(files from other system architectures might"
-				" be binary incompatible)\n");
+			        "(files from other system architectures might"
+			        " be binary incompatible)\n");
 		}
 
 		close(rawfd);
 
 		if (((rh.aversion >> 8) & 0x7f) != (getnumvers()   >> 8) ||
-		     (rh.aversion       & 0xff) != (getnumvers() & 0x7f)   )
-		{
+		    (rh.aversion       & 0xff) != (getnumvers() & 0x7f)   ) {
 			try_other_version((rh.aversion >> 8) & 0x7f,
-			                   rh.aversion       & 0xff);
+			                  rh.aversion       & 0xff);
 		}
 
 		cleanstop(7);
@@ -696,10 +667,8 @@ rawread(void)
 	*/
 	sampcnt = 0;
 
-	while (lastcmd && lastcmd != 'q')
-	{
-		while ( getrawrec(rawfd, &rr, rh.rawreclen) == rh.rawreclen)
-		{
+	while (lastcmd && lastcmd != 'q') {
+		while ( getrawrec(rawfd, &rr, rh.rawreclen) == rh.rawreclen) {
 			unsigned int	secsinday = daysecs(rr.curtime);
 			unsigned int	k, l;
 
@@ -708,25 +677,23 @@ rawread(void)
 			** in case of offset list overflow, extend the list
 			*/
 			*(offlist+offcur) = lseek(rawfd, 0, SEEK_CUR) -
-								rh.rawreclen;
+			                    rh.rawreclen;
 
-			if ( ++offcur >= offsize )
-			{
+			if ( ++offcur >= offsize ) {
 				offlist = realloc(offlist,
-				             (offsize+OFFCHUNK)*sizeof(off_t));
+				                  (offsize+OFFCHUNK)*sizeof(off_t));
 
 				ptrverify(offlist,
-				        "Realloc failed for backtrack list\n");
+				          "Realloc failed for backtrack list\n");
 
 				offsize+= OFFCHUNK;
 			}
-	
+
 			/*
 			** check if this sample is within the time-range
 			** specified with the -b and -e flags (if any)
 			*/
-			if ( (begintime && begintime > secsinday) )
-			{
+			if ( (begintime && begintime > secsinday) ) {
 				lastcmd = 1;
 				lseek(rawfd, rr.scomplen+rr.pcomplen, SEEK_CUR);
 				continue;
@@ -734,8 +701,7 @@ rawread(void)
 
 			begintime = 0;	// allow earlier times from now on
 
-			if ( (endtime && endtime < secsinday) )
-			{
+			if ( (endtime && endtime < secsinday) ) {
 				free(offlist);
 				close(rawfd);
 				return;
@@ -753,14 +719,14 @@ rawread(void)
 			** statistics and decompress
 			*/
 			devtstat.taskall    = malloc(sizeof(struct tstat  )
-								* rr.ndeviat);
+			                             * rr.ndeviat);
 
 			if (rr.totproc < rr.nactproc)	// compat old raw files
 				devtstat.procall = malloc(sizeof(struct tstat *)
-								* rr.nactproc);
+				                          * rr.nactproc);
 			else
 				devtstat.procall = malloc(sizeof(struct tstat *)
-								* rr.totproc);
+				                          * rr.totproc);
 
 			devtstat.procactive = malloc(sizeof(struct tstat *) * rr.nactproc);
 
@@ -777,14 +743,12 @@ rawread(void)
 			          rr.nactproc);
 
 			if ( !getrawtstat(rawfd, devtstat.taskall,
-						rr.pcomplen, rr.ndeviat) )
+			                  rr.pcomplen, rr.ndeviat) )
 				cleanstop(7);
 
 
-			for (i=j=k=l=0; i < rr.ndeviat; i++)
-			{
-				if ( (devtstat.taskall+i)->gen.isproc)
-				{
+			for (i=j=k=l=0; i < rr.ndeviat; i++) {
+				if ( (devtstat.taskall+i)->gen.isproc) {
 					devtstat.procall[j++] = devtstat.taskall+i;
 
 					if (! (devtstat.taskall+i)->gen.wasinactive)
@@ -800,10 +764,10 @@ rawread(void)
 			devtstat.nprocactive	= k;
 			devtstat.ntaskactive	= l;
 
- 			devtstat.totrun		= rr.totrun;
- 			devtstat.totslpi	= rr.totslpi;
- 			devtstat.totslpu	= rr.totslpu;
- 			devtstat.totzombie	= rr.totzomb;
+			devtstat.totrun		= rr.totrun;
+			devtstat.totslpi	= rr.totslpi;
+			devtstat.totslpu	= rr.totslpu;
+			devtstat.totzombie	= rr.totzomb;
 
 			/*
 			** activate the installed print-function to visualize
@@ -811,8 +775,7 @@ rawread(void)
 			*/
 			sampcnt++;
 
-			if ( (rh.supportflags & RAWLOGNG) == RAWLOGNG)
-			{
+			if ( (rh.supportflags & RAWLOGNG) == RAWLOGNG) {
 				if (rr.flags & RRACCTACTIVE)
 					supportflags |=  ACCTACTIVE;
 				else
@@ -855,32 +818,30 @@ rawread(void)
 				flags |= RRLAST;
 
 			lastcmd = (vis.show_samp)(rr.curtime, rr.interval,
-			             &devtstat, &sstat,
-			             rr.nexit, rr.noverflow, flags);
+			                          &devtstat, &sstat,
+			                          rr.nexit, rr.noverflow, flags);
 
 			free(devtstat.taskall);
 			free(devtstat.procall);
 			free(devtstat.procactive);
-	
-			switch (lastcmd)
-			{
-			   case MSAMPPREV:
+
+			switch (lastcmd) {
+			case MSAMPPREV:
 				if (offcur >= 2)
 					offcur-= 2;
 				else
 					offcur = 0;
-	
+
 				lseek(rawfd, *(offlist+offcur), SEEK_SET);
 				break;
 
-			   case MRESET:
+			case MRESET:
 				lseek(rawfd, *offlist, SEEK_SET);
 				offcur = 1;
 				break;
 
-			   case MSAMPBRANCH:
-				if (begintime && begintime < secsinday)
-				{
+			case MSAMPBRANCH:
+				if (begintime && begintime < secsinday) {
 					lseek(rawfd, *offlist, SEEK_SET);
 					offcur = 1;
 				}
@@ -921,10 +882,9 @@ getrawsstat(int rawfd, struct sstat *sp, int complen)
 
 	if ( (compbuf = malloc(complen)) == NULL)
 
-	ptrverify(compbuf, "Malloc failed for reading compressed sysstats\n");
+		ptrverify(compbuf, "Malloc failed for reading compressed sysstats\n");
 
-	if ( read(rawfd, compbuf, complen) < complen)
-	{
+	if ( read(rawfd, compbuf, complen) < complen) {
 		free(compbuf);
 		return 0;
 	}
@@ -952,8 +912,7 @@ getrawtstat(int rawfd, struct tstat *pp, int complen, int ndeviat)
 
 	ptrverify(compbuf, "Malloc failed for reading compressed procstats\n");
 
-	if ( read(rawfd, compbuf, complen) < complen)
-	{
+	if ( read(rawfd, compbuf, complen) < complen) {
 		free(compbuf);
 		return 0;
 	}
@@ -967,7 +926,7 @@ getrawtstat(int rawfd, struct tstat *pp, int complen, int ndeviat)
 	return 1;
 }
 
-/* 
+/*
 ** verify if a particular ascii-string is in the format yyyymmdd
 */
 static int
@@ -994,29 +953,28 @@ lookslikedatetome(char *p)
 static void
 testcompval(int rv, char *func)
 {
-	switch (rv)
-	{
-	   case Z_OK:
-	   case Z_STREAM_END:
-	   case Z_NEED_DICT:
+	switch (rv) {
+	case Z_OK:
+	case Z_STREAM_END:
+	case Z_NEED_DICT:
 		break;
 
-	   case Z_MEM_ERROR:
+	case Z_MEM_ERROR:
 		fprintf(stderr, "atop/atopsar - "
 		        "%s: failed due to lack of memory\n", func);
 		cleanstop(7);
 
-	   case Z_BUF_ERROR:
+	case Z_BUF_ERROR:
 		fprintf(stderr, "atop/atopsar - "
-			"%s: failed due to lack of room in buffer\n", func);
+		        "%s: failed due to lack of room in buffer\n", func);
 		cleanstop(7);
 
-   	   case Z_DATA_ERROR:
+	case Z_DATA_ERROR:
 		fprintf(stderr, "atop/atopsar - "
 		        "%s: failed due to corrupted/incomplete data\n", func);
 		cleanstop(7);
 
-	   default:
+	default:
 		fprintf(stderr, "atop/atopsar - "
 		        "%s: unexpected error %d\n", func, rv);
 		cleanstop(7);
@@ -1037,12 +995,12 @@ try_other_version(int majorversion, int minorversion)
 	int 		setresuid(uid_t, uid_t, uid_t);
 
 	/*
- 	** prepare name of executable file
+	** prepare name of executable file
 	** the current pathname (if any) is stripped off
 	*/
 	snprintf(tmpbuf, sizeof tmpbuf, "%s-%d.%d",
-		(p = strrchr(*argvp, '/')) ? p+1 : *argvp,
-			majorversion, minorversion);
+	         (p = strrchr(*argvp, '/')) ? p+1 : *argvp,
+	         majorversion, minorversion);
 
 	fprintf(stderr, "trying to activate %s....\n", tmpbuf);
 
@@ -1060,14 +1018,13 @@ try_other_version(int majorversion, int minorversion)
 	** to the loaded program; errno EAGAIN and ENOMEM are not
 	** acceptable!
 	*/
-	if ( setresuid(getuid(), getuid(), getuid()) == -1 && errno != EPERM)
-	{
+	if ( setresuid(getuid(), getuid(), getuid()) == -1 && errno != EPERM) {
 		fprintf(stderr, "not possible to drop root-privileges!\n");
 		exit(1);
 	}
 
 	/*
- 	** load alternative executable image
+	** load alternative executable image
 	** at this moment the saved-uid might still be set
 	** to 'root' but this is reset at the moment of exec
 	*/

@@ -73,7 +73,7 @@ static int		 exitnum;
 static char		 exithash;
 
 static void	fill_networkcnt(struct tstat *, struct tstat *,
-        	                struct exitstore *);
+                            struct exitstore *);
 
 /*
 ** open a raw socket to the IP layer (root privs required)
@@ -96,7 +96,7 @@ netatop_probe(void)
 	struct stat		exstat;
 
 	/*
- 	** check if IP socket is open
+	** check if IP socket is open
 	*/
 	if (netsock == -1)
 		return;
@@ -104,8 +104,7 @@ netatop_probe(void)
 	/*
 	** probe if the netatop module is active
 	*/
-	if ( getsockopt(netsock, SOL_IP, NETATOP_PROBE, NULL, &sl) != 0)
-	{
+	if ( getsockopt(netsock, SOL_IP, NETATOP_PROBE, NULL, &sl) != 0) {
 		supportflags &= ~NETATOP;
 		supportflags &= ~NETATOPD;
 		return;
@@ -118,18 +117,15 @@ netatop_probe(void)
 	** check if the netatopd daemon is active to register exited tasks
 	** and decrement semaphore to indicate that we want to subscribe
 	*/
-	if (semid == -1)
-	{
+	if (semid == -1) {
 		if ( (semid = semget(SEMAKEY, 0, 0))    == -1 ||
-	                      semop(semid, &semdecr, 1) == -1   )
-		{
+		     semop(semid, &semdecr, 1) == -1   ) {
 			supportflags &= ~NETATOPD;
 			return;
 		}
 	}
 
-	if (semctl(semid, 0, GETVAL, 0) != 1)
-	{
+	if (semctl(semid, 0, GETVAL, 0) != 1) {
 		supportflags &= ~NETATOPD;
 		return;
 	}
@@ -137,16 +133,12 @@ netatop_probe(void)
 	/*
 	** check if exitfile still open and not removed by netatopd
 	*/
-	if (netexitfd != -1)
-	{
-		if ( fstat(netexitfd, &exstat) == 0 && 
-		     exstat.st_nlink > 0              ) // not removed
-		{
+	if (netexitfd != -1) {
+		if ( fstat(netexitfd, &exstat) == 0 &&
+		     exstat.st_nlink > 0              ) { // not removed
 			supportflags |= NETATOPD;
 			return;
-		}
-		else
-		{
+		} else {
 			(void) close(netexitfd);
 
 			if (nahp)
@@ -161,19 +153,16 @@ netatop_probe(void)
 	** open file with compressed stats of exited tasks
 	** and (re)mmap the start record, mainly to obtain current sequence
 	*/
-	if (netexitfd == -1)
-	{
-		if ( (netexitfd = open(NETEXITFILE, O_RDONLY, 0)) == -1)
-		{
+	if (netexitfd == -1) {
+		if ( (netexitfd = open(NETEXITFILE, O_RDONLY, 0)) == -1) {
 			supportflags &= ~NETATOPD;
-               		return;
+			return;
 		}
 	}
 
 	if ( (nahp = mmap((void *)0, sizeof *nahp, PROT_READ, MAP_SHARED,
-						netexitfd, 0)) == (void *) -1)
-	{
-        	(void) close(netexitfd);
+	                  netexitfd, 0)) == (void *) -1) {
+		(void) close(netexitfd);
 		netexitfd = -1;
 		nahp = NULL;
 		supportflags &= ~NETATOPD;
@@ -201,16 +190,15 @@ netatop_signoff(void)
 	if (netsock == -1 || nahp == NULL)
 		return;
 
-	if (supportflags & NETATOPD)
-	{
-        	regainrootprivs();
-		
-	        (void) semop(semid, &semincr, 1);
+	if (supportflags & NETATOPD) {
+		regainrootprivs();
+
+		(void) semop(semid, &semincr, 1);
 
 		kill(nahp->mypid, SIGHUP);
 
-       		if (! droprootprivs())
-       			cleanstop(42);
+		if (! droprootprivs())
+			cleanstop(42);
 
 		(void) munmap(nahp, sizeof *nahp);
 		(void) close(netexitfd);
@@ -227,7 +215,7 @@ netatop_gettask(pid_t id, char type, struct tstat *tp)
 	struct netpertask	npt;
 	socklen_t		socklen = sizeof npt;
 	int 			cmd = (type == 'g' ?
-				    NETATOP_GETCNT_TGID : NETATOP_GETCNT_PID);
+	                       NETATOP_GETCNT_TGID : NETATOP_GETCNT_PID);
 
 	/*
 	** if kernel module netatop not active on this system, skip call
@@ -238,20 +226,19 @@ netatop_gettask(pid_t id, char type, struct tstat *tp)
 	}
 
 	/*
- 	** get statistics of this process/thread
+	** get statistics of this process/thread
 	*/
 	npt.id	= id;
 
-        regainrootprivs();
+	regainrootprivs();
 
 	if (getsockopt(netsock, SOL_IP, cmd, &npt, &socklen) != 0) {
 		memset(&tp->net, 0, sizeof tp->net);
 
-        	if (! droprootprivs())
-        		cleanstop(42);
+		if (! droprootprivs())
+			cleanstop(42);
 
-		if (errno == ENOPROTOOPT || errno == EPERM)
-		{
+		if (errno == ENOPROTOOPT || errno == EPERM) {
 			supportflags &= ~NETATOP;
 			supportflags &= ~NETATOPD;
 			close(netsock);
@@ -261,8 +248,8 @@ netatop_gettask(pid_t id, char type, struct tstat *tp)
 		return;
 	}
 
-       	if (! droprootprivs())
-       		cleanstop(42);
+	if (! droprootprivs())
+		cleanstop(42);
 
 	/*
 	** statistics available: fill counters
@@ -293,7 +280,7 @@ netatop_exitstore(void)
 	struct netpertask	*tmp = (struct netpertask *)databuf;
 	struct exitstore	*esp;
 
-        regainrootprivs();
+	regainrootprivs();
 
 	/*
 	** force garbage collection:
@@ -301,11 +288,10 @@ netatop_exitstore(void)
 	**   can be read by netatopd and written to exitfile
 	*/
 	if (getsockopt(netsock, SOL_IP, NETATOP_FORCE_GC, NULL, &socklen)!=0) {
-        	if (! droprootprivs())
-        		cleanstop(42);
+		if (! droprootprivs())
+			cleanstop(42);
 
-		if (errno == ENOPROTOOPT || errno == EPERM)
-		{
+		if (errno == ENOPROTOOPT || errno == EPERM) {
 			supportflags &= ~NETATOP;
 			supportflags &= ~NETATOPD;
 			close(netsock);
@@ -316,15 +302,14 @@ netatop_exitstore(void)
 	}
 
 	/*
- 	** wait until list of exited processes is read by netatopd
+	** wait until list of exited processes is read by netatopd
 	** and available to be read by atop
 	*/
 	if (getsockopt(netsock, SOL_IP, NETATOP_EMPTY_EXIT, 0, &socklen) !=0) {
-        	if (! droprootprivs())
-        		cleanstop(42);
+		if (! droprootprivs())
+			cleanstop(42);
 
-		if (errno == ENOPROTOOPT || errno == EPERM)
-		{
+		if (errno == ENOPROTOOPT || errno == EPERM) {
 			supportflags &= ~NETATOP;
 			supportflags &= ~NETATOPD;
 			close(netsock);
@@ -334,8 +319,8 @@ netatop_exitstore(void)
 		return 0;
 	}
 
-       	if (! droprootprivs())
-       		cleanstop(42);
+	if (! droprootprivs())
+		cleanstop(42);
 
 	/*
 	** verify how many exited processes are available to be read
@@ -359,29 +344,25 @@ netatop_exitstore(void)
 	** read next byte from exitfile that specifies the length
 	** of the next record
 	*/
-	if ( read(netexitfd, &nextsize, 1) != 1) 
+	if ( read(netexitfd, &nextsize, 1) != 1)
 		return 0;
 
 	/*
 	** read the next record and (if possible) the byte specifying
 	** the size of the next record
 	*/
-	while ( (sz = read(netexitfd, readbuf, nextsize+1)) >= nextsize)
-	{
+	while ( (sz = read(netexitfd, readbuf, nextsize+1)) >= nextsize) {
 		/*
 		** decompress record and store it
 		*/
-        	uncomplen = nahp->ntplen;
+		uncomplen = nahp->ntplen;
 
-		if (nahp->ntplen <= sizeof(struct netpertask))
-		{
+		if (nahp->ntplen <= sizeof(struct netpertask)) {
 			(void) uncompress((Byte *)&(esp->npt), &uncomplen,
-							readbuf, nextsize);
-		}
-		else
-		{
+			                  readbuf, nextsize);
+		} else {
 			(void) uncompress((Byte *)databuf, &uncomplen,
-							readbuf, nextsize);
+			                  readbuf, nextsize);
 			esp->npt = *tmp;
 		}
 
@@ -391,11 +372,10 @@ netatop_exitstore(void)
 		/*
 		** check if we have read all records
 		*/
-		if (nr == nexitnet)
-		{
+		if (nr == nexitnet) {
 			/*
 			** if we have read one byte too many:
-			** reposition seek pointer 
+			** reposition seek pointer
 			*/
 			if (sz > nextsize)
 				(void) lseek(netexitfd, -1, SEEK_CUR);
@@ -438,8 +418,7 @@ netatop_exithash(char hashtype)
 	int			i, h;
 	struct exitstore	*esp;
 
-	for (i=0, esp=exitall; i < exitnum; i++, esp++)
-	{
+	for (i=0, esp=exitall; i < exitnum; i++, esp++) {
 		if (hashtype == 'p')
 			h = HASHCALC(esp->npt.id);
 		else
@@ -471,11 +450,9 @@ netatop_exitfind(unsigned long key, struct tstat *dev, struct tstat *pre)
 	/*
 	** search thru hash bucket list
 	*/
-	for (; esp; esp=esp->next)
-	{
-		switch (exithash)
-		{
-		   case 'p':		// search by PID
+	for (; esp; esp=esp->next) {
+		switch (exithash) {
+		case 'p':		// search by PID
 			if (key != esp->npt.id)
 				continue;
 
@@ -485,7 +462,7 @@ netatop_exitfind(unsigned long key, struct tstat *dev, struct tstat *pre)
 			fill_networkcnt(dev, pre, esp);
 			break;
 
-		   case 'b':		// search by begintime
+		case 'b':		// search by begintime
 			if (esp->isused)
 				continue;
 
@@ -509,7 +486,7 @@ netatop_exitfind(unsigned long key, struct tstat *dev, struct tstat *pre)
 				continue;
 
 			esp->isused = 1;
- 
+
 			fill_networkcnt(dev, pre, esp);
 			break;
 		}

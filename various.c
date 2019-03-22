@@ -5,7 +5,7 @@
 ** the system on system-level as well as process-level.
 **
 ** This source-file contains various functions to a.o. format the
-** time-of-day, the cpu-time consumption and the memory-occupation. 
+** time-of-day, the cpu-time consumption and the memory-occupation.
 ** ==========================================================================
 ** Author:      Gerlof Langeveld
 ** E-mail:      gerlof.langeveld@atoptool.nl
@@ -145,7 +145,7 @@ convdate(time_t utime, char *chardat)
 	tt = localtime(&utime);
 
 	sprintf(chardat, "%04d/%02d/%02d",
-		tt->tm_year+1900, tt->tm_mon+1, tt->tm_mday);
+	        tt->tm_year+1900, tt->tm_mon+1, tt->tm_mday);
 
 	return chardat;
 }
@@ -201,7 +201,7 @@ daysecs(time_t itime)
 
 
 /*
-** Function val2valstr() converts a positive value to an ascii-string of a 
+** Function val2valstr() converts a positive value to an ascii-string of a
 ** fixed number of positions; if the value does not fit, it will be formatted
 ** to exponent-notation (as short as possible, so not via the standard printf-
 ** formatters %f or %e). The offered string should have a length of width+1.
@@ -214,36 +214,28 @@ val2valstr(count_t value, char *strvalue, int width, int avg, int nsecs)
 	int	exp     = 0;
 	char	*suffix = "";
 
-	if (avg && nsecs)
-	{
+	if (avg && nsecs) {
 		value  = (value + (nsecs/2)) / nsecs;     /* rounded value */
 		width  = width - 2;	/* subtract two positions for '/s' */
 		suffix = "/s";
 	}
 
-	if (value < 0)		// no negative value expected
-	{
+	if (value < 0) {	// no negative value expected
 		sprintf(strvalue, "%*s%s", width, "?", suffix);
 		return strvalue;
 	}
 
 	maxval = pow(10.0, width) - 1;
 
-	if (value < maxval)
-	{
+	if (value < maxval) {
 		sprintf(strvalue, "%*lld%s", width, value, suffix);
-	}
-	else
-	{
-		if (width < 3)
-		{
+	} else {
+		if (width < 3) {
 			/*
 			** cannot avoid ignoring width
 			*/
 			sprintf(strvalue, "%lld%s", value, suffix);
-		}
-		else
-		{
+		} else {
 			/*
 			** calculate new maximum value for the string,
 			** calculating space for 'e' (exponent) + one digit
@@ -251,8 +243,7 @@ val2valstr(count_t value, char *strvalue, int width, int avg, int nsecs)
 			width -= 2;
 			maxval = pow(10.0, width) - 1;
 
-			while (value > maxval)
-			{
+			while (value > maxval) {
 				exp++;
 				remain = value % 10;
 				value /= 10;
@@ -262,7 +253,7 @@ val2valstr(count_t value, char *strvalue, int width, int avg, int nsecs)
 				value++;
 
 			sprintf(strvalue, "%*llde%d%s",
-					width, value, exp, suffix);
+			        width, value, exp, suffix);
 		}
 	}
 
@@ -282,26 +273,23 @@ val2valstr(count_t value, char *strvalue, int width, int avg, int nsecs)
 int
 val2elapstr(int value, char *strvalue)
 {
-        char	*p=strvalue;
+	char	*p=strvalue;
 
-        if (value >= DAYSECS) 
-        {
-                p+=sprintf(p, "%dd", value/DAYSECS);
-        }
+	if (value >= DAYSECS) {
+		p+=sprintf(p, "%dd", value/DAYSECS);
+	}
 
-        if (value >= HOURSECS) 
-        {
-                p+=sprintf(p, "%dh", (value%DAYSECS)/HOURSECS);
-        }
+	if (value >= HOURSECS) {
+		p+=sprintf(p, "%dh", (value%DAYSECS)/HOURSECS);
+	}
 
-        if (value >= MINSECS) 
-        {
-                p+=sprintf(p, "%dm", (value%HOURSECS)/MINSECS);
-        }
+	if (value >= MINSECS) {
+		p+=sprintf(p, "%dm", (value%HOURSECS)/MINSECS);
+	}
 
-        p+=sprintf(p, "%ds", (value%MINSECS));
+	p+=sprintf(p, "%ds", (value%MINSECS));
 
-        return p-strvalue;
+	return p-strvalue;
 }
 
 
@@ -317,42 +305,33 @@ val2elapstr(int value, char *strvalue)
 char *
 val2cpustr(count_t value, char *strvalue)
 {
-	if (value < MAXMSEC)
-	{
+	if (value < MAXMSEC) {
 		sprintf(strvalue, "%2lld.%02llds", value/1000, value%1000/10);
-	}
-	else
-	{
-	        /*
-       	 	** millisecs irrelevant; round to seconds
-       	 	*/
-        	value = (value + 500) / 1000;
+	} else {
+		/*
+		** millisecs irrelevant; round to seconds
+		*/
+		value = (value + 500) / 1000;
 
-        	if (value < MAXSEC) 
-        	{
-               	 	sprintf(strvalue, "%2lldm%02llds", value/60, value%60);
-		}
-		else
-		{
+		if (value < MAXSEC) {
+			sprintf(strvalue, "%2lldm%02llds", value/60, value%60);
+		} else {
 			/*
 			** seconds irrelevant; round to minutes
 			*/
 			value = (value + 30) / 60;
 
-			if (value < MAXMIN) 
-			{
+			if (value < MAXMIN) {
 				sprintf(strvalue, "%2lldh%02lldm",
-							value/60, value%60);
-			}
-			else
-			{
+				        value/60, value%60);
+			} else {
 				/*
 				** minutes irrelevant; round to hours
 				*/
 				value = (value + 30) / 60;
 
 				sprintf(strvalue, "%2lldd%02lldh",
-						value/24, value%24);
+				        value/24, value%24);
 			}
 		}
 	}
@@ -361,7 +340,7 @@ val2cpustr(count_t value, char *strvalue)
 }
 
 /*
-** Function val2Hzstr() converts a value (in MHz) 
+** Function val2Hzstr() converts a value (in MHz)
 ** to an ascii-string.
 ** The result-string is placed in the area pointed to strvalue,
 ** which should be able to contain 7 positions plus null byte.
@@ -371,35 +350,28 @@ val2Hzstr(count_t value, char *strvalue)
 {
 	char *fformat;
 
-        if (value < 1000)
-        {
-                sprintf(strvalue, "%4lldMHz", value);
-        }
-        else
-        {
-                double fval=value/1000.0;      // fval is double in GHz
-                char prefix='G';
+	if (value < 1000) {
+		sprintf(strvalue, "%4lldMHz", value);
+	} else {
+		double fval=value/1000.0;      // fval is double in GHz
+		char prefix='G';
 
-                if (fval >= 1000.0)            // prepare for the future
-                {
-                        prefix='T';        
-                        fval /= 1000.0;
-                }
-
-                if (fval < 10.0)
-		{
-			 fformat = "%4.2f%cHz";
+		if (fval >= 1000.0) {          // prepare for the future
+			prefix='T';
+			fval /= 1000.0;
 		}
-		else
-		{
+
+		if (fval < 10.0) {
+			fformat = "%4.2f%cHz";
+		} else {
 			if (fval < 100.0)
 				fformat = "%4.1f%cHz";
-                	else
+			else
 				fformat = "%4.0f%cHz";
 		}
 
-                sprintf(strvalue, fformat, fval, prefix);
-        }
+		sprintf(strvalue, fformat, fval, prefix);
+	}
 
 	return strvalue;
 }
@@ -445,33 +417,28 @@ val2memstr(count_t value, char *strvalue, int pformat, int avgval, int nsecs)
 	/*
 	** verify if printed value is required per second (average) or total
 	*/
-	if (avgval && nsecs)
-	{
+	if (avgval && nsecs) {
 		value     /= nsecs;
 		verifyval  = verifyval * 100 /nsecs;
 		basewidth -= 2;
 		suffix     = "/s";
 	}
-	
+
 	/*
 	** determine which format will be used on bases of the value itself
 	*/
 	if (verifyval <= MAXBYTE)	/* bytes ? */
 		aformat = ANYFORMAT;
+	else if (verifyval <= MAXKBYTE)	/* kbytes ? */
+		aformat = KBFORMAT;
+	else if (verifyval <= MAXMBYTE)	/* mbytes ? */
+		aformat = MBFORMAT;
+	else if (verifyval <= MAXGBYTE)	/* gbytes ? */
+		aformat = GBFORMAT;
+	else if (verifyval <= MAXTBYTE) /* tbytes? */
+		aformat = TBFORMAT;/* tbytes! */
 	else
-		if (verifyval <= MAXKBYTE)	/* kbytes ? */
-			aformat = KBFORMAT;
-		else
-			if (verifyval <= MAXMBYTE)	/* mbytes ? */
-				aformat = MBFORMAT;
-			else
-				if (verifyval <= MAXGBYTE)	/* gbytes ? */
-					aformat = GBFORMAT;
-				else
-				 	if (verifyval <= MAXTBYTE)/* tbytes? */
-						aformat = TBFORMAT;/* tbytes! */
-					else
-						aformat = PBFORMAT;/* pbytes! */
+		aformat = PBFORMAT;/* pbytes! */
 
 	/*
 	** check if this is also the preferred format
@@ -479,39 +446,38 @@ val2memstr(count_t value, char *strvalue, int pformat, int avgval, int nsecs)
 	if (aformat <= pformat)
 		aformat = pformat;
 
-	switch (aformat)
-	{
-	   case	ANYFORMAT:
+	switch (aformat) {
+	case	ANYFORMAT:
 		sprintf(strvalue, "%*lld%s",
-				basewidth, value, suffix);
+		        basewidth, value, suffix);
 		break;
 
-	   case	KBFORMAT:
+	case	KBFORMAT:
 		sprintf(strvalue, "%*lldK%s",
-				basewidth-1, value/ONEKBYTE, suffix);
+		        basewidth-1, value/ONEKBYTE, suffix);
 		break;
 
-	   case	MBFORMAT:
+	case	MBFORMAT:
 		sprintf(strvalue, "%*.1lfM%s",
-			basewidth-1, (double)((double)value/ONEMBYTE), suffix); 
+		        basewidth-1, (double)((double)value/ONEMBYTE), suffix);
 		break;
 
-	   case	GBFORMAT:
+	case	GBFORMAT:
 		sprintf(strvalue, "%*.1lfG%s",
-			basewidth-1, (double)((double)value/ONEGBYTE), suffix);
+		        basewidth-1, (double)((double)value/ONEGBYTE), suffix);
 		break;
 
-	   case	TBFORMAT:
+	case	TBFORMAT:
 		sprintf(strvalue, "%*.1lfT%s",
-			basewidth-1, (double)((double)value/ONETBYTE), suffix);
+		        basewidth-1, (double)((double)value/ONETBYTE), suffix);
 		break;
 
-	   case	PBFORMAT:
+	case	PBFORMAT:
 		sprintf(strvalue, "%*.1lfP%s",
-			basewidth-1, (double)((double)value/ONEPBYTE), suffix);
+		        basewidth-1, (double)((double)value/ONEPBYTE), suffix);
 		break;
 
-	   default:
+	default:
 		sprintf(strvalue, "!TILT!");
 	}
 
@@ -520,7 +486,7 @@ val2memstr(count_t value, char *strvalue, int pformat, int avgval, int nsecs)
 
 
 /*
-** Function numeric() checks if the ascii-string contains 
+** Function numeric() checks if the ascii-string contains
 ** a numeric (positive) value.
 ** Returns 1 (true) if so, or 0 (false).
 */
@@ -539,7 +505,7 @@ numeric(char *ns)
 
 
 /*
-** Function getboot() returns the boot-time of this system 
+** Function getboot() returns the boot-time of this system
 ** as number of jiffies since 1-1-1970.
 */
 unsigned long long
@@ -560,8 +526,7 @@ getboot(void)
 void
 ptrverify(const void *ptr, const char *errormsg, ...)
 {
-	if (!ptr)
-	{
+	if (!ptr) {
 		va_list args;
 
 		acctswoff();

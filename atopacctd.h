@@ -30,6 +30,6 @@
 #define PACCTSHADOWD	"pacct_shadow.d"	// directory name in PACCTDIR
 #define PACCTSHADOWF	"%s/%s/%010ld.paf"	// file name of shadow file
 #define PACCTSHADOWC	"current"		// file containining current
-						// sequence and MAXSHADOWREC
+// sequence and MAXSHADOWREC
 
 #define MAXSHADOWREC	10000 	// number of accounting records per shadow file

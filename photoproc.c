@@ -1,9 +1,9 @@
 /*
-** ATOP - System & Process Monitor 
-** 
+** ATOP - System & Process Monitor
+**
 ** The program 'atop' offers the possibility to view the activity of
 ** the system on system-level as well as process-/thread-level.
-** 
+**
 ** This source-file contains functions to read the process-administration
 ** of every running process from kernel-space and extract the required
 ** activity-counters.
@@ -186,15 +186,13 @@ photoproc(struct tstat *tasklist, int maxtask)
 	/*
 	** one-time initialization stuff
 	*/
-	if (firstcall)
-	{
+	if (firstcall) {
 		/*
 		** check if this kernel offers io-statistics per task
 		*/
 		regainrootprivs();
 
-		if ( (fp = fopen("/proc/1/io", "r")) )
-		{
+		if ( (fp = fopen("/proc/1/io", "r")) ) {
 			supportflags |= IOSTAT;
 			fclose(fp);
 		}
@@ -203,7 +201,7 @@ photoproc(struct tstat *tasklist, int maxtask)
 			cleanstop(42);
 
 		/*
- 		** find epoch time of boot moment
+		** find epoch time of boot moment
 		*/
 		bootepoch = getboot();
 
@@ -224,22 +222,19 @@ photoproc(struct tstat *tasklist, int maxtask)
 	/*
 	** read all subdirectory-names below the /proc directory
 	*/
-	if ( getcwd(origdir, sizeof origdir) == NULL)
-	{
+	if ( getcwd(origdir, sizeof origdir) == NULL) {
 		perror("save current dir");
 		cleanstop(53);
 	}
 
-	if ( chdir("/proc") == -1)
-	{
+	if ( chdir("/proc") == -1) {
 		perror("change to /proc");
 		cleanstop(54);
 	}
 
 	dirp = opendir(".");
 
-	while ( (entp = readdir(dirp)) && tval < maxtask )
-	{
+	while ( (entp = readdir(dirp)) && tval < maxtask ) {
 		/*
 		** skip non-numerical names
 		*/
@@ -253,24 +248,21 @@ photoproc(struct tstat *tasklist, int maxtask)
 			continue;
 
 		/*
- 		** gather process-level information
+		** gather process-level information
 		*/
 		curtask	= tasklist+tval;
 
-		if ( !procstat(curtask, bootepoch, 1)) /* from /proc/pid/stat */
-		{
+		if ( !procstat(curtask, bootepoch, 1)) { /* from /proc/pid/stat */
 			if ( chdir("..") == -1);
 			continue;
 		}
 
-		if ( !procstatus(curtask) )	/* from /proc/pid/status  */
-		{
+		if ( !procstatus(curtask) ) {	/* from /proc/pid/status  */
 			if ( chdir("..") == -1);
 			continue;
 		}
 
-		if ( !procio(curtask) )		/* from /proc/pid/io      */
-		{
+		if ( !procio(curtask) ) {	/* from /proc/pid/io      */
 			if ( chdir("..") == -1);
 			continue;
 		}
@@ -292,27 +284,24 @@ photoproc(struct tstat *tasklist, int maxtask)
 		tval++;		/* increment for process-level info */
 
 		/*
- 		** if needed (when number of threads is larger than 1):
+		** if needed (when number of threads is larger than 1):
 		**   read and fill new entries with thread-level info
 		*/
-		if (curtask->gen.nthr > 1)
-		{
+		if (curtask->gen.nthr > 1) {
 			DIR		*dirtask;
 			struct dirent	*tent;
 
 			curtask->gen.nthrrun  = 0;
 			curtask->gen.nthrslpi = 0;
 			curtask->gen.nthrslpu = 0;
-			
+
 			/*
 			** open underlying task directory
 			*/
-			if ( chdir("task") == 0 )
-			{
+			if ( chdir("task") == 0 ) {
 				dirtask = opendir(".");
-	
-				while ((tent=readdir(dirtask)) && tval<maxtask)
-				{
+
+				while ((tent=readdir(dirtask)) && tval<maxtask) {
 					struct tstat *curthr = tasklist+tval;
 
 					/*
@@ -322,36 +311,32 @@ photoproc(struct tstat *tasklist, int maxtask)
 					     chdir(tent->d_name) != 0 )
 						continue;
 
-					if ( !procstat(curthr, bootepoch, 0))
-					{
-						if ( chdir("..") == -1);
-						continue;
-					}
-			
-					if ( !procstatus(curthr) )
-					{
+					if ( !procstat(curthr, bootepoch, 0)) {
 						if ( chdir("..") == -1);
 						continue;
 					}
 
-					if ( !procio(curthr) )
-					{
+					if ( !procstatus(curthr) ) {
+						if ( chdir("..") == -1);
+						continue;
+					}
+
+					if ( !procio(curthr) ) {
 						if ( chdir("..") == -1);
 						continue;
 					}
 
 					strcpy(curthr->gen.container,
-						curtask->gen.container);
+					       curtask->gen.container);
 
-					switch (curthr->gen.state)
-					{
-	   		   		   case 'R':
+					switch (curthr->gen.state) {
+					case 'R':
 						curtask->gen.nthrrun  += 1;
 						break;
-	   		   		   case 'S':
+					case 'S':
 						curtask->gen.nthrslpi += 1;
 						break;
-	   		   		   case 'D':
+					case 'D':
 						curtask->gen.nthrslpu += 1;
 						break;
 					}
@@ -360,7 +345,7 @@ photoproc(struct tstat *tasklist, int maxtask)
 
 					// read network stats from netatop
 					netatop_gettask(curthr->gen.pid, 't',
-								curthr);
+					                curthr);
 
 					// all stats read now
 					tval++;	    /* increment thread-level */
@@ -377,8 +362,7 @@ photoproc(struct tstat *tasklist, int maxtask)
 
 	closedir(dirp);
 
-	if ( chdir(origdir) == -1)
-	{
+	if ( chdir(origdir) == -1) {
 		perror(origdir);
 		cleanstop(55);
 	}
@@ -406,26 +390,22 @@ counttasks(void)
 	char            origdir[1024];
 
 	/*
-	** determine total number of threads 
+	** determine total number of threads
 	*/
-	if ( (fp = fopen("/proc/loadavg", "r")) != NULL)
-	{
-		if ( fgets(linebuf, sizeof(linebuf), fp) != NULL)
-		{
+	if ( (fp = fopen("/proc/loadavg", "r")) != NULL) {
+		if ( fgets(linebuf, sizeof(linebuf), fp) != NULL) {
 			if ( sscanf(linebuf, "%*f %*f %*f %*d/%lu", &nr) < 1)
 				cleanstop(53);
-		}
-		else
+		} else
 			cleanstop(53);
 
 		fclose(fp);
-	}
-	else
+	} else
 		cleanstop(53);
 
 
 	/*
-	** add total number of processes 
+	** add total number of processes
 	*/
 	if ( getcwd(origdir, sizeof origdir) == NULL)
 		cleanstop(53);
@@ -435,8 +415,7 @@ counttasks(void)
 
 	dirp = opendir(".");
 
-	while ( (entp = readdir(dirp)) )
-	{
+	while ( (entp = readdir(dirp)) ) {
 		/*
 		** count subdirectory names under /proc starting with a digit
 		*/
@@ -465,8 +444,7 @@ procstat(struct tstat *curtask, unsigned long long bootepoch, char isproc)
 	if ( (fp = fopen("stat", "r")) == NULL)
 		return 0;
 
-	if ( (nr = fread(line, 1, sizeof line-1, fp)) == 0)
-	{
+	if ( (nr = fread(line, 1, sizeof line-1, fp)) == 0) {
 		fclose(fp);
 		return 0;
 	}
@@ -474,13 +452,12 @@ procstat(struct tstat *curtask, unsigned long long bootepoch, char isproc)
 	line[nr] = '\0';	// terminate string
 
 	/*
-    	** fetch command name
+		** fetch command name
 	*/
 	cmdhead = strchr (line, '(');
 	cmdtail = strrchr(line, ')');
 
-	if (!cmdhead || !cmdtail || cmdtail < cmdhead) // parsing failed?
-	{
+	if (!cmdhead || !cmdtail || cmdtail < cmdhead) { // parsing failed?
 		fclose(fp);
 		return 0;
 	}
@@ -493,15 +470,14 @@ procstat(struct tstat *curtask, unsigned long long bootepoch, char isproc)
 	memcpy(p, cmdhead+1, nr);
 	*(p+nr) = 0;
 
-	while ( (p = strchr(p, '\n')) != NULL)
-	{
+	while ( (p = strchr(p, '\n')) != NULL) {
 		*p = '?';
 		p++;
 	}
 
 	/*
-  	** fetch other values
-  	*/
+	** fetch other values
+	*/
 	curtask->gen.isproc  = isproc;
 	curtask->cpu.rtprio  = 0;
 	curtask->cpu.policy  = 0;
@@ -510,23 +486,22 @@ procstat(struct tstat *curtask, unsigned long long bootepoch, char isproc)
 	sscanf(line, "%d", &(curtask->gen.pid));  /* fetch pid */
 
 	nr = sscanf(cmdtail+2, SCANSTAT,
-		&(curtask->gen.state), 	&(curtask->gen.ppid),
-		&(curtask->mem.minflt),	&(curtask->mem.majflt),
-		&(curtask->cpu.utime),	&(curtask->cpu.stime),
-		&(curtask->cpu.prio),	&(curtask->cpu.nice),
-		&(curtask->gen.btime),
-		&(curtask->mem.vmem),	&(curtask->mem.rmem),
-		&(curtask->cpu.curcpu),	&(curtask->cpu.rtprio),
-		&(curtask->cpu.policy));
+	            &(curtask->gen.state), 	&(curtask->gen.ppid),
+	            &(curtask->mem.minflt),	&(curtask->mem.majflt),
+	            &(curtask->cpu.utime),	&(curtask->cpu.stime),
+	            &(curtask->cpu.prio),	&(curtask->cpu.nice),
+	            &(curtask->gen.btime),
+	            &(curtask->mem.vmem),	&(curtask->mem.rmem),
+	            &(curtask->cpu.curcpu),	&(curtask->cpu.rtprio),
+	            &(curtask->cpu.policy));
 
-	if (nr < 12)		/* parsing failed? */
-	{
+	if (nr < 12) {	/* parsing failed? */
 		fclose(fp);
 		return 0;
 	}
 
 	/*
- 	** normalization
+	** normalization
 	*/
 	curtask->gen.btime   = (curtask->gen.btime+bootepoch)/hertz;
 	curtask->cpu.prio   += 100; 	/* was subtracted by kernel */
@@ -535,15 +510,14 @@ procstat(struct tstat *curtask, unsigned long long bootepoch, char isproc)
 
 	fclose(fp);
 
-	switch (curtask->gen.state)
-	{
-  	   case 'R':
+	switch (curtask->gen.state) {
+	case 'R':
 		curtask->gen.nthrrun  = 1;
 		break;
-  	   case 'S':
+	case 'S':
 		curtask->gen.nthrslpi = 1;
 		break;
-  	   case 'D':
+	case 'D':
 		curtask->gen.nthrslpu = 1;
 		break;
 	}
@@ -568,87 +542,73 @@ procstatus(struct tstat *curtask)
 	curtask->mem.vgrow    = 0;	/* calculated later */
 	curtask->mem.rgrow    = 0;	/* calculated later */
 
-	while (fgets(line, sizeof line, fp))
-	{
-		if (memcmp(line, "Tgid:", 5) ==0)
-		{
+	while (fgets(line, sizeof line, fp)) {
+		if (memcmp(line, "Tgid:", 5) ==0) {
 			sscanf(line, "Tgid: %d", &(curtask->gen.tgid));
 			continue;
 		}
 
-		if (memcmp(line, "Pid:", 4) ==0)
-		{
+		if (memcmp(line, "Pid:", 4) ==0) {
 			sscanf(line, "Pid: %d", &(curtask->gen.pid));
 			continue;
 		}
 
-		if (memcmp(line, "SleepAVG:", 9)==0)
-		{
+		if (memcmp(line, "SleepAVG:", 9)==0) {
 			sscanf(line, "SleepAVG: %d%%",
-				&(curtask->cpu.sleepavg));
+			       &(curtask->cpu.sleepavg));
 			continue;
 		}
 
-		if (memcmp(line, "Uid:", 4)==0)
-		{
+		if (memcmp(line, "Uid:", 4)==0) {
 			sscanf(line, "Uid: %d %d %d %d",
-				&(curtask->gen.ruid), &(curtask->gen.euid),
-				&(curtask->gen.suid), &(curtask->gen.fsuid));
+			       &(curtask->gen.ruid), &(curtask->gen.euid),
+			       &(curtask->gen.suid), &(curtask->gen.fsuid));
 			continue;
 		}
 
-		if (memcmp(line, "Gid:", 4)==0)
-		{
+		if (memcmp(line, "Gid:", 4)==0) {
 			sscanf(line, "Gid: %d %d %d %d",
-				&(curtask->gen.rgid), &(curtask->gen.egid),
-				&(curtask->gen.sgid), &(curtask->gen.fsgid));
+			       &(curtask->gen.rgid), &(curtask->gen.egid),
+			       &(curtask->gen.sgid), &(curtask->gen.fsgid));
 			continue;
 		}
 
-		if (memcmp(line, "envID:", 6) ==0)
-		{
+		if (memcmp(line, "envID:", 6) ==0) {
 			sscanf(line, "envID: %d", &(curtask->gen.ctid));
 			continue;
 		}
 
-		if (memcmp(line, "VPid:", 5) ==0)
-		{
+		if (memcmp(line, "VPid:", 5) ==0) {
 			sscanf(line, "VPid: %d", &(curtask->gen.vpid));
 			continue;
 		}
 
-		if (memcmp(line, "Threads:", 8)==0)
-		{
+		if (memcmp(line, "Threads:", 8)==0) {
 			sscanf(line, "Threads: %d", &(curtask->gen.nthr));
 			continue;
 		}
 
-		if (memcmp(line, "VmData:", 7)==0)
-		{
+		if (memcmp(line, "VmData:", 7)==0) {
 			sscanf(line, "VmData: %lld", &(curtask->mem.vdata));
 			continue;
 		}
 
-		if (memcmp(line, "VmStk:", 6)==0)
-		{
+		if (memcmp(line, "VmStk:", 6)==0) {
 			sscanf(line, "VmStk: %lld", &(curtask->mem.vstack));
 			continue;
 		}
 
-		if (memcmp(line, "VmExe:", 6)==0)
-		{
+		if (memcmp(line, "VmExe:", 6)==0) {
 			sscanf(line, "VmExe: %lld", &(curtask->mem.vexec));
 			continue;
 		}
 
-		if (memcmp(line, "VmLib:", 6)==0)
-		{
+		if (memcmp(line, "VmLib:", 6)==0) {
 			sscanf(line, "VmLib: %lld", &(curtask->mem.vlibs));
 			continue;
 		}
 
-		if (memcmp(line, "VmSwap:", 7)==0)
-		{
+		if (memcmp(line, "VmSwap:", 7)==0) {
 			sscanf(line, "VmSwap: %lld", &(curtask->mem.vswap));
 			continue;
 		}
@@ -674,33 +634,27 @@ procio(struct tstat *curtask)
 	char	line[4096];
 	count_t	dskrsz=0, dskwsz=0, dskcwsz=0;
 
-	if (supportflags & IOSTAT)
-	{
+	if (supportflags & IOSTAT) {
 		regainrootprivs();
 
-		if ( (fp = fopen("io", "r")) )
-		{
-			while (fgets(line, sizeof line, fp))
-			{
+		if ( (fp = fopen("io", "r")) ) {
+			while (fgets(line, sizeof line, fp)) {
 				if (memcmp(line, IO_READ,
-						sizeof IO_READ -1) == 0)
-				{
+				           sizeof IO_READ -1) == 0) {
 					sscanf(line, "%*s %llu", &dskrsz);
 					dskrsz /= 512;		// in sectors
 					continue;
 				}
 
 				if (memcmp(line, IO_WRITE,
-						sizeof IO_WRITE -1) == 0)
-				{
+				           sizeof IO_WRITE -1) == 0) {
 					sscanf(line, "%*s %llu", &dskwsz);
 					dskwsz /= 512;		// in sectors
 					continue;
 				}
 
 				if (memcmp(line, IO_CWRITE,
-						sizeof IO_CWRITE -1) == 0)
-				{
+				           sizeof IO_CWRITE -1) == 0) {
 					sscanf(line, "%*s %llu", &dskcwsz);
 					dskcwsz /= 512;		// in sectors
 					continue;
@@ -738,22 +692,18 @@ proccmd(struct tstat *curtask)
 
 	memset(curtask->gen.cmdline, 0, CMDLEN+1);
 
-	if ( (fp = fopen("cmdline", "r")) != NULL)
-	{
+	if ( (fp = fopen("cmdline", "r")) != NULL) {
 		register char *p = curtask->gen.cmdline;
 
 		nr = fread(p, 1, CMDLEN, fp);
 		fclose(fp);
 
-		if (nr >= 0)	/* anything read ? */
-		{
-			for (i=0; i < nr-1; i++, p++)
-			{
-				switch (*p)
-				{
-				   case '\0':
-				   case '\n':
-				   case '\t':
+		if (nr >= 0) {	/* anything read ? */
+			for (i=0; i < nr-1; i++, p++) {
+				switch (*p) {
+				case '\0':
+				case '\n':
+				case '\t':
 					*p = ' ';
 				}
 			}
@@ -777,17 +727,14 @@ proccont(struct tstat *curtask)
 	FILE		*fp;
 	char		line[80];
 
-	if ( (fp = fopen("cpuset", "r")) != NULL)
-	{
+	if ( (fp = fopen("cpuset", "r")) != NULL) {
 		register char *p;
 
-		if ( fgets(line, sizeof line, fp) )
-		{
+		if ( fgets(line, sizeof line, fp) ) {
 			// default string (so if not used) is "/"
-			if (line[1] && (p = strstr(line, CIDPREFIX)) )
-			{
+			if (line[1] && (p = strstr(line, CIDPREFIX)) ) {
 				memcpy(curtask->gen.container,
-					p + sizeof CIDPREFIX, CIDSIZE);
+				       p + sizeof CIDPREFIX, CIDSIZE);
 
 				fclose(fp);
 				return 1;
@@ -816,11 +763,9 @@ procsmaps(struct tstat *curtask)
 	static int procsmaps_firstcall = 1;
 	static char *smapsfile = "smaps";
 
-	if (procsmaps_firstcall)
-	{
+	if (procsmaps_firstcall) {
 		regainrootprivs();
-		if ( (fp = fopen("/proc/1/smaps_rollup", "r")) )
-		{
+		if ( (fp = fopen("/proc/1/smaps_rollup", "r")) ) {
 			smapsfile = "smaps_rollup";
 			fclose(fp);
 		}
@@ -828,16 +773,14 @@ procsmaps(struct tstat *curtask)
 		procsmaps_firstcall = 0;
 	}
 	/*
- 	** open the file (always succeeds, even if no root privs)
+	** open the file (always succeeds, even if no root privs)
 	*/
 	regainrootprivs();
 
-	if ( (fp = fopen(smapsfile, "r")) )
-	{
+	if ( (fp = fopen(smapsfile, "r")) ) {
 		curtask->mem.pmem = 0;
 
-		while (fgets(line, sizeof line, fp))
-		{
+		while (fgets(line, sizeof line, fp)) {
 			if (memcmp(line, "Pss:", 4) != 0)
 				continue;
 
@@ -853,9 +796,7 @@ procsmaps(struct tstat *curtask)
 			curtask->mem.pmem = (unsigned long long)-1LL;
 
 		fclose(fp);
-	}
-	else
-	{
+	} else {
 		curtask->mem.pmem = (unsigned long long)-1LL;
 	}
 

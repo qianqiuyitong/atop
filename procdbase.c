@@ -1,9 +1,9 @@
 /*
-** ATOP - System & Process Monitor 
-** 
+** ATOP - System & Process Monitor
+**
 ** The program 'atop' offers the possibility to view the activity of
 ** the system on system-level as well as process-level.
-** 
+**
 ** This source-file contains all functions required to manipulate the
 ** process-database. This database is implemented as a linked list of
 ** all running processes, needed to remember the process-counters from
@@ -72,14 +72,14 @@
 
 /*****************************************************************************/
 #define	NPHASH	256		/* number of hash queues for process dbase   */
-				/* MUST be a power of 2 !!!                  */
+/* MUST be a power of 2 !!!                  */
 
-	/* hash buckets for getting process-info     */
-	/* for a given PID 			     */
+/* hash buckets for getting process-info     */
+/* for a given PID 			     */
 static struct pinfo	*phash[NPHASH];
 
-	/* cyclic list of all processes, to detect   */
-	/* which processes were not referred	     */
+/* cyclic list of all processes, to detect   */
+/* which processes were not referred	     */
 static struct pinfo	presidue;
 /*****************************************************************************/
 
@@ -97,15 +97,13 @@ pdb_gettask(int pid, char isproc, time_t btime, struct pinfo **pinfopp)
 	/*
 	** scan all entries in hash Q
 	*/
-	while (pp)
-	{
+	while (pp) {
 		/*
 		** if this is required PID, unchain it from the RESIDUE-list
 		** and return info
 		*/
-		if (pp->tstat.gen.pid    == pid    && 
-		    pp->tstat.gen.isproc == isproc   )
-		{
+		if (pp->tstat.gen.pid    == pid    &&
+		    pp->tstat.gen.isproc == isproc   ) {
 			int diff = pp->tstat.gen.btime - btime;
 
 			/*
@@ -113,14 +111,12 @@ pdb_gettask(int pid, char isproc, time_t btime, struct pinfo **pinfopp)
 			** found more than once, so also check the start
 			** time of the task
 			*/
-			if (diff > 1 || diff < -1)
-			{
+			if (diff > 1 || diff < -1) {
 				pp = pp->phnext;
 				continue;
 			}
 
-			if (pp->prnext)		/* if part of RESIDUE-list   */
-			{
+			if (pp->prnext) {	/* if part of RESIDUE-list   */
 				(pp->prnext)->prprev = pp->prprev; /* unchain */
 				(pp->prprev)->prnext = pp->prnext;
 			}
@@ -167,12 +163,10 @@ pdb_deltask(int pid, char isproc)
 	/*
 	** check first entry in hash Q
 	*/
-	if (pp->tstat.gen.pid == pid && pp->tstat.gen.isproc == isproc)
-	{
+	if (pp->tstat.gen.pid == pid && pp->tstat.gen.isproc == isproc) {
 		phash[pid&(NPHASH-1)] = pp->phnext;
 
-		if ( pp->prnext )	/* still part of RESIDUE-list ? */
-		{
+		if ( pp->prnext ) {	/* still part of RESIDUE-list ? */
 			(pp->prprev)->prnext = pp->prnext;
 			(pp->prnext)->prprev = pp->prprev;	/* unchain */
 		}
@@ -191,18 +185,15 @@ pdb_deltask(int pid, char isproc)
 	ppp	= pp;
 	pp	= pp->phnext;
 
-	while (pp)
-	{
+	while (pp) {
 		/*
 		** if this is wanted PID, unchain it from the RESIDUE-list
 		** and return info
 		*/
-		if (pp->tstat.gen.pid == pid && pp->tstat.gen.isproc == isproc)
-		{
+		if (pp->tstat.gen.pid == pid && pp->tstat.gen.isproc == isproc) {
 			ppp->phnext = pp->phnext;
 
-			if ( pp->prnext )	/* part of RESIDUE-list ? */
-			{
+			if ( pp->prnext ) {	/* part of RESIDUE-list ? */
 				(pp->prnext)->prprev = pp->prprev;
 				(pp->prprev)->prnext = pp->prnext;
 			}
@@ -246,19 +237,17 @@ pdb_makeresidue(void)
 	/*
 	** check all entries in hash list
 	*/
-	for (i=0; i < NPHASH; i++)
-	{
+	for (i=0; i < NPHASH; i++) {
 		if (!phash[i])
 			continue;	/* empty hash bucket */
 
 		pp = phash[i];		/* get start of list */
 
-		while (pp)		/* all entries in hash list	*/
-		{
+		while (pp) {	/* all entries in hash list	*/
 			pp->prnext		= pr->prnext;
 			pr->prnext		= pp;
 
-			 pp->prprev		= (pp->prnext)->prprev;
+			pp->prprev		= (pp->prnext)->prprev;
 			(pp->prnext)->prprev	= pp;
 
 			pp = pp->phnext;	/* get next of hash list */
@@ -279,15 +268,14 @@ pdb_cleanresidue(void)
 {
 	register struct pinfo	*pr;
 	register int		pid;
-        char			isproc;
+	char			isproc;
 
 	/*
 	** start at RESIDUE-list anchor and delete all entries
 	*/
 	pr = presidue.prnext;
 
-	while (pr != &presidue)
-	{
+	while (pr != &presidue) {
 		pid    = pr->tstat.gen.pid;
 		isproc = pr->tstat.gen.isproc;
 
@@ -315,15 +303,13 @@ pdb_srchresidue(struct tstat *tstatp, struct pinfo **pinfopp)
 	*/
 	pr = presidue.prnext;
 
-	while (pr != &presidue)	/* still entries left ? */
-	{
+	while (pr != &presidue) {	/* still entries left ? */
 		/*
 		** check if this entry matches searched info
 		*/
-		if ( 	pr->tstat.gen.ruid   == tstatp->gen.ruid	&& 
-			pr->tstat.gen.rgid   == tstatp->gen.rgid	&& 
-			strcmp(pr->tstat.gen.name, tstatp->gen.name) == EQ  )
-		{
+		if ( 	pr->tstat.gen.ruid   == tstatp->gen.ruid	&&
+		        pr->tstat.gen.rgid   == tstatp->gen.rgid	&&
+		        strcmp(pr->tstat.gen.name, tstatp->gen.name) == EQ  ) {
 			/*
 			** check if the start-time of the process is exactly
 			** the same ----> then we have a match;
@@ -335,8 +321,7 @@ pdb_srchresidue(struct tstat *tstatp, struct pinfo **pinfopp)
 			*/
 			btimediff = pr->tstat.gen.btime - tstatp->gen.btime;
 
-			if (btimediff == 0)	/* gotcha !! */
-			{
+			if (btimediff == 0) {	/* gotcha !! */
 				*pinfopp = pr;
 				return 1;
 			}
@@ -352,8 +337,7 @@ pdb_srchresidue(struct tstat *tstatp, struct pinfo **pinfopp)
 	** nothing found that matched exactly;
 	** do we remember a process that matched almost exactly?
 	*/
-	if (prmin)
-	{
+	if (prmin) {
 		*pinfopp = prmin;
 		return 1;
 	}

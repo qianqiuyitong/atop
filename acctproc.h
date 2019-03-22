@@ -49,8 +49,7 @@ typedef __u16   comp_t;
 typedef __u32   comp2_t;
 #define ACCT_COMM	16
 
-struct acct_atop
-{
+struct acct_atop {
 	char		ac_flag;		/* Flags */
 	char		ac_version;		/* Always set to ACCT_VERSION */
 	__u32		ac_pid;			/* Process ID */
@@ -83,7 +82,7 @@ struct acct_atop
 	comp_t		ac_minflt;		/* Minor Pagefaults */
 	comp_t		ac_majflt;		/* Major Pagefaults */
 	comp_t		ac_swaps;		/* Number of Swaps */
-/* m68k had no padding here. */
+	/* m68k had no padding here. */
 #if !defined(CONFIG_M68K) || !defined(__KERNEL__)
 	__u16		ac_ahz;			/* AHZ */
 #endif
@@ -100,8 +99,7 @@ struct acct_atop
 ** (copied from /usr/src/linux/include/linux/acct.h)
 */
 
-struct acct
-{
+struct acct {
 	char		ac_flag;		/* Flags */
 	char		ac_version;		/* Always set to ACCT_VERSION */
 	/* for binary compatibility back until 2.0 */
@@ -118,7 +116,7 @@ struct acct
 	comp_t		ac_minflt;		/* Minor Pagefaults */
 	comp_t		ac_majflt;		/* Major Pagefaults */
 	comp_t		ac_swaps;		/* Number of Swaps */
-/* m68k had no padding here. */
+	/* m68k had no padding here. */
 #if !defined(CONFIG_M68K) || !defined(__KERNEL__)
 	__u16		ac_ahz;			/* AHZ */
 #endif
@@ -130,8 +128,7 @@ struct acct
 	__u32		ac_gid;			/* Real Group ID */
 };
 
-struct acct_v3
-{
+struct acct_v3 {
 	char		ac_flag;		/* Flags */
 	char		ac_version;		/* Always set to ACCT_VERSION */
 	__u16		ac_tty;			/* Control Terminal */

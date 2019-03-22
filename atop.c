@@ -1,11 +1,11 @@
 /*
 ** ATOP - System & Process Monitor
 **
-** The program 'atop' offers the possibility to view the activity of 
+** The program 'atop' offers the possibility to view the activity of
 ** the system on system-level as well as process-level.
 **
 ** This source-file contains the main-function, which verifies the
-** calling-parameters and takes care of initialization. 
+** calling-parameters and takes care of initialization.
 ** The engine-function drives the main sample-loop in which after the
 ** indicated interval-time a snapshot is taken of the system-level and
 ** process-level counters and the deviations are calculated and
@@ -35,7 +35,7 @@
 ** --------------------------------------------------------------------------
 **
 ** After initialization, the main-function calls the ENGINE.
-** For every cycle (so after another interval) the ENGINE calls various 
+** For every cycle (so after another interval) the ENGINE calls various
 ** functions as shown below:
 **
 ** +---------------------------------------------------------------------+
@@ -48,15 +48,15 @@
 ** |   |     ^        |     ^        |    ^        |    ^        |    |  |
 ** +---|-----|--------|-----|--------|----|--------|----|--------|----|--+
 **     |     |        |     |        |    |        |    |        |    |
-**  +--V-----|--+  +--V-----|--+  +--V----|--+  +--V----|--+  +--V----|-+  
+**  +--V-----|--+  +--V-----|--+  +--V----|--+  +--V----|--+  +--V----|-+
 **  |           |  |           |  |          |  |          |  |         |
 **  | photosyst |  | photoproc |  |   acct   |  | deviate  |  |  print  |
 **  |           |  |           |  |photoproc |  |  ...syst |  |         |
 **  |           |  |           |  |          |  |  ...proc |  |         |
-**  +-----------+  +-----------+  +----------+  +----------+  +---------+  
+**  +-----------+  +-----------+  +----------+  +----------+  +---------+
 **        ^              ^             ^              ^            |
 **        |              |             |              |            |
-**        |              |             |              V            V 
+**        |              |             |              V            V
 **      ______       _________     __________     ________     _________
 **     /      \     /         \   /          \   /        \   /         \
 **      /proc          /proc       accounting       task       screen or
@@ -84,8 +84,8 @@
 ** When all counters have been gathered, functions are called to calculate
 ** the difference between the current counter-values and the counter-values
 ** of the previous cycle. These functions operate on the system-level
-** as well as on the task-level counters. 
-** These differences are stored in a new structure(-table). 
+** as well as on the task-level counters.
+** These differences are stored in a new structure(-table).
 **
 **    -	deviatsyst()
 **	Calculates the differences between the current system-level
@@ -98,7 +98,7 @@
 **	task-database; this "database" is implemented as a linked list
 **	of taskinfo structures in memory (so no disk-accesses needed).
 **	Within this linked list hash-buckets are maintained for fast searches.
-**	The entire task-database is handled via a set of well-defined 
+**	The entire task-database is handled via a set of well-defined
 ** 	functions from which the name starts with "pdb_..." (see the
 **	source-file procdbase.c).
 **	The processes which have been finished during the last cycle
@@ -112,7 +112,7 @@
 ** these addresses can be modified in the main-function depending on particular
 ** flags. In this way various representation-layers (ASCII, graphical, ...)
 ** can be linked with 'atop'; the one to use can eventually be chosen
-** at runtime. 
+** at runtime.
 **
 ** $Log: atop.c,v $
 ** Revision 1.49  2010/10/23 14:01:00  gerlof
@@ -335,7 +335,8 @@ char		**argvp;
 
 
 struct visualize vis = {generic_samp, generic_error,
-			generic_end,  generic_usage};
+	       generic_end,  generic_usage
+};
 
 /*
 ** argument values
@@ -465,10 +466,9 @@ main(int argc, char *argv[])
 	** the root-priviliges are dropped by switching effective user-id
 	** to real user-id (security reasons)
 	*/
-        if (! droprootprivs() )
-	{
+	if (! droprootprivs() ) {
 		fprintf(stderr, "not possible to drop root privs\n");
-                exit(42);
+		exit(42);
 	}
 
 	/*
@@ -481,8 +481,7 @@ main(int argc, char *argv[])
 	*/
 	readrc("/etc/atoprc", 1);
 
-	if ( (p = getenv("HOME")) )
-	{
+	if ( (p = getenv("HOME")) ) {
 		char path[1024];
 
 		snprintf(path, sizeof path, "%s/.atoprc", p);
@@ -502,12 +501,11 @@ main(int argc, char *argv[])
 	if ( memcmp(p, "atopsar", 7) == 0)
 		return atopsar(argc, argv);
 
-	/* 
-	** interpret command-line arguments & flags 
+	/*
+	** interpret command-line arguments & flags
 	*/
-	if (argc > 1)
-	{
-		/* 
+	if (argc > 1) {
+		/*
 		** gather all flags for visualization-functions
 		**
 		** generic flags will be handled here;
@@ -515,19 +513,17 @@ main(int argc, char *argv[])
 		*/
 		i = 0;
 
-		while (i < MAXFL-1 && (c=getopt(argc, argv, allflags)) != EOF)
-		{
-			switch (c)
-			{
-			   case '?':		/* usage wanted ?             */
+		while (i < MAXFL-1 && (c=getopt(argc, argv, allflags)) != EOF) {
+			switch (c) {
+			case '?':		/* usage wanted ?             */
 				prusage(argv[0]);
 				break;
 
-			   case 'V':		/* version wanted ?           */
+			case 'V':		/* version wanted ?           */
 				printf("%s\n", getstrvers());
 				exit(0);
 
-			   case 'w':		/* writing of raw data ?      */
+			case 'w':		/* writing of raw data ?      */
 				rawwriteflag++;
 				if (optind >= argc)
 					prusage(argv[0]);
@@ -536,69 +532,67 @@ main(int argc, char *argv[])
 				vis.show_samp = rawwrite;
 				break;
 
-			   case 'r':		/* reading of raw data ?      */
+			case 'r':		/* reading of raw data ?      */
 				if (optind < argc && *(argv[optind]) != '-')
 					strncpy(rawname, argv[optind++],
-							RAWNAMESZ-1);
+					        RAWNAMESZ-1);
 
 				rawreadflag++;
 				break;
 
-			   case 'S':		/* midnight limit ?           */
+			case 'S':		/* midnight limit ?           */
 				midnightflag++;
 				break;
 
-                           case 'a':		/* all processes per sample ? */
+			case 'a':		/* all processes per sample ? */
 				deviatonly = 0;
 				break;
 
-                           case 'R':		/* all processes per sample ? */
+			case 'R':		/* all processes per sample ? */
 				calcpss = 1;
 				break;
 
-                           case 'b':		/* begin time ?               */
+			case 'b':		/* begin time ?               */
 				if ( !hhmm2secs(optarg, &begintime) )
 					prusage(argv[0]);
 				break;
 
-                           case 'e':		/* end   time ?               */
+			case 'e':		/* end   time ?               */
 				if ( !hhmm2secs(optarg, &endtime) )
 					prusage(argv[0]);
 				break;
 
-                           case 'P':		/* parseable output?          */
+			case 'P':		/* parseable output?          */
 				if ( !parsedef(optarg) )
 					prusage(argv[0]);
 
 				vis.show_samp = parseout;
 				break;
 
-                           case 'L':		/* line length                */
+			case 'L':		/* line length                */
 				if ( !numeric(optarg) )
 					prusage(argv[0]);
 
 				linelen = atoi(optarg);
 				break;
 
-			   default:		/* gather other flags */
+			default:		/* gather other flags */
 				flaglist[i++] = c;
 			}
 		}
 
 		/*
-		** get optional interval-value and optional number of samples	
+		** get optional interval-value and optional number of samples
 		*/
-		if (optind < argc && optind < MAXFL)
-		{
+		if (optind < argc && optind < MAXFL) {
 			if (!numeric(argv[optind]))
 				prusage(argv[0]);
-	
+
 			interval = atoi(argv[optind]);
-	
+
 			optind++;
-	
-			if (optind < argc)
-			{
+
+			if (optind < argc) {
 				if (!numeric(argv[optind]) )
 					prusage(argv[0]);
 
@@ -630,8 +624,7 @@ main(int argc, char *argv[])
 	/*
 	** check if raw data from a file must be viewed
 	*/
-	if (rawreadflag)
-	{
+	if (rawreadflag) {
 		rawread();
 		cleanstop(0);
 	}
@@ -692,7 +685,7 @@ main(int argc, char *argv[])
 	initifprop();
 
 	/*
- 	** open socket to the IP layer to issue getsockopt() calls later on
+	** open socket to the IP layer to issue getsockopt() calls later on
 	*/
 	netatop_ipopen();
 
@@ -701,7 +694,7 @@ main(int argc, char *argv[])
 	** need to keep running under root-priviliges, so switch
 	** effective user-id to real user-id
 	*/
-        if (! droprootprivs() )
+	if (! droprootprivs() )
 		cleanstop(42);
 
 	/*
@@ -744,12 +737,12 @@ engine(void)
 	unsigned long		ntaskpres;	/* number of tasks present   */
 	unsigned long		nprocexit;	/* number of exited procs    */
 	unsigned long		nprocexitnet;	/* number of exited procs    */
-						/* via netatopd daemon       */
+	/* via netatopd daemon       */
 
 	unsigned long		noverflow;
 
 	int         		nrgpuproc=0,	/* number of GPU processes    */
-				gpupending=0;	/* boolean: request sent      */
+	                    gpupending=0;	/* boolean: request sent      */
 
 	struct gpupidstat	*gp = NULL;
 
@@ -783,8 +776,7 @@ engine(void)
 	if (interval > 0)
 		alarm(interval);
 
-	if (midnightflag)
-	{
+	if (midnightflag) {
 		time_t		timenow = time(0);
 		struct tm	*tp = localtime(&timenow);
 
@@ -796,9 +788,9 @@ engine(void)
 	}
 
 	/*
- 	** open socket to the atopgpud daemon for GPU statistics
+	** open socket to the atopgpud daemon for GPU statistics
 	*/
-        nrgpus = gpud_init();
+	nrgpus = gpud_init();
 
 	if (nrgpus)
 		supportflags |= GPUSTAT;
@@ -817,14 +809,13 @@ engine(void)
 	**
 	**    -	Call the print-function to visualize the differences
 	*/
-	for (sampcnt=0; sampcnt < nsamples; sampcnt++)
-	{
+	for (sampcnt=0; sampcnt < nsamples; sampcnt++) {
 		char	lastcmd;
 
 		/*
 		** if the limit-flag is specified:
 		**  check if the next sample is expected before midnight;
-		**  if not, stop atop now 
+		**  if not, stop atop now
 		*/
 		if (midnightflag && (curtime+interval) > timelimit)
 			break;
@@ -845,13 +836,13 @@ engine(void)
 		curtime  = time(0);		/* seconds since 1-1-1970 */
 
 		/*
-		** send request for statistics to atopgpud 
+		** send request for statistics to atopgpud
 		*/
 		if (nrgpus)
 			gpupending = gpud_statrequest();
 
 		/*
-		** take a snapshot of the current system-level statistics 
+		** take a snapshot of the current system-level statistics
 		** and calculate the deviations (i.e. calculate the activity
 		** during the last sample)
 		*/
@@ -864,31 +855,27 @@ engine(void)
 		/*
 		** receive and parse response from atopgpud
 		*/
-		if (nrgpus && gpupending)
-		{
+		if (nrgpus && gpupending) {
 			nrgpuproc = gpud_statresponse(nrgpus, cursstat->gpu.gpu, &gp);
 
 			gpupending = 0;
 
 			// connection lost or timeout on receive?
-			if (nrgpuproc == -1)
-			{
+			if (nrgpuproc == -1) {
 				int ng;
 
 				// try to reconnect
-        			ng = gpud_init();
+				ng = gpud_init();
 
 				if (ng != nrgpus)	// no success
 					nrgpus = 0;
 
-				if (nrgpus)
-				{
+				if (nrgpus) {
 					// request for stats again
-					if (gpud_statrequest())
-					{
+					if (gpud_statrequest()) {
 						// receive stats response
 						nrgpuproc = gpud_statresponse(nrgpus,
-						     cursstat->gpu.gpu, &gp);
+						                              cursstat->gpu.gpu, &gp);
 
 						// persistent failure?
 						if (nrgpuproc == -1)
@@ -901,10 +888,10 @@ engine(void)
 		}
 
 		deviatsyst(cursstat, presstat, devsstat,
-				curtime-pretime > 0 ? curtime-pretime : 1);
+		           curtime-pretime > 0 ? curtime-pretime : 1);
 
 		/*
-		** take a snapshot of the current task-level statistics 
+		** take a snapshot of the current task-level statistics
 		** and calculate the deviations (i.e. calculate the activity
 		** during the last sample)
 		**
@@ -912,18 +899,16 @@ engine(void)
 		*/
 		curtpres  = NULL;
 
-		do
-		{
+		do {
 			curtlen   = counttasks();	// worst-case value
 			curtpres  = realloc(curtpres,
-					curtlen * sizeof(struct tstat));
+			                    curtlen * sizeof(struct tstat));
 
 			ptrverify(curtpres, "Malloc failed for %lu tstats\n",
-								curtlen);
+			          curtlen);
 
 			memset(curtpres, 0, curtlen * sizeof(struct tstat));
-		}
-		while ( (ntaskpres = photoproc(curtpres, curtlen)) == curtlen);
+		} while ( (ntaskpres = photoproc(curtpres, curtlen)) == curtlen);
 
 		/*
 		** register processes that exited during last sample;
@@ -934,12 +919,10 @@ engine(void)
 		*/
 		nprocexit = acctprocnt();	/* number of exited processes */
 
-		if (nprocexit > MAXACCTPROCS)
-		{
+		if (nprocexit > MAXACCTPROCS) {
 			noverflow = nprocexit - MAXACCTPROCS;
 			nprocexit = MAXACCTPROCS;
-		}
-		else
+		} else
 			noverflow = 0;
 
 		/*
@@ -955,8 +938,7 @@ engine(void)
 		/*
 		** reserve space for the exited processes and read them
 		*/
-		if (nprocexit > 0)
-		{
+		if (nprocexit > 0) {
 			curpexit = malloc(nprocexit * sizeof(struct tstat));
 
 			ptrverify(curpexit,
@@ -968,40 +950,38 @@ engine(void)
 			nprocexit = acctphotoproc(curpexit, nprocexit);
 
 			/*
- 			** reposition offset in accounting file when not
+			** reposition offset in accounting file when not
 			** all exited processes have been read (i.e. skip
 			** those processes)
 			*/
 			if (noverflow)
 				acctrepos(noverflow);
-		}
-		else
-		{
+		} else {
 			curpexit    = NULL;
 		}
 
 		/*
- 		** merge GPU per-process stats with other per-process stats
+		** merge GPU per-process stats with other per-process stats
 		*/
 		if (nrgpus && nrgpuproc)
 			gpumergeproc(curtpres, ntaskpres,
-		                     curpexit, nprocexit,
-		 	             gp,       nrgpuproc);
+			             curpexit, nprocexit,
+			             gp,       nrgpuproc);
 
 		/*
 		** calculate deviations
 		*/
 		deviattask(curtpres,  ntaskpres, curpexit,  nprocexit,
-		                      &devtstat, devsstat);
+		           &devtstat, devsstat);
 
 		/*
 		** activate the installed print-function to visualize
 		** the deviations
 		*/
 		lastcmd = (vis.show_samp)( curtime,
-				     curtime-pretime > 0 ? curtime-pretime : 1,
-		           	     &devtstat, devsstat, 
-		                     nprocexit, noverflow, sampcnt==0);
+		                           curtime-pretime > 0 ? curtime-pretime : 1,
+		                           &devtstat, devsstat,
+		                           nprocexit, noverflow, sampcnt==0);
 
 		/*
 		** release dynamically allocated memory
@@ -1015,10 +995,9 @@ engine(void)
 			netatop_exiterase();
 
 		if (gp)
-			 free(gp);
+			free(gp);
 
-		if (lastcmd == 'r')	/* reset requested ? */
-		{
+		if (lastcmd == 'r') {	/* reset requested ? */
 			sampcnt = -1;
 
 			curtime = getboot() / hertz;	// reset current time
@@ -1040,22 +1019,22 @@ void
 prusage(char *myname)
 {
 	printf("Usage: %s [-flags] [interval [samples]]\n",
-					myname);
+	       myname);
 	printf("\t\tor\n");
 	printf("Usage: %s -w  file  [-S] [-%c] [interval [samples]]\n",
-					myname, MALLPROC);
+	       myname, MALLPROC);
 	printf("       %s -r [file] [-b hh:mm] [-e hh:mm] [-flags]\n",
-					myname);
+	       myname);
 	printf("\n");
 	printf("\tgeneric flags:\n");
 	printf("\t  -%c  show version information\n", MVERSION);
 	printf("\t  -%c  show or log all processes (i.s.o. active processes "
-	                "only)\n", MALLPROC);
-	printf("\t  -%c  calculate proportional set size (PSS) per process\n", 
-	                MCALCPSS);
+	       "only)\n", MALLPROC);
+	printf("\t  -%c  calculate proportional set size (PSS) per process\n",
+	       MCALCPSS);
 	printf("\t  -P  generate parseable output for specified label(s)\n");
 	printf("\t  -L  alternate line length (default 80) in case of "
-			"non-screen output\n");
+	       "non-screen output\n");
 
 	(*vis.show_usage)();
 
@@ -1065,7 +1044,7 @@ prusage(char *myname)
 	printf("\t  -r  read  raw data from file (compressed)\n");
 	printf("\t      special file: y[y...] for yesterday (repeated)\n");
 	printf("\t  -S  finish atop automatically before midnight "
-	                "(i.s.o. #samples)\n");
+	       "(i.s.o. #samples)\n");
 	printf("\t  -b  begin showing data from specified time\n");
 	printf("\t  -e  finish showing data after specified time\n");
 	printf("\n");
@@ -1074,7 +1053,7 @@ prusage(char *myname)
 	printf("\n");
 	printf("If the interval-value is zero, a new sample can be\n");
 	printf("forced manually by sending signal USR1"
-			" (kill -USR1 pid_atop)\n");
+	       " (kill -USR1 pid_atop)\n");
 	printf("or with the keystroke '%c' in interactive mode.\n", MSAMPNEXT);
 	printf("\n");
 	printf("Please refer to the man-page of 'atop' for more details.\n");
@@ -1142,15 +1121,13 @@ readrc(char *path, int syslevel)
 	** check if this file is readable with the user's
 	** *real uid/gid* with syscall access()
 	*/
-	if ( access(path, R_OK) == 0)
-	{
+	if ( access(path, R_OK) == 0) {
 		FILE	*fp;
 		char	linebuf[256], tagname[20], tagvalue[256];
 
 		fp = fopen(path, "r");
 
-		while ( fgets(linebuf, sizeof linebuf, fp) )
-		{
+		while ( fgets(linebuf, sizeof linebuf, fp) ) {
 			line++;
 
 			i = strlen(linebuf);
@@ -1159,36 +1136,35 @@ readrc(char *path, int syslevel)
 				linebuf[i-1] = 0;
 
 			nr = sscanf(linebuf, "%19s %255[^#]",
-						tagname, tagvalue);
+			            tagname, tagvalue);
 
-			switch (nr)
-			{
-			   case 0:
+			switch (nr) {
+			case 0:
 				continue;
 
-			   case 1:
+			case 1:
 				if (tagname[0] == '#')
 					continue;
 
 				fprintf(stderr,
-					"%s: syntax error line "
-					"%d (no value specified)\n",
-					path, line);
+				        "%s: syntax error line "
+				        "%d (no value specified)\n",
+				        path, line);
 
 				cleanstop(1);
 				break;		/* not reached */
 
-			   default:
+			default:
 				if (tagname[0] == '#')
 					continue;
-				
+
 				if (tagvalue[0] != '#')
 					break;
 
 				fprintf(stderr,
-					"%s: syntax error line "
-					"%d (no value specified)\n",
-					path, line);
+				        "%s: syntax error line "
+				        "%d (no value specified)\n",
+				        path, line);
 
 				cleanstop(1);
 			}
@@ -1197,17 +1173,14 @@ readrc(char *path, int syslevel)
 			** tag name and tag value found
 			** try to recognize tag name
 			*/
-			for (i=0; i < sizeof manrc/sizeof manrc[0]; i++)
-			{
-				if ( strcmp(tagname, manrc[i].tag) == 0)
-				{
-					if (manrc[i].sysonly && !syslevel)
-					{
+			for (i=0; i < sizeof manrc/sizeof manrc[0]; i++) {
+				if ( strcmp(tagname, manrc[i].tag) == 0) {
+					if (manrc[i].sysonly && !syslevel) {
 						fprintf(stderr,
-						   "%s: warning at line %2d "
-						   "- tag name %s not allowed "
-						   "in private atoprc\n",
-							path, line, tagname);
+						        "%s: warning at line %2d "
+						        "- tag name %s not allowed "
+						        "in private atoprc\n",
+						        path, line, tagname);
 
 						errorcnt++;
 						break;
@@ -1221,12 +1194,11 @@ readrc(char *path, int syslevel)
 			/*
 			** tag name not recognized
 			*/
-			if (i == sizeof manrc/sizeof manrc[0])
-			{
+			if (i == sizeof manrc/sizeof manrc[0]) {
 				fprintf(stderr,
-					"%s: warning at line %2d "
-					"- tag name %s not valid\n",
-					path, line, tagname);
+				        "%s: warning at line %2d "
+				        "- tag name %s not valid\n",
+				        path, line, tagname);
 
 				errorcnt++;
 			}

@@ -1,5 +1,5 @@
 /*
-** ATOP - System & Process Monitor 
+** ATOP - System & Process Monitor
 **
 ** The program 'atop' offers the possibility to view the activity of
 ** the system on system-level as well as process-level.
@@ -40,24 +40,24 @@
  * structure for extra parameters for system related data
 */
 typedef struct {
-        count_t		totut;
-        count_t		totst;
-        int		nact; 
-        int		nproc;
-        int		ntrun;
-        int		ntslpi;
-        int		ntslpu;
-        int		nzomb;
-        int		nexit;
-        int		noverflow;
-        int		avgval;
-        int		nsecs;
-        count_t		mstot;
-        count_t		iotot;
+	count_t		totut;
+	count_t		totst;
+	int		nact;
+	int		nproc;
+	int		ntrun;
+	int		ntslpi;
+	int		ntslpu;
+	int		nzomb;
+	int		nexit;
+	int		noverflow;
+	int		avgval;
+	int		nsecs;
+	count_t		mstot;
+	count_t		iotot;
 	struct perdsk	*perdsk;
-        int		index;
-        count_t		cputot;
-        count_t		percputot;
+	int		index;
+	count_t		cputot;
+	count_t		percputot;
 } extraparam;
 
 /***************************************************************/
@@ -65,21 +65,20 @@ typedef struct {
  * structure for system print-list
 */
 typedef struct {
-        char *configname;                          // name as used to 
-                                                   // config print line
-        char* (*doconvert)(void *, void *, int, int *); // ptr to convert func
+	char *configname;                          // name as used to
+	// config print line
+	char* (*doconvert)(void *, void *, int, int *); // ptr to convert func
 } sys_printdef;
 
 
 /*
  * structure for system print-list with priority
  * in case of leck of screen space, lowest priority items will be
- * removed first 
+ * removed first
 */
-typedef struct
-{
-        sys_printdef    *f;
-        int             prio;
+typedef struct {
+	sys_printdef    *f;
+	int             prio;
 } sys_printpair;
 
 
@@ -87,35 +86,33 @@ typedef struct
 /*
 ** structure for process print-list
 */
-typedef struct 
-{
-        char *head;                      // column header
-        char *configname;                // name as used to config print line
-        char *(*doactiveconvert)(struct tstat *,int,int); 
-                                         // pointer to conv function
-                                         // for active process
-        char *(*doexitconvert)  (struct tstat *,int,int);   
-                                         // pointer to conv function
-                                         // for exited process
-        int  width;                      // required width
-        int  varwidth;                   // width may grow (eg cmd params)
+typedef struct {
+	char *head;                      // column header
+	char *configname;                // name as used to config print line
+	char *(*doactiveconvert)(struct tstat *,int,int);
+	// pointer to conv function
+	// for active process
+	char *(*doexitconvert)  (struct tstat *,int,int);
+	// pointer to conv function
+	// for exited process
+	int  width;                      // required width
+	int  varwidth;                   // width may grow (eg cmd params)
 } proc_printdef;
 
 
-typedef struct 
-{
-        proc_printdef   *f;
-        int             prio;
+typedef struct {
+	proc_printdef   *f;
+	int             prio;
 } proc_printpair;
 
-void showsysline(sys_printpair* elemptr, 
+void showsysline(sys_printpair* elemptr,
                  struct sstat* sstat, extraparam *extra,
                  char *labeltext, unsigned int badness);
 
 
-void showhdrline(proc_printpair* elemptr, int curlist, int totlist, 
-                  char showorder, char autosort);
-void showprocline(proc_printpair* elemptr, struct tstat *curstat, 
+void showhdrline(proc_printpair* elemptr, int curlist, int totlist,
+                 char showorder, char autosort);
+void showprocline(proc_printpair* elemptr, struct tstat *curstat,
                   double perc, int nsecs, int avgval);
 
 extern sys_printdef *prcsyspdefs[];

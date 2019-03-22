@@ -157,32 +157,28 @@ parsedef(char *pd)
 	/*
 	** check if string passed bahind -P is not another flag
 	*/
-	if (*pd == '-')
-	{
+	if (*pd == '-') {
 		fprintf(stderr, "flag -P should be followed by label list\n");
 		return 0;
 	}
 
 	/*
-	** check list of comma-separated labels 
+	** check list of comma-separated labels
 	*/
-	while (pd < ep)
-	{
+	while (pd < ep) {
 		/*
 		** exchange comma by null-byte
 		*/
 		if ( (p = strchr(pd, ',')) )
-			*p = 0;	
+			*p = 0;
 		else
 			p  = ep-1;
 
 		/*
 		** check if the next label exists
 		*/
-		for (i=0; i < numlabels; i++)
-		{
-			if ( strcmp(labeldef[i].label, pd) == 0)
-			{
+		for (i=0; i < numlabels; i++) {
+			if ( strcmp(labeldef[i].label, pd) == 0) {
 				labeldef[i].valid = 1;
 				break;
 			}
@@ -191,19 +187,15 @@ parsedef(char *pd)
 		/*
 		** non-existing label has been used
 		*/
-		if (i == numlabels)
-		{
+		if (i == numlabels) {
 			/*
 			** check if special label 'ALL' has been used
 			*/
-			if ( strcmp("ALL", pd) == 0)
-			{
+			if ( strcmp("ALL", pd) == 0) {
 				for (i=0; i < numlabels; i++)
 					labeldef[i].valid = 1;
 				break;
-			}
-			else
-			{
+			} else {
 				fprintf(stderr, "label %s not found\n", pd);
 				return 0;
 			}
@@ -237,10 +229,8 @@ parseout(time_t curtime, int numsecs,
 	/*
 	** search all labels which are selected before
 	*/
-	for (i=0; i < numlabels; i++)
-	{
-		if (labeldef[i].valid)
-		{
+	for (i=0; i < numlabels; i++) {
+		if (labeldef[i].valid) {
 			/*
 			** prepare generic columns
 			*/
@@ -248,16 +238,16 @@ parseout(time_t curtime, int numsecs,
 			convtime(curtime, timestr);
 
 			snprintf(header, sizeof header, "%s %s %ld %s %s %d",
-				labeldef[i].label,
-				utsname.nodename,
-				curtime,
-				datestr, timestr, numsecs);
+			         labeldef[i].label,
+			         utsname.nodename,
+			         curtime,
+			         datestr, timestr, numsecs);
 
 			/*
 			** call a selected print-function
 			*/
 			(labeldef[i].prifunc)(header, sstat,
-				devtstat->taskall, devtstat->ntaskall);
+			                      devtstat->taskall, devtstat->ntaskall);
 		}
 	}
 
@@ -273,113 +263,103 @@ parseout(time_t curtime, int numsecs,
 ** print functions for system-level statistics
 */
 void
-calc_freqscale(count_t maxfreq, count_t cnt, count_t ticks, 
+calc_freqscale(count_t maxfreq, count_t cnt, count_t ticks,
                count_t *freq, int *freqperc)
 {
-        // if ticks != 0, do full calcs
-        if (maxfreq && ticks) 
-        {
-            *freq=cnt/ticks;
-            *freqperc=100* *freq / maxfreq;
-        } 
-        else if (maxfreq)   // max frequency is known so % can be calculated
-        {
-            *freq=cnt;
-            *freqperc=100*cnt/maxfreq;
-        }
-        else if (cnt)       // no max known, set % to 100
-        {
-            *freq=cnt;
-            *freqperc=100;
-        }
-        else                // nothing is known: set freq to 0, % to 100
-        {
-            *freq=0;
-            *freqperc=100;
-        }
+	// if ticks != 0, do full calcs
+	if (maxfreq && ticks) {
+		*freq=cnt/ticks;
+		*freqperc=100* *freq / maxfreq;
+	} else if (maxfreq) { // max frequency is known so % can be calculated
+		*freq=cnt;
+		*freqperc=100*cnt/maxfreq;
+	} else if (cnt) {   // no max known, set % to 100
+		*freq=cnt;
+		*freqperc=100;
+	} else {            // nothing is known: set freq to 0, % to 100
+		*freq=0;
+		*freqperc=100;
+	}
 }
 
 
 void
 print_CPU(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
-        count_t maxfreq=0;
-        count_t cnt=0;
-        count_t ticks=0;
-        count_t freq;
-        int freqperc;
-        int i;
+	count_t maxfreq=0;
+	count_t cnt=0;
+	count_t ticks=0;
+	count_t freq;
+	int freqperc;
+	int i;
 
-        // calculate average clock frequency
-	for (i=0; i < ss->cpu.nrcpu; i++)
-        {
-                cnt    += ss->cpu.cpu[i].freqcnt.cnt;
-                ticks  += ss->cpu.cpu[i].freqcnt.ticks;
-        }
-        maxfreq = ss->cpu.cpu[0].freqcnt.maxfreq;
-        calc_freqscale(maxfreq, cnt, ticks, &freq, &freqperc);
+	// calculate average clock frequency
+	for (i=0; i < ss->cpu.nrcpu; i++) {
+		cnt    += ss->cpu.cpu[i].freqcnt.cnt;
+		ticks  += ss->cpu.cpu[i].freqcnt.ticks;
+	}
+	maxfreq = ss->cpu.cpu[0].freqcnt.maxfreq;
+	calc_freqscale(maxfreq, cnt, ticks, &freq, &freqperc);
 
-	if (ss->cpu.all.instr == 1)
-	{
-        	ss->cpu.all.instr = 0;
-        	ss->cpu.all.cycle = 0;
+	if (ss->cpu.all.instr == 1) {
+		ss->cpu.all.instr = 0;
+		ss->cpu.all.cycle = 0;
 	}
 
 	printf("%s %u %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %d %lld %lld\n",
-			hp,
-			hertz,
-	        	ss->cpu.nrcpu,
-	        	ss->cpu.all.stime,
-        		ss->cpu.all.utime,
-        		ss->cpu.all.ntime,
-        		ss->cpu.all.itime,
-        		ss->cpu.all.wtime,
-        		ss->cpu.all.Itime,
-        		ss->cpu.all.Stime,
-        		ss->cpu.all.steal,
-        		ss->cpu.all.guest,
-                        freq,
-                        freqperc,
-        		ss->cpu.all.instr,
-        		ss->cpu.all.cycle
-                        );
+	       hp,
+	       hertz,
+	       ss->cpu.nrcpu,
+	       ss->cpu.all.stime,
+	       ss->cpu.all.utime,
+	       ss->cpu.all.ntime,
+	       ss->cpu.all.itime,
+	       ss->cpu.all.wtime,
+	       ss->cpu.all.Itime,
+	       ss->cpu.all.Stime,
+	       ss->cpu.all.steal,
+	       ss->cpu.all.guest,
+	       freq,
+	       freqperc,
+	       ss->cpu.all.instr,
+	       ss->cpu.all.cycle
+	      );
 }
 
 void
 print_cpu(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i;
-        count_t maxfreq=0;
-        count_t cnt=0;
-        count_t ticks=0;
-        count_t freq;
-        int freqperc;
+	count_t maxfreq=0;
+	count_t cnt=0;
+	count_t ticks=0;
+	count_t freq;
+	int freqperc;
 
-	for (i=0; i < ss->cpu.nrcpu; i++)
-	{
-                cnt    = ss->cpu.cpu[i].freqcnt.cnt;
-                ticks  = ss->cpu.cpu[i].freqcnt.ticks;
-                maxfreq= ss->cpu.cpu[0].freqcnt.maxfreq;
+	for (i=0; i < ss->cpu.nrcpu; i++) {
+		cnt    = ss->cpu.cpu[i].freqcnt.cnt;
+		ticks  = ss->cpu.cpu[i].freqcnt.ticks;
+		maxfreq= ss->cpu.cpu[0].freqcnt.maxfreq;
 
-                calc_freqscale(maxfreq, cnt, ticks, &freq, &freqperc);
+		calc_freqscale(maxfreq, cnt, ticks, &freq, &freqperc);
 
 		printf("%s %u %d %lld %lld %lld "
 		       "%lld %lld %lld %lld %lld %lld %lld %d %lld %lld\n",
-			hp, hertz, i,
-	        	ss->cpu.cpu[i].stime,
-        		ss->cpu.cpu[i].utime,
-        		ss->cpu.cpu[i].ntime,
-        		ss->cpu.cpu[i].itime,
-        		ss->cpu.cpu[i].wtime,
-        		ss->cpu.cpu[i].Itime,
-        		ss->cpu.cpu[i].Stime,
-        		ss->cpu.cpu[i].steal,
-        		ss->cpu.cpu[i].guest,
-                        freq,
-                        freqperc,
-        		ss->cpu.cpu[i].instr,
-        		ss->cpu.cpu[i].cycle
-			);
+		       hp, hertz, i,
+		       ss->cpu.cpu[i].stime,
+		       ss->cpu.cpu[i].utime,
+		       ss->cpu.cpu[i].ntime,
+		       ss->cpu.cpu[i].itime,
+		       ss->cpu.cpu[i].wtime,
+		       ss->cpu.cpu[i].Itime,
+		       ss->cpu.cpu[i].Stime,
+		       ss->cpu.cpu[i].steal,
+		       ss->cpu.cpu[i].guest,
+		       freq,
+		       freqperc,
+		       ss->cpu.cpu[i].instr,
+		       ss->cpu.cpu[i].cycle
+		      );
 	}
 }
 
@@ -387,13 +367,13 @@ void
 print_CPL(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf("%s %lld %.2f %.2f %.2f %lld %lld\n",
-			hp,
-	        	ss->cpu.nrcpu,
-	        	ss->cpu.lavg1,
-	        	ss->cpu.lavg5,
-	        	ss->cpu.lavg15,
-	        	ss->cpu.csw,
-	        	ss->cpu.devint);
+	       hp,
+	       ss->cpu.nrcpu,
+	       ss->cpu.lavg1,
+	       ss->cpu.lavg5,
+	       ss->cpu.lavg15,
+	       ss->cpu.csw,
+	       ss->cpu.devint);
 }
 
 void
@@ -401,20 +381,19 @@ print_GPU(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	int	i;
 
-	for (i=0; i < ss->gpu.nrgpus; i++)
-	{
+	for (i=0; i < ss->gpu.nrgpus; i++) {
 		printf("%s %d %s %s %d %d %lld %lld %lld %lld %lld %lld\n",
-			hp, i,
-	        	ss->gpu.gpu[i].busid,
-	        	ss->gpu.gpu[i].type,
-	        	ss->gpu.gpu[i].gpupercnow,
-	        	ss->gpu.gpu[i].mempercnow,
-	        	ss->gpu.gpu[i].memtotnow,
-	        	ss->gpu.gpu[i].memusenow,
-	        	ss->gpu.gpu[i].samples,
-	        	ss->gpu.gpu[i].gpuperccum,
-	        	ss->gpu.gpu[i].memperccum,
-	        	ss->gpu.gpu[i].memusecum);
+		       hp, i,
+		       ss->gpu.gpu[i].busid,
+		       ss->gpu.gpu[i].type,
+		       ss->gpu.gpu[i].gpupercnow,
+		       ss->gpu.gpu[i].mempercnow,
+		       ss->gpu.gpu[i].memtotnow,
+		       ss->gpu.gpu[i].memusenow,
+		       ss->gpu.gpu[i].samples,
+		       ss->gpu.gpu[i].gpuperccum,
+		       ss->gpu.gpu[i].memperccum,
+		       ss->gpu.gpu[i].memusecum);
 	}
 }
 
@@ -422,48 +401,48 @@ void
 print_MEM(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf(	"%s %u %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld\n",
-			hp,
-			pagesize,
-			ss->mem.physmem,
-			ss->mem.freemem,
-			ss->mem.cachemem,
-			ss->mem.buffermem,
-			ss->mem.slabmem,
-			ss->mem.cachedrt,
-			ss->mem.slabreclaim,
-        		ss->mem.vmwballoon,
-        		ss->mem.shmem,
-        		ss->mem.shmrss,
-        		ss->mem.shmswp,
-        		ss->mem.hugepagesz,
-        		ss->mem.tothugepage,
-        		ss->mem.freehugepage);
+	        hp,
+	        pagesize,
+	        ss->mem.physmem,
+	        ss->mem.freemem,
+	        ss->mem.cachemem,
+	        ss->mem.buffermem,
+	        ss->mem.slabmem,
+	        ss->mem.cachedrt,
+	        ss->mem.slabreclaim,
+	        ss->mem.vmwballoon,
+	        ss->mem.shmem,
+	        ss->mem.shmrss,
+	        ss->mem.shmswp,
+	        ss->mem.hugepagesz,
+	        ss->mem.tothugepage,
+	        ss->mem.freehugepage);
 }
 
 void
 print_SWP(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf(	"%s %u %lld %lld %lld %lld %lld\n",
-			hp,
-			pagesize,
-			ss->mem.totswap,
-			ss->mem.freeswap,
-			(long long)0,
-			ss->mem.committed,
-			ss->mem.commitlim);
+	        hp,
+	        pagesize,
+	        ss->mem.totswap,
+	        ss->mem.freeswap,
+	        (long long)0,
+	        ss->mem.committed,
+	        ss->mem.commitlim);
 }
 
 void
 print_PAG(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf("%s %u %lld %lld %lld %lld %lld\n",
-			hp,
-			pagesize,
-			ss->mem.pgscans,
-			ss->mem.allocstall,
-			(long long)0,
-			ss->mem.swins,
-			ss->mem.swouts);
+	       hp,
+	       pagesize,
+	       ss->mem.pgscans,
+	       ss->mem.allocstall,
+	       (long long)0,
+	       ss->mem.swins,
+	       ss->mem.swouts);
 }
 
 void
@@ -471,17 +450,17 @@ print_PSI(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf("%s %c %.1f %.1f %.1f %llu %.1f %.1f %.1f %llu "
 	       "%.1f %.1f %.1f %llu %.1f %.1f %.1f %llu %.1f %.1f %.1f %llu\n",
-		hp, ss->psi.present ? 'y' : 'n',
-                ss->psi.cpusome.avg10, ss->psi.cpusome.avg60,
-                ss->psi.cpusome.avg300, ss->psi.cpusome.total,
-                ss->psi.memsome.avg10, ss->psi.memsome.avg60,
-                ss->psi.memsome.avg300, ss->psi.memsome.total,
-                ss->psi.memfull.avg10, ss->psi.memfull.avg60,
-                ss->psi.memfull.avg300, ss->psi.memfull.total,
-                ss->psi.iosome.avg10, ss->psi.iosome.avg60,
-                ss->psi.iosome.avg300, ss->psi.iosome.total,
-                ss->psi.iofull.avg10, ss->psi.iofull.avg60,
-                ss->psi.iofull.avg300, ss->psi.iofull.total);
+	       hp, ss->psi.present ? 'y' : 'n',
+	       ss->psi.cpusome.avg10, ss->psi.cpusome.avg60,
+	       ss->psi.cpusome.avg300, ss->psi.cpusome.total,
+	       ss->psi.memsome.avg10, ss->psi.memsome.avg60,
+	       ss->psi.memsome.avg300, ss->psi.memsome.total,
+	       ss->psi.memfull.avg10, ss->psi.memfull.avg60,
+	       ss->psi.memfull.avg300, ss->psi.memfull.total,
+	       ss->psi.iosome.avg10, ss->psi.iosome.avg60,
+	       ss->psi.iosome.avg300, ss->psi.iosome.total,
+	       ss->psi.iofull.avg10, ss->psi.iofull.avg60,
+	       ss->psi.iofull.avg300, ss->psi.iofull.total);
 }
 
 void
@@ -489,16 +468,15 @@ print_LVM(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int	i;
 
-        for (i=0; ss->dsk.lvm[i].name[0]; i++)
-	{
+	for (i=0; ss->dsk.lvm[i].name[0]; i++) {
 		printf(	"%s %s %lld %lld %lld %lld %lld\n",
-			hp,
-			ss->dsk.lvm[i].name,
-			ss->dsk.lvm[i].io_ms,
-			ss->dsk.lvm[i].nread,
-			ss->dsk.lvm[i].nrsect,
-			ss->dsk.lvm[i].nwrite,
-			ss->dsk.lvm[i].nwsect);
+		        hp,
+		        ss->dsk.lvm[i].name,
+		        ss->dsk.lvm[i].io_ms,
+		        ss->dsk.lvm[i].nread,
+		        ss->dsk.lvm[i].nrsect,
+		        ss->dsk.lvm[i].nwrite,
+		        ss->dsk.lvm[i].nwsect);
 	}
 }
 
@@ -507,16 +485,15 @@ print_MDD(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int	i;
 
-        for (i=0; ss->dsk.mdd[i].name[0]; i++)
-	{
+	for (i=0; ss->dsk.mdd[i].name[0]; i++) {
 		printf(	"%s %s %lld %lld %lld %lld %lld\n",
-			hp,
-			ss->dsk.mdd[i].name,
-			ss->dsk.mdd[i].io_ms,
-			ss->dsk.mdd[i].nread,
-			ss->dsk.mdd[i].nrsect,
-			ss->dsk.mdd[i].nwrite,
-			ss->dsk.mdd[i].nwsect);
+		        hp,
+		        ss->dsk.mdd[i].name,
+		        ss->dsk.mdd[i].io_ms,
+		        ss->dsk.mdd[i].nread,
+		        ss->dsk.mdd[i].nrsect,
+		        ss->dsk.mdd[i].nwrite,
+		        ss->dsk.mdd[i].nwsect);
 	}
 }
 
@@ -525,16 +502,15 @@ print_DSK(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int	i;
 
-        for (i=0; ss->dsk.dsk[i].name[0]; i++)
-	{
+	for (i=0; ss->dsk.dsk[i].name[0]; i++) {
 		printf(	"%s %s %lld %lld %lld %lld %lld\n",
-			hp,
-			ss->dsk.dsk[i].name,
-			ss->dsk.dsk[i].io_ms,
-			ss->dsk.dsk[i].nread,
-			ss->dsk.dsk[i].nrsect,
-			ss->dsk.dsk[i].nwrite,
-			ss->dsk.dsk[i].nwsect);
+		        hp,
+		        ss->dsk.dsk[i].name,
+		        ss->dsk.dsk[i].io_ms,
+		        ss->dsk.dsk[i].nread,
+		        ss->dsk.dsk[i].nrsect,
+		        ss->dsk.dsk[i].nwrite,
+		        ss->dsk.dsk[i].nwsect);
 	}
 }
 
@@ -543,19 +519,18 @@ print_NFM(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int	i;
 
-        for (i=0; i < ss->nfs.nfsmounts.nrmounts; i++)
-	{
+	for (i=0; i < ss->nfs.nfsmounts.nrmounts; i++) {
 		printf("%s %s %lld %lld %lld %lld %lld %lld %lld %lld\n",
-			hp,
-			ss->nfs.nfsmounts.nfsmnt[i].mountdev,
-			ss->nfs.nfsmounts.nfsmnt[i].bytestotread,
-			ss->nfs.nfsmounts.nfsmnt[i].bytestotwrite,
-			ss->nfs.nfsmounts.nfsmnt[i].bytesread,
-			ss->nfs.nfsmounts.nfsmnt[i].byteswrite,
-			ss->nfs.nfsmounts.nfsmnt[i].bytesdread,
-			ss->nfs.nfsmounts.nfsmnt[i].bytesdwrite,
-			ss->nfs.nfsmounts.nfsmnt[i].pagesmread,
-			ss->nfs.nfsmounts.nfsmnt[i].pagesmwrite);
+		       hp,
+		       ss->nfs.nfsmounts.nfsmnt[i].mountdev,
+		       ss->nfs.nfsmounts.nfsmnt[i].bytestotread,
+		       ss->nfs.nfsmounts.nfsmnt[i].bytestotwrite,
+		       ss->nfs.nfsmounts.nfsmnt[i].bytesread,
+		       ss->nfs.nfsmounts.nfsmnt[i].byteswrite,
+		       ss->nfs.nfsmounts.nfsmnt[i].bytesdread,
+		       ss->nfs.nfsmounts.nfsmnt[i].bytesdwrite,
+		       ss->nfs.nfsmounts.nfsmnt[i].pagesmread,
+		       ss->nfs.nfsmounts.nfsmnt[i].pagesmwrite);
 	}
 }
 
@@ -563,12 +538,12 @@ void
 print_NFC(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf(	"%s %lld %lld %lld %lld %lld\n",
-			hp,
-			ss->nfs.client.rpccnt,
-			ss->nfs.client.rpcread,
-			ss->nfs.client.rpcwrite,
-			ss->nfs.client.rpcretrans,
-			ss->nfs.client.rpcautrefresh);
+	        hp,
+	        ss->nfs.client.rpccnt,
+	        ss->nfs.client.rpcread,
+	        ss->nfs.client.rpcwrite,
+	        ss->nfs.client.rpcretrans,
+	        ss->nfs.client.rpcautrefresh);
 }
 
 void
@@ -576,22 +551,22 @@ print_NFS(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	printf(	"%s %lld %lld %lld %lld %lld %lld %lld %lld %lld %lld "
 	        "%lld %lld %lld %lld %lld\n",
-			hp,
-			ss->nfs.server.rpccnt,
-			ss->nfs.server.rpcread,
-			ss->nfs.server.rpcwrite,
-			ss->nfs.server.nrbytes,
-			ss->nfs.server.nwbytes,
-			ss->nfs.server.rpcbadfmt,
-			ss->nfs.server.rpcbadaut,
-			ss->nfs.server.rpcbadcln,
-			ss->nfs.server.netcnt,
-			ss->nfs.server.nettcpcnt,
-			ss->nfs.server.netudpcnt,
-			ss->nfs.server.nettcpcon,
-			ss->nfs.server.rchits,
-			ss->nfs.server.rcmiss,
-			ss->nfs.server.rcnoca);
+	        hp,
+	        ss->nfs.server.rpccnt,
+	        ss->nfs.server.rpcread,
+	        ss->nfs.server.rpcwrite,
+	        ss->nfs.server.nrbytes,
+	        ss->nfs.server.nwbytes,
+	        ss->nfs.server.rpcbadfmt,
+	        ss->nfs.server.rpcbadaut,
+	        ss->nfs.server.rpcbadcln,
+	        ss->nfs.server.netcnt,
+	        ss->nfs.server.nettcpcnt,
+	        ss->nfs.server.netudpcnt,
+	        ss->nfs.server.nettcpcon,
+	        ss->nfs.server.rchits,
+	        ss->nfs.server.rcmiss,
+	        ss->nfs.server.rcnoca);
 }
 
 void
@@ -600,34 +575,33 @@ print_NET(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 	register int 	i;
 
 	printf(	"%s %s %lld %lld %lld %lld %lld %lld %lld %lld\n",
-			hp,
-			"upper",
-        		ss->net.tcp.InSegs,
-   		     	ss->net.tcp.OutSegs,
-       		 	ss->net.udpv4.InDatagrams +
-				ss->net.udpv6.Udp6InDatagrams,
-       		 	ss->net.udpv4.OutDatagrams +
-				ss->net.udpv6.Udp6OutDatagrams,
-       		 	ss->net.ipv4.InReceives  +
-				ss->net.ipv6.Ip6InReceives,
-       		 	ss->net.ipv4.OutRequests +
-				ss->net.ipv6.Ip6OutRequests,
-       		 	ss->net.ipv4.InDelivers +
-       		 		ss->net.ipv6.Ip6InDelivers,
-       		 	ss->net.ipv4.ForwDatagrams +
-       		 		ss->net.ipv6.Ip6OutForwDatagrams);
+	        hp,
+	        "upper",
+	        ss->net.tcp.InSegs,
+	        ss->net.tcp.OutSegs,
+	        ss->net.udpv4.InDatagrams +
+	        ss->net.udpv6.Udp6InDatagrams,
+	        ss->net.udpv4.OutDatagrams +
+	        ss->net.udpv6.Udp6OutDatagrams,
+	        ss->net.ipv4.InReceives  +
+	        ss->net.ipv6.Ip6InReceives,
+	        ss->net.ipv4.OutRequests +
+	        ss->net.ipv6.Ip6OutRequests,
+	        ss->net.ipv4.InDelivers +
+	        ss->net.ipv6.Ip6InDelivers,
+	        ss->net.ipv4.ForwDatagrams +
+	        ss->net.ipv6.Ip6OutForwDatagrams);
 
-	for (i=0; ss->intf.intf[i].name[0]; i++)
-	{
+	for (i=0; ss->intf.intf[i].name[0]; i++) {
 		printf(	"%s %s %lld %lld %lld %lld %ld %d\n",
-			hp,
-			ss->intf.intf[i].name,
-			ss->intf.intf[i].rpack,
-			ss->intf.intf[i].rbyte,
-			ss->intf.intf[i].spack,
-			ss->intf.intf[i].sbyte,
-			ss->intf.intf[i].speed,
-			ss->intf.intf[i].duplex);
+		        hp,
+		        ss->intf.intf[i].name,
+		        ss->intf.intf[i].rpack,
+		        ss->intf.intf[i].rbyte,
+		        ss->intf.intf[i].spack,
+		        ss->intf.intf[i].sbyte,
+		        ss->intf.intf[i].speed,
+		        ss->intf.intf[i].duplex);
 	}
 }
 
@@ -636,18 +610,17 @@ print_IFB(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int 	i;
 
-	for (i=0; i < ss->ifb.nrports; i++)
-	{
+	for (i=0; i < ss->ifb.nrports; i++) {
 		printf(	"%s %s %hd %hd %lld %lld %lld %lld %lld\n",
-			hp,
-			ss->ifb.ifb[i].ibname,
-			ss->ifb.ifb[i].portnr,
-			ss->ifb.ifb[i].lanes,
-			ss->ifb.ifb[i].rate,
-			ss->ifb.ifb[i].rcvb,
-			ss->ifb.ifb[i].sndb,
-			ss->ifb.ifb[i].rcvp,
-			ss->ifb.ifb[i].sndp);
+		        hp,
+		        ss->ifb.ifb[i].ibname,
+		        ss->ifb.ifb[i].portnr,
+		        ss->ifb.ifb[i].lanes,
+		        ss->ifb.ifb[i].rate,
+		        ss->ifb.ifb[i].rcvb,
+		        ss->ifb.ifb[i].sndb,
+		        ss->ifb.ifb[i].rcvp,
+		        ss->ifb.ifb[i].sndp);
 	}
 }
 
@@ -660,41 +633,40 @@ print_PRG(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i, exitcode;
 
-	for (i=0; i < nact; i++, ps++)
-	{
+	for (i=0; i < nact; i++, ps++) {
 		if (ps->gen.excode & 0xff)      // killed by signal?
 			exitcode = (ps->gen.excode & 0x7f) + 256;
 		else
 			exitcode = (ps->gen.excode >>   8) & 0xff;
 
 		printf("%s %d (%s) %c %d %d %d %d %d %ld (%s) %d %d %d %d "
- 		       "%d %d %d %d %d %d %ld %c %d %d %s\n",
-			hp,
-			ps->gen.pid,
-			ps->gen.name,
-			ps->gen.state,
-			ps->gen.ruid,
-			ps->gen.rgid,
-			ps->gen.tgid,
-			ps->gen.nthr,
-			exitcode,
-			ps->gen.btime,
-			ps->gen.cmdline,
-			ps->gen.ppid,
-			ps->gen.nthrrun,
-			ps->gen.nthrslpi,
-			ps->gen.nthrslpu,
-			ps->gen.euid,
-			ps->gen.egid,
-			ps->gen.suid,
-			ps->gen.sgid,
-			ps->gen.fsuid,
-			ps->gen.fsgid,
-			ps->gen.elaps,
-			ps->gen.isproc ? 'y':'n',
-			ps->gen.vpid,
-			ps->gen.ctid,
-			ps->gen.container[0] ? ps->gen.container:"-");
+		       "%d %d %d %d %d %d %ld %c %d %d %s\n",
+		       hp,
+		       ps->gen.pid,
+		       ps->gen.name,
+		       ps->gen.state,
+		       ps->gen.ruid,
+		       ps->gen.rgid,
+		       ps->gen.tgid,
+		       ps->gen.nthr,
+		       exitcode,
+		       ps->gen.btime,
+		       ps->gen.cmdline,
+		       ps->gen.ppid,
+		       ps->gen.nthrrun,
+		       ps->gen.nthrslpi,
+		       ps->gen.nthrslpu,
+		       ps->gen.euid,
+		       ps->gen.egid,
+		       ps->gen.suid,
+		       ps->gen.sgid,
+		       ps->gen.fsuid,
+		       ps->gen.fsgid,
+		       ps->gen.elaps,
+		       ps->gen.isproc ? 'y':'n',
+		       ps->gen.vpid,
+		       ps->gen.ctid,
+		       ps->gen.container[0] ? ps->gen.container:"-");
 	}
 }
 
@@ -703,24 +675,23 @@ print_PRC(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i;
 
-	for (i=0; i < nact; i++, ps++)
-	{
+	for (i=0; i < nact; i++, ps++) {
 		printf("%s %d (%s) %c %u %lld %lld %d %d %d %d %d %d %d %c\n",
-				hp,
-				ps->gen.pid,
-				ps->gen.name,
-				ps->gen.state,
-				hertz,
-				ps->cpu.utime,
-				ps->cpu.stime,
-				ps->cpu.nice,
-				ps->cpu.prio,
-				ps->cpu.rtprio,
-				ps->cpu.policy,
-				ps->cpu.curcpu,
-				ps->cpu.sleepavg,
-				ps->gen.tgid,
-				ps->gen.isproc ? 'y':'n');
+		       hp,
+		       ps->gen.pid,
+		       ps->gen.name,
+		       ps->gen.state,
+		       hertz,
+		       ps->cpu.utime,
+		       ps->cpu.stime,
+		       ps->cpu.nice,
+		       ps->cpu.prio,
+		       ps->cpu.rtprio,
+		       ps->cpu.policy,
+		       ps->cpu.curcpu,
+		       ps->cpu.sleepavg,
+		       ps->gen.tgid,
+		       ps->gen.isproc ? 'y':'n');
 	}
 }
 
@@ -729,30 +700,29 @@ print_PRM(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i;
 
-	for (i=0; i < nact; i++, ps++)
-	{
+	for (i=0; i < nact; i++, ps++) {
 		printf("%s %d (%s) %c %u %lld %lld %lld %lld %lld %lld "
 		       "%lld %lld %lld %lld %lld %d %c %lld\n",
-				hp,
-				ps->gen.pid,
-				ps->gen.name,
-				ps->gen.state,
-				pagesize,
-				ps->mem.vmem,
-				ps->mem.rmem,
-				ps->mem.vexec,
-				ps->mem.vgrow,
-				ps->mem.rgrow,
-				ps->mem.minflt,
-				ps->mem.majflt,
-				ps->mem.vlibs,
-				ps->mem.vdata,
-				ps->mem.vstack,
-				ps->mem.vswap,
-				ps->gen.tgid,
-				ps->gen.isproc ? 'y':'n',
-				ps->mem.pmem == (unsigned long long)-1LL ?
-								0:ps->mem.pmem);
+		       hp,
+		       ps->gen.pid,
+		       ps->gen.name,
+		       ps->gen.state,
+		       pagesize,
+		       ps->mem.vmem,
+		       ps->mem.rmem,
+		       ps->mem.vexec,
+		       ps->mem.vgrow,
+		       ps->mem.rgrow,
+		       ps->mem.minflt,
+		       ps->mem.majflt,
+		       ps->mem.vlibs,
+		       ps->mem.vdata,
+		       ps->mem.vstack,
+		       ps->mem.vswap,
+		       ps->gen.tgid,
+		       ps->gen.isproc ? 'y':'n',
+		       ps->mem.pmem == (unsigned long long)-1LL ?
+		       0:ps->mem.pmem);
 	}
 }
 
@@ -761,19 +731,18 @@ print_PRD(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i;
 
-	for (i=0; i < nact; i++, ps++)
-	{
+	for (i=0; i < nact; i++, ps++) {
 		printf("%s %d (%s) %c %c %c %lld %lld %lld %lld %lld %d n %c\n",
-				hp,
-				ps->gen.pid,
-				ps->gen.name,
-				ps->gen.state,
-				'n',
-				supportflags & IOSTAT ? 'y' : 'n',
-				ps->dsk.rio, ps->dsk.rsz,
-				ps->dsk.wio, ps->dsk.wsz, ps->dsk.cwsz,
-				ps->gen.tgid,
-				ps->gen.isproc ? 'y':'n');
+		       hp,
+		       ps->gen.pid,
+		       ps->gen.name,
+		       ps->gen.state,
+		       'n',
+		       supportflags & IOSTAT ? 'y' : 'n',
+		       ps->dsk.rio, ps->dsk.rsz,
+		       ps->dsk.wio, ps->dsk.wsz, ps->dsk.cwsz,
+		       ps->gen.tgid,
+		       ps->gen.isproc ? 'y':'n');
 	}
 }
 
@@ -782,21 +751,20 @@ print_PRN(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i;
 
-	for (i=0; i < nact; i++, ps++)
-	{
+	for (i=0; i < nact; i++, ps++) {
 		printf("%s %d (%s) %c %c %lld %lld %lld %lld %lld %lld "
 		       "%lld %lld %d %d %d %c\n",
-				hp,
-				ps->gen.pid,
-				ps->gen.name,
-				ps->gen.state,
-				supportflags & NETATOP ? 'y' : 'n',
-				ps->net.tcpsnd, ps->net.tcpssz,
-				ps->net.tcprcv, ps->net.tcprsz,
-				ps->net.udpsnd, ps->net.udpssz,
-				ps->net.udprcv, ps->net.udprsz,
-				0,              0,
-				ps->gen.tgid,   ps->gen.isproc ? 'y':'n');
+		       hp,
+		       ps->gen.pid,
+		       ps->gen.name,
+		       ps->gen.state,
+		       supportflags & NETATOP ? 'y' : 'n',
+		       ps->net.tcpsnd, ps->net.tcpssz,
+		       ps->net.tcprcv, ps->net.tcprsz,
+		       ps->net.udpsnd, ps->net.udpssz,
+		       ps->net.udprcv, ps->net.udprsz,
+		       0,              0,
+		       ps->gen.tgid,   ps->gen.isproc ? 'y':'n');
 	}
 }
 
@@ -805,20 +773,19 @@ print_PRE(char *hp, struct sstat *ss, struct tstat *ps, int nact)
 {
 	register int i;
 
-	for (i=0; i < nact; i++, ps++)
-	{
+	for (i=0; i < nact; i++, ps++) {
 		printf("%s %d (%s) %c %c %d %x %d %d %lld %lld %lld\n",
-				hp,
-				ps->gen.pid,
-				ps->gen.name,
-				ps->gen.state,
-				ps->gpu.state == '\0' ? 'N':ps->gpu.state,
-				ps->gpu.nrgpus,
-				ps->gpu.gpulist,
-				ps->gpu.gpubusy,
-				ps->gpu.membusy,
-				ps->gpu.memnow,
-				ps->gpu.memcum,
-				ps->gpu.sample);
+		       hp,
+		       ps->gen.pid,
+		       ps->gen.name,
+		       ps->gen.state,
+		       ps->gpu.state == '\0' ? 'N':ps->gpu.state,
+		       ps->gpu.nrgpus,
+		       ps->gpu.gpulist,
+		       ps->gpu.gpubusy,
+		       ps->gpu.membusy,
+		       ps->gpu.memnow,
+		       ps->gpu.memcum,
+		       ps->gpu.sample);
 	}
 }
