@@ -126,6 +126,8 @@ static void	try_other_version(int, int);
 static int  recordcputop = -1;
 static int  recordmemtop = -1;
 
+extern int get_posval(char *name, char *val);
+
 void
 do_recordcputop(char *name, char *val)
 {

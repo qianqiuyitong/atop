@@ -149,7 +149,7 @@
 **
 */
 
-static const char rcsid[] = "$Id: photosyst.c,v 1.38 2010/11/19 07:40:40 gerlof Exp $";
+static const char rcsid[] __attribute__((unused)) = "$Id: photosyst.c,v 1.38 2010/11/19 07:40:40 gerlof Exp $";
 
 #include <sys/types.h>
 #include <stdio.h>

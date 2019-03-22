@@ -68,7 +68,7 @@
 **
 */
 
-static const char rcsid[] = "XXXXXX";
+static const char rcsid[] __attribute__((unused)) = "XXXXXX";
 
 #include <sys/types.h>
 #include <sys/param.h>
