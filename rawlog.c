@@ -52,6 +52,8 @@
 #include "photosyst.h"
 
 #define	BASEPATH	"/var/log/atop"
+#define READAHEADOFF	22
+#define READAHEADSIZE	(1 << READAHEADOFF)
 
 /*
 ** structure which describes the raw file contents
@@ -585,6 +587,9 @@ rawread(void)
 		}
 	}
 
+	/* make the kernel readahead more effective, */
+	posix_fadvise(rawfd, 0, 0, POSIX_FADV_SEQUENTIAL);
+
 	/*
 	** read the raw header and verify the magic
 	*/
@@ -694,8 +699,23 @@ rawread(void)
 			** specified with the -b and -e flags (if any)
 			*/
 			if ( (begintime && begintime > secsinday) ) {
+				static off_t curr_pos = -1;
+				off_t next_pos;
 				lastcmd = 1;
-				lseek(rawfd, rr.scomplen+rr.pcomplen, SEEK_CUR);
+				next_pos = lseek(rawfd, rr.scomplen+rr.pcomplen, SEEK_CUR);
+				if ((curr_pos >> READAHEADOFF) != (next_pos >> READAHEADOFF)) {
+					/**
+					 **  -- readahead(rawfd, next_pos & ~(READAHEADSIZE - 1),
+					 **  READAHEADSIZE);
+					 **  rather than readahead syscall, let's FORCE pre-load
+					 **  rawlog to page-cache.
+					 */
+					char *buf = malloc(READAHEADSIZE);
+					ptrverify(buf, "Malloc failed for readahead");
+					pread(rawfd, buf, READAHEADSIZE, next_pos & ~(READAHEADSIZE - 1));
+					free(buf);
+				}
+				curr_pos = next_pos;
 				continue;
 			}
 
