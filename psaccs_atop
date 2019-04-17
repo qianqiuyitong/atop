@@ -3,6 +3,8 @@
     missingok
     daily
     rotate 0
+    nomail
+    nocompress
     ifempty
     create 0600 root root
     postrotate
@@ -24,7 +26,7 @@
 	            # stop atop daemon before accounting file
 	            # is rotated
 	            #
-	            PIDFILE=/var/run/atop.pid
+	            PIDFILE=/run/atop.pid
 
 	            if [ -e $PIDFILE ] && \
 	                   ps -p `cat $PIDFILE` | grep 'atop$' > /dev/null

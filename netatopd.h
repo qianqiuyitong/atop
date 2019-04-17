@@ -1,6 +1,6 @@
 #define SEMAKEY         1541961
 
-#define NETEXITFILE     "/var/run/netatop.log"
+#define NETEXITFILE     "/run/netatop.log"
 #define MYMAGIC         (unsigned int) 0xfeedb0b0
 
 struct naheader {

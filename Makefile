@@ -18,7 +18,7 @@ CRNPATH  = /etc/cron.d
 ROTPATH  = /etc/logrotate.d
 PMPATH1  = /usr/lib/pm-utils/sleep.d
 PMPATH2  = /usr/lib64/pm-utils/sleep.d
-PMPATHD  = /usr/lib/systemd/system-sleep
+PMPATHD  = /lib/systemd/system-sleep
 
 CFLAGS  += -O2 -I. -Wall -g $(shell pkg-config --cflags glib-2.0)  # -DNOPERFEVENT   # -DHTTPSTATS
 LDFLAGS  = $(shell pkg-config --libs glib-2.0)
@@ -65,18 +65,8 @@ systemdinstall:	genericinstall
 		if [ ! -d $(DESTDIR)$(PMPATHD) ]; 			\
 		then	mkdir -p $(DESTDIR)$(PMPATHD); fi
 		#
-		cp atop.service        $(DESTDIR)$(SYSDPATH)
-		chmod 0644             $(DESTDIR)$(SYSDPATH)/atop.service
-		cp atopgpu.service     $(DESTDIR)$(SYSDPATH)
-		chmod 0644             $(DESTDIR)$(SYSDPATH)/atopgpu.service
-		cp atop-rotate.service $(DESTDIR)$(SYSDPATH)
-		chmod 0644             $(DESTDIR)$(SYSDPATH)/atop-rotate.service
-		cp atop-rotate.timer   $(DESTDIR)$(SYSDPATH)
-		chmod 0644             $(DESTDIR)$(SYSDPATH)/atop-rotate.timer
-		cp atopacct.service    $(DESTDIR)$(SYSDPATH)
-		chmod 0644             $(DESTDIR)$(SYSDPATH)/atopacct.service
-		cp atop-pm.sh          $(DESTDIR)$(PMPATHD)
-		chmod 0711             $(DESTDIR)$(PMPATHD)/atop-pm.sh
+		cp atop-pm.sh         $(DESTDIR)$(PMPATHD)/atop-pm
+		chmod 0711            $(DESTDIR)$(PMPATHD)/atop-pm
 		#
 		# only when making on target system:
 		#
@@ -99,8 +89,6 @@ sysvinstall:	genericinstall
 		if [ ! -d $(DESTDIR)$(ROTPATH) ]; 			\
 		then	mkdir -p $(DESTDIR)$(ROTPATH);	fi
 		#
-		cp atop.init      $(DESTDIR)$(INIPATH)/atop
-		cp atopacct.init  $(DESTDIR)$(INIPATH)/atopacct
 		cp atop.cronsysv  $(DESTDIR)$(CRNPATH)/atop
 		cp atop.daily     $(DESTDIR)$(SCRPATH)
 		chmod 0711        $(DESTDIR)$(SCRPATH)/atop.daily
@@ -165,12 +153,9 @@ genericinstall:	atop atopacctd atopconvert atopcat
 		strip  			$(DESTDIR)$(SBINPATH)/atopacctd
 		chown root		$(DESTDIR)$(SBINPATH)/atopacctd
 		chmod 0700 		$(DESTDIR)$(SBINPATH)/atopacctd
-		cp atopgpud  		$(DESTDIR)$(SBINPATH)/atopgpud
-		chown root		$(DESTDIR)$(SBINPATH)/atopgpud
-		chmod 0700 		$(DESTDIR)$(SBINPATH)/atopgpud
-		cp atop   		$(DESTDIR)$(BINPATH)/atop-$(VERS)
-		strip   		$(DESTDIR)$(BINPATH)/atop-$(VERS)
-		ln -sf atop-$(VERS)     $(DESTDIR)$(BINPATH)/atopsar-$(VERS)
+		#cp atopgpud  		$(DESTDIR)$(SBINPATH)/atopgpud
+		#chown root		$(DESTDIR)$(SBINPATH)/atopgpud
+		#chmod 0700 		$(DESTDIR)$(SBINPATH)/atopgpud
 		cp atopconvert 		$(DESTDIR)$(BINPATH)/atopconvert
 		strip 			$(DESTDIR)$(BINPATH)/atopconvert
 		chown root		$(DESTDIR)$(BINPATH)/atopconvert
@@ -184,7 +169,6 @@ genericinstall:	atop atopacctd atopconvert atopcat
 		cp man/atopcat.1 	$(DESTDIR)$(MAN1PATH)
 		cp man/atoprc.5  	$(DESTDIR)$(MAN5PATH)
 		cp man/atopacctd.8  	$(DESTDIR)$(MAN8PATH)
-		cp man/atopgpud.8  	$(DESTDIR)$(MAN8PATH)
 
 ##########################################################################
 

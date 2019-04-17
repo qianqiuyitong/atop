@@ -9,5 +9,7 @@ Last-Update: 2016-08-07
 +# this is called - on sysvinit systems - at midnight by cron
 +# on systemd systems this is called from the systemd unit
  
- LOGOPTS="-R"				# default options
- LOGINTERVAL=600				# default interval in seconds
+-LOGOPTS="-R"				# default options
++LOGOPTS="-a"				# default options
+-LOGINTERVAL=600				# default interval in seconds
++LOGINTERVAL=10				# default interval in seconds
