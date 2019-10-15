@@ -1,0 +1,13 @@
+Description: More explanation in atop.daily
+Author: Marc Haber <mh+debian-packages@zugschlus.de>
+Forwarded: no
+Last-Update: 2016-08-07
+--- a/atop.daily
++++ b/atop.daily
+@@ -1,4 +1,6 @@
+ #!/bin/bash
++# this is called - on sysvinit systems - at midnight by cron
++# on systemd systems this is called from the systemd unit
+ 
+ LOGOPTS="-R"				# default options
+ LOGINTERVAL=600				# default interval in seconds

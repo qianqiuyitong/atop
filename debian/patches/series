@@ -1,0 +1,15 @@
+dh_systemd_enable
+dh_installinit
+lsb-init-functions
+systemd-path
+atopacct.service
+init-script-lsb-headers
+force-reload
+dependency-on-remote-fs
+no-files-in-var-log
+no-version-symlinks
+var-run
+atop-daily
+logrotate-nomail
+atop-pm
+no-atopgpud
