@@ -107,7 +107,7 @@ static char 		coloron;       /* boolean: colors active now      */
 static void	engine(void);
 static void	pratopsaruse(char *);
 static void	reportlive(time_t, int, struct sstat *);
-static char     reportraw (time_t, int,
+static char     reportraw (time_t, int, struct devtstat *,
                             struct devtstat *, struct sstat *,
                             int, unsigned int, char);
 
@@ -718,8 +718,8 @@ reportlive(time_t curtime, int numsecs, struct sstat *ss)
 ** report function to print a new sample in case of logged measurements
 */
 static char
-reportraw(time_t curtime, int numsecs,
-         	struct devtstat *devtstat, struct sstat *sstat,
+reportraw(time_t curtime, int numsecs, struct devtstat *devtstat,
+		struct devtstat *filtertstat, struct sstat *sstat,
 		int nexit, unsigned int noverflow, char flags)
 {
 	static char		firstcall = 1;
