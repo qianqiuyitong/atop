@@ -294,15 +294,15 @@ ssize_t json_unix_sock_write(int conn_fd, char *buf, int len)
 */
 
 char
-jsonout(time_t curtime, int numsecs,
-         struct devtstat *devtstat, struct sstat *sstat,
+jsonout(time_t curtime, int numsecs, struct devtstat *devtstat,
+         struct devtstat *filtertstat, struct sstat *sstat,
          int nexit, unsigned int noverflow, char flag)
 {
 	register int	i;
 	char		datestr[32], timestr[32], header[256], general[256];
 	int buflen = 0;
 	int conn_fd = 0;
-	struct tstat *tmp = devtstat->taskall;
+	struct tstat *tmp = filtertstat->taskall;
 
 	convdate(curtime, datestr);
 	convtime(curtime, timestr);
@@ -320,7 +320,7 @@ jsonout(time_t curtime, int numsecs,
 		);
 
 	/* Replace " with # in case json can not parse this out */
-	for (int k = 0; k < devtstat->ntaskall; k++, (tmp)++) {
+	for (int k = 0; k < filtertstat->ntaskall; k++, (tmp)++) {
 		for (int j = 0; j < strlen((tmp)->gen.name); j++)
 			if ((tmp)->gen.name[j] == '\"') {
 				(tmp)->gen.name[j] = '#';
@@ -354,12 +354,11 @@ jsonout(time_t curtime, int numsecs,
 		snprintf(header, sizeof header, "\"%s\"",
 			labeldef[i].label);
 		/* call all print-functions */
-		if ( (labeldef[i].prifunc)(header, sstat, devtstat->taskall,
-				      devtstat->ntaskall, conn_fd) < 0 ) {
+		if ( (labeldef[i].prifunc)(header, sstat, filtertstat->taskall,
+				      filtertstat->ntaskall, conn_fd) < 0 ) {
 			json_unix_sock(-1);
 			break;
 		}
-
 	}
 
 	return '\0';
