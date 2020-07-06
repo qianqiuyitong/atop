@@ -401,6 +401,7 @@ void do_pacctdir(char *, char *);
 void do_perfevents(char *, char *);
 void do_recordcputop(char *, char *);
 void do_recordmemtop(char *, char *);
+void do_oomscoreadj(char *, char *);
 
 static struct {
 	char	*tag;
@@ -453,6 +454,7 @@ static struct {
 	{	"recordcputop",		do_recordcputop,		0, },
 	{	"recordmemtop",		do_recordmemtop,		0, },
 	{	"pacctdir",		do_pacctdir,		1, },
+	{	"oomscoreadj",		do_oomscoreadj,		1, },
 };
 
 /*
@@ -1206,6 +1208,46 @@ void
 do_generations(char *name, char *val)
 {
 	generations = get_posval(name, val);
+}
+
+void
+do_oomscoreadj(char *name, char *val)
+{
+        int value;
+        int fd;
+        char *tmp = val;
+
+        if ( tmp[0] == '-' )
+                tmp++;
+
+        if ( !numeric(tmp) )
+        {
+                fprintf(stderr, "atoprc: %s value %s not a numeric\n",
+                name, val);
+                exit(1);
+        }
+
+        value = atoi(val);
+        if (value < -1000 || value > 1000 )
+        {
+                fprintf(stderr,
+                        "atoprc: %s value %d out of range[-1000, 1000]\n",
+                        name, value);
+                exit(1);
+        }
+
+        /* set OOM score adj is not a fatal error */
+        fd = open("/proc/self/oom_score_adj", O_RDWR);
+        if ( fd < 0 ) {
+                fprintf(stderr, "atoprc: open oom_score_adj failed\n");
+                return;
+        }
+
+        if ( write(fd, val, strlen(val)) < 0 ) {
+                fprintf(stderr, "atoprc: write oom_score_adj failed\n");
+        }
+
+        close(fd);
 }
 
 /*
