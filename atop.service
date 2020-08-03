@@ -3,15 +3,17 @@ Description=Atop advanced performance monitor
 Documentation=man:atop(1)
 
 [Service]
-Environment=LOGOPTS=""
-Environment=LOGINTERVAL=600
-Environment=LOGGENERATIONS=28
+Environment=LOGOPTS="-a"
+Environment=LOGINTERVAL=10
+Environment=LOGGENERATIONS=5
+Environment=THREADMAX=100
 Environment=LOGPATH=/var/log/atop
 EnvironmentFile=/etc/default/atop
 ExecStartPre=/bin/sh -c 'test -n "$LOGINTERVAL" -a "$LOGINTERVAL" -eq "$LOGINTERVAL"'
 ExecStartPre=/bin/sh -c 'test -n "$LOGGENERATIONS" -a "$LOGGENERATIONS" -eq "$LOGGENERATIONS"'
-ExecStart=/bin/sh -c 'exec /usr/bin/atop ${LOGOPTS} -w "${LOGPATH}/atop_$(date +%%Y%%m%%d)" ${LOGINTERVAL}'
-ExecStartPost=/usr/bin/find "${LOGPATH}" -name "atop_*" -mtime +${LOGGENERATIONS} -exec rm -v {} \;
+ExecStartPre=/bin/sh -c 'if [ -e ${LOGPATH}/atop_$(date +%%Y%%m%%d) ]; then mv ${LOGPATH}/atop_$(date +%%Y%%m%%d) $LOGPATH/atop_$(date +%%Y%%m%%d)_until$(date +%T); fi'
+ExecStart=/bin/sh -c 'exec /usr/bin/atop ${LOGOPTS} -H ${THREADMAX} -O unixsock -w "${LOGPATH}/atop_$(date +%%Y%%m%%d)" ${LOGINTERVAL}'
+ExecStartPost=/usr/share/atop/atop-generation.sh
 KillSignal=SIGUSR2
 
 [Install]
